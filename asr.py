@@ -4,7 +4,7 @@ import json
 def recognize_wav(data):
     baseurl = "http://www.google.com/speech-api/v2/recognize?lang=%s&maxresults=%d&key=%s" % (
         'cs', 5, 'PRIVATE KEY')
-    header = {"Content-Type": "audio/l16; rate=%d" % 16000}
+    header = {"Content-Type": "audio/l16; rate=%d" % 44100}
 
     request = urllib2.Request(baseurl, data, header)
     json_hypotheses = urllib2.urlopen(request).read()
