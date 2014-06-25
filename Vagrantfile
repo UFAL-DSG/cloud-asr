@@ -10,6 +10,8 @@ Vagrant.configure("2") do |config|
     vb.cpus = 1
   end
 
+  config.vm.provision :shell, :path => "install/base.sh"
+  config.vm.provision :shell, :path => "install/pykaldi.sh"
   config.vm.provision :shell, :path => "install/nginx.sh"
   config.vm.provision :shell, :path => "install/supervisord.sh"
 
