@@ -1,17 +1,118 @@
-import urllib2
-import json
+from kaldi.decoders import PyOnlineLatgenRecogniser
+from kaldi.utils import lattice_to_nbest, wst2dict
+from StringIO import StringIO
+import wave
 
-def recognize_wav(data):
-    baseurl = "http://www.google.com/speech-api/v2/recognize?lang=%s&maxresults=%d&key=%s" % (
-        'cs', 5, 'PRIVATE KEY')
-    header = {"Content-Type": "audio/l16; rate=%d" % 44100}
+recogniser = None
+wst = None
 
-    request = urllib2.Request(baseurl, data, header)
-    json_hypotheses = urllib2.urlopen(request).read()
 
-    hypotheses = json.loads('{"result":[]}')
-    for h in json_hypotheses.splitlines():
-        if '"final":true' in h:
-            hypotheses = json.loads(h)
+def asr_init(basedir):
+    create_recogniser(basedir)
+    create_dictionary(basedir)
 
-    return hypotheses
+
+def create_recogniser(basedir):
+    global recogniser
+
+    recogniser = PyOnlineLatgenRecogniser()
+    argv = ['--config=%s/models/mfcc.conf' % basedir,
+            '--verbose=0', '--max-mem=10000000000', '--lat-lm-scale=15', '--beam=12.0',
+            '--lattice-beam=6.0', '--max-active=5000',
+            '%s/models/tri2b_bmmi.mdl' % basedir,
+            '%s/models/HCLG_tri2b_bmmi.fst' % basedir,
+            '1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25',
+            '%s//models/tri2b_bmmi.mat' % basedir]
+    recogniser.setup(argv)
+
+
+def create_dictionary(basedir):
+    global wst
+
+    wst = wst2dict('%s/models/words.txt' % basedir)
+
+
+def recognize_wav(data, def_sample_width=2, def_sample_rate=16000):
+    wav = load_wav_from_request_data(data, def_sample_width)
+    pcm = convert_wav_to_pcm(wav, def_sample_rate)
+    hypotheses = recognize_nbest_hypotheses(pcm, n=10)
+
+    return create_response(hypotheses)
+
+
+def load_wav_from_request_data(data, def_sample_width):
+    wav = wave.open(StringIO(data), 'r')
+    if wav.getnchannels() != 1:
+        raise Exception('Input wave is not in mono')
+    if wav.getsampwidth() != def_sample_width:
+        raise Exception('Input wave is not in %d Bytes' % def_sample_width)
+
+    return wav
+
+
+def convert_wav_to_pcm(wav, def_sample_rate):
+    try:
+        chunk = 1024
+        pcm = b''
+        pcmPart = wav.readframes(chunk)
+
+        while pcmPart:
+            pcm += str(pcmPart)
+            pcmPart = wav.readframes(chunk)
+
+        return resample_to_def_sample_rate(pcm, wav.getframerate(), def_sample_rate)
+    except EOFError:
+        raise Exception('Input PCM is corrupted: End of file.')
+
+
+def resample_to_def_sample_rate(pcm, sample_rate, def_sample_rate):
+    if sample_rate != def_sample_rate:
+        import audioop
+        pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, def_sample_rate, None)
+
+    return pcm
+
+
+def recognize_nbest_hypotheses(pcm, n=10):
+    utt_lik, lat = recognize(pcm)
+    return lattice_to_nbest_hypotheses(lat, n)
+
+
+def recognize(pcm):
+    global recogniser
+
+    recogniser.frame_in(pcm)
+
+    decoded = recogniser.decode(max_frames=10)
+    total = 0
+    while decoded > 0:
+        total += decoded
+        decoded = recogniser.decode(max_frames=10)
+
+    recogniser.prune_final()
+    result = recogniser.get_lattice()
+
+    recogniser.reset()
+
+    return result
+
+
+def lattice_to_nbest_hypotheses(lat, n=10):
+    return [(prob, path_to_text(path)) for (prob, path) in lattice_to_nbest(lat, n=10)]
+
+
+def path_to_text(path):
+    global wst
+    return u' '.join([unicode(wst[w]) for w in path])
+
+
+def create_response(hypotheses):
+    return {
+        "result": [
+            {
+                "alternative": [{"transcript": t, "confidence": c} for (c,t) in hypotheses],
+                "final": True,
+            },
+        ],
+        "result_index": 0
+    }
