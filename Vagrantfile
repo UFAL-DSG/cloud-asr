@@ -14,5 +14,6 @@ Vagrant.configure("2") do |config|
   config.vm.provision :shell, :path => "install/pykaldi.sh"
   config.vm.provision :shell, :path => "install/nginx.sh"
   config.vm.provision :shell, :path => "install/supervisord.sh"
+  config.vm.provision :shell, :path => "install/zeromq.sh"
 
 end
