@@ -8,7 +8,7 @@ export DEBIAN_FRONTEND=noninteractive
 
 sudo apt-get update
 sudo apt-get install -y sox git python-dev python-pip python-setuptools libatlas-base-dev portaudio19-dev build-essential
-sudo pip install cython pyyaml pystache flask
+sudo pip install cython pyyaml pystache flask flask-socketio
 
 # install pyaudio
 pushd /tmp
