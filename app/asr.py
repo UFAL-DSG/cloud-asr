@@ -5,6 +5,7 @@ import wave
 
 recogniser = None
 wst = None
+rest = b''
 
 
 def asr_init(basedir):
@@ -35,9 +36,48 @@ def create_dictionary(basedir):
 def recognize_wav(data, def_sample_width=2, def_sample_rate=16000):
     wav = load_wav_from_request_data(data, def_sample_width)
     pcm = convert_wav_to_pcm(wav, def_sample_rate)
-    hypotheses = recognize_nbest_hypotheses(pcm, n=10)
+
+    recognize_chunk(pcm)
+    return nbest_hypotheses(n=10)
 
     return create_response(hypotheses)
+
+
+def recognize_chunk(pcm):
+    global recogniser
+    global rest
+
+    pcm = rest + pcm
+    frame_len = 16
+    i, decoded_frames, max_end = 0, 0, len(pcm)
+
+    while i * frame_len < len(pcm):
+        i, begin, end = i + 1, i * frame_len, min(max_end, (i + 1) * frame_len)
+        audio_chunk = pcm[begin:end]
+        recogniser.frame_in(audio_chunk)
+        dec_t = recogniser.decode(max_frames=10)
+        while dec_t > 0:
+            decoded_frames += dec_t
+            dec_t =recogniser.decode(max_frames=10)
+
+    rest = pcm[i*frame_len:]
+
+    return recogniser.get_best_path()
+
+
+def nbest_hypotheses(n=10):
+    global recogniser
+
+    recogniser.prune_final()
+    utt_lik, lat = recogniser.get_lattice()
+    recogniser.reset()
+
+    return [(prob, path_to_text(path)) for (prob, path) in lattice_to_nbest(lat, n=10)]
+
+
+def path_to_text(path):
+    global wst
+    return u' '.join([unicode(wst[w]) for w in path])
 
 
 def load_wav_from_request_data(data, def_sample_width):
@@ -71,39 +111,6 @@ def resample_to_def_sample_rate(pcm, sample_rate, def_sample_rate):
         pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, def_sample_rate, None)
 
     return pcm
-
-
-def recognize_nbest_hypotheses(pcm, n=10):
-    utt_lik, lat = recognize(pcm)
-    return lattice_to_nbest_hypotheses(lat, n)
-
-
-def recognize(pcm):
-    global recogniser
-
-    recogniser.frame_in(pcm)
-
-    decoded = recogniser.decode(max_frames=10)
-    total = 0
-    while decoded > 0:
-        total += decoded
-        decoded = recogniser.decode(max_frames=10)
-
-    recogniser.prune_final()
-    result = recogniser.get_lattice()
-
-    recogniser.reset()
-
-    return result
-
-
-def lattice_to_nbest_hypotheses(lat, n=10):
-    return [(prob, path_to_text(path)) for (prob, path) in lattice_to_nbest(lat, n=10)]
-
-
-def path_to_text(path):
-    global wst
-    return u' '.join([unicode(wst[w]) for w in path])
 
 
 def create_response(hypotheses):

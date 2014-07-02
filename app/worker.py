@@ -1,4 +1,4 @@
-from asr import asr_init, recognize_wav
+from asr import asr_init, recognize_wav, create_response
 import os
 import zmq
 from datetime import datetime
@@ -21,7 +21,7 @@ log('Worker initialized.')
 while True:
     wav = socket.recv()
     log('Received wav for speech recognition.')
-    response = recognize_wav(wav)
-    socket.send_json(response)
+    best_hypotheses = recognize_wav(wav)
+    socket.send_json(create_response(best_hypotheses))
     log('Recognized hypotheses sent.')
 
