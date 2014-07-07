@@ -1,30 +1,39 @@
-import wave
+import zmq
 import struct
-from StringIO import StringIO
-from background_asr import recognize_wav
 
 class OnlineASR:
     def __init__(self, emit):
-        self.socket = 12345
+        port = "5660"
+        context = zmq.Context()
+        socket = context.socket(zmq.PAIR)
+        socket.connect("tcp://localhost:%s" % port)
+        print "Socket created"
+
+        self.socket = socket
         self.emit = emit
-        self.pcm = []
 
     def recognize_chunk(self, message):
-        for i in message['chunk']:
-            self.pcm.append(struct.pack('h', i))
+        print "PCM received"
+        pcm = b''.join([struct.pack('h', i) for i in message['chunk']])
 
-        self.emit('result', {'result':[]})
+        print self.socket.send(pcm)
+
+        print "Waiting for result"
+        msg = self.socket.recv_json()
+
+        print "Sending interim result"
+        self.emit('result', msg['result'])
 
     def end(self):
-        f = StringIO()
-        wav = wave.open(f, 'wb')
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(44100)
-        wav.writeframes(b''.join(self.pcm))
+        self.socket.send("end")
+        print "Ending socket"
 
-        self.emit('result', recognize_wav(f.getvalue()))
-        self.emit('end', {})
+        while True:
+            msg = self.socket.recv_json()
 
-        wav.close()
-        f.close()
+            if msg['type'] == 'end':
+                self.emit('end', {})
+                self.socket.close()
+                break
+
+            self.emit('result', msg['result'])

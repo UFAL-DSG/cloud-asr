@@ -5,7 +5,6 @@ import wave
 
 recogniser = None
 wst = None
-rest = b''
 
 
 def asr_init(basedir):
@@ -45,22 +44,13 @@ def recognize_wav(data, def_sample_width=2, def_sample_rate=16000):
 
 def recognize_chunk(pcm):
     global recogniser
-    global rest
 
-    pcm = rest + pcm
-    frame_len = 16
-    i, decoded_frames, max_end = 0, 0, len(pcm)
-
-    while i * frame_len < len(pcm):
-        i, begin, end = i + 1, i * frame_len, min(max_end, (i + 1) * frame_len)
-        audio_chunk = pcm[begin:end]
-        recogniser.frame_in(audio_chunk)
+    decoded_frames = 0
+    recogniser.frame_in(pcm)
+    dec_t = recogniser.decode(max_frames=10)
+    while dec_t > 0:
+        decoded_frames += dec_t
         dec_t = recogniser.decode(max_frames=10)
-        while dec_t > 0:
-            decoded_frames += dec_t
-            dec_t =recogniser.decode(max_frames=10)
-
-    rest = pcm[i*frame_len:]
 
     return recogniser.get_best_path()
 
