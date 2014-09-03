@@ -8,7 +8,6 @@ from jsonschema import validate
 
 class TestBatchRecognition(unittest.TestCase):
 
-    @unittest.skip("not implemented yet")
     def test_batch_recognition(self):
         response = self.get_response_for_wav()
 
