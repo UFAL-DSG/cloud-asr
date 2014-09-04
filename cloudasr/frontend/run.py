@@ -1,23 +1,13 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
+from lib import create_frontend_worker
+import os
 app = Flask(__name__)
+worker = create_frontend_worker(os.environ['WORKER_ADDR'])
 
 
 @app.route("/recognize", methods=['POST'])
 def recognize_batch():
-    return jsonify({
-        "result": [
-            {
-                "alternative": [
-                    {
-                        "confidence": 1.0,
-                        "transcript": "Hello World!"
-                    },
-                ],
-                "final": True,
-            },
-        ],
-        "result_index": 0,
-    })
+    return jsonify(worker.recognize_batch(request.data))
 
 
 if __name__ == "__main__":
