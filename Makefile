@@ -16,6 +16,15 @@ run:
 	sudo docker run --name master -p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} -e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} -d master
 	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -d worker
 
+run_worker:
+	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -i -t --rm worker
+
+run_frontend:
+	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e WORKER_ADDR=${WORKER_ADDR} -i -t --rm frontend
+
+run_master:
+	sudo docker run --name master -p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} -e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} -i -t --rm master
+
 stop:
-	sudo docker stop frontend worker master
+	sudo docker kill frontend worker master
 	sudo docker rm frontend worker master
