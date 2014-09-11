@@ -28,3 +28,9 @@ run_master:
 stop:
 	sudo docker kill frontend worker master
 	sudo docker rm frontend worker master
+
+test:
+	nosetests tests/
+	nosetests cloudasr/master/
+	nosetests cloudasr/worker/
+	nosetests cloudasr/frontend/
