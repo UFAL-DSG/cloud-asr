@@ -1,12 +1,6 @@
-import zmq
+from lib import create_master
 import os
 
-context = zmq.Context()
-worker_socket = context.socket(zmq.REP)
-worker_socket.bind(os.environ['WORKER_ADDR'])
 
-while True:
-    msg = worker_socket.recv()
-    worker_socket.send("OK")
-    print msg
-
+master = create_master(os.environ['WORKER_ADDR'], os.environ['FRONTEND_ADDR'])
+master.run()
