@@ -20,19 +20,27 @@ dummy_final_hypothesis = {
 class TestWorker(unittest.TestCase):
 
     def setUp(self):
-        self.received_messages = ["message 1", "message 2"]
-        self.socket = socket = SocketSpy(self.received_messages[:])
-        self.asr = asr = ASRSpy(dummy_final_hypothesis)
-        self.worker = Worker(socket, asr, socket.has_next_message)
+        self.worker_address = "tcp:/127.0.0.1:5678"
+        self.worker_socket = SocketSpy()
+        self.master_socket = MasterSocketSpy()
+        self.asr = ASRSpy(dummy_final_hypothesis)
+        self.worker = Worker(self.worker_address, self.worker_socket, self.master_socket, self.asr, self.worker_socket.has_next_message)
 
     def test_worker_forwards_every_message_to_asr(self):
-        self.worker.run()
-        print self.asr.processed_chunks
-        self.assertEquals(self.received_messages, self.asr.processed_chunks)
+        self.run_worker(["message 1", "message 2"])
+        self.assertEquals(["message 1", "message 2"], self.asr.processed_chunks)
 
     def test_worker_reads_final_hypothesis_from_asr(self):
+        self.run_worker(["message 1", "message 2"])
+        self.assertEquals([dummy_final_hypothesis, dummy_final_hypothesis], self.worker_socket.sent_messages)
+
+    def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
+        self.run_worker(["message 1", "message 2"])
+        self.assertEquals([self.worker_address, self.worker_address], self.master_socket.sent_messages)
+
+    def run_worker(self, messages):
+        self.worker_socket.add_messages(messages)
         self.worker.run()
-        self.assertEquals([dummy_final_hypothesis, dummy_final_hypothesis], self.socket.sent_messages)
 
 
 class TestASR(unittest.TestCase):
@@ -54,18 +62,29 @@ class TestASR(unittest.TestCase):
 
 class SocketSpy:
 
-    def __init__(self, messages):
-        self.messages = messages
+    def __init__(self):
+        self.messages = []
         self.sent_messages = []
+
+    def add_messages(self, messages):
+        self.messages.extend(messages)
 
     def recv(self):
         return self.messages.pop(0)
+
+    def send(self, message):
+        return self.sent_messages.append(message)
 
     def send_json(self, message):
         return self.sent_messages.append(message)
 
     def has_next_message(self):
         return len(self.messages) > 0
+
+class MasterSocketSpy(SocketSpy):
+
+    def recv(self):
+        return "OK"
 
 
 class ASRSpy:

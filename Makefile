@@ -14,7 +14,7 @@ build:
 run:
 	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e WORKER_ADDR=${WORKER_ADDR} -d frontend
 	sudo docker run --name master -p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} -e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} -d master
-	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -d worker
+	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -d worker
 
 stop:
 	sudo docker stop frontend worker master
