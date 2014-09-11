@@ -20,11 +20,12 @@ dummy_final_hypothesis = {
 class TestWorker(unittest.TestCase):
 
     def setUp(self):
-        self.worker_address = "tcp:/127.0.0.1:5678"
+        self.model = "en-GB"
+        self.worker_address = "tcp://127.0.0.1:5678"
         self.worker_socket = SocketSpy()
         self.master_socket = MasterSocketSpy()
         self.asr = ASRSpy(dummy_final_hypothesis)
-        self.worker = Worker(self.worker_address, self.worker_socket, self.master_socket, self.asr, self.worker_socket.has_next_message)
+        self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.worker_socket.has_next_message)
 
     def test_worker_forwards_every_message_to_asr(self):
         self.run_worker(["message 1", "message 2"])
@@ -36,7 +37,13 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
         self.run_worker(["message 1", "message 2"])
-        self.assertEquals([self.worker_address, self.worker_address], self.master_socket.sent_messages)
+
+        expected_message = {
+            "address": self.worker_address,
+            "model": self.model
+        }
+
+        self.assertEquals([expected_message, expected_message], self.master_socket.sent_messages)
 
     def run_worker(self, messages):
         self.worker_socket.add_messages(messages)

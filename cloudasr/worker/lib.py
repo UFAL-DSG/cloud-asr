@@ -1,7 +1,7 @@
 import zmq
 
 
-def create_worker(worker_address, master_address):
+def create_worker(model, worker_address, master_address):
     context = zmq.Context()
     worker_socket = context.socket(zmq.REP)
     worker_socket.bind(worker_address)
@@ -11,12 +11,13 @@ def create_worker(worker_address, master_address):
     asr = ASR()
     run_forever = lambda: True
 
-    return Worker(worker_address, worker_socket, master_socket, asr, run_forever)
+    return Worker(model, worker_address, worker_socket, master_socket, asr, run_forever)
 
 
 class Worker:
 
-    def __init__(self, my_address, my_socket, master_socket, asr, should_continue):
+    def __init__(self, model, my_address, my_socket, master_socket, asr, should_continue):
+        self.model = model
         self.my_address = my_address
         self.my_socket = my_socket
         self.master_socket = master_socket
@@ -33,7 +34,12 @@ class Worker:
             self.my_socket.send_json(final_hypothesis)
 
     def send_heartbeat(self):
-        self.master_socket.send(self.my_address)
+        message = {
+            "address": self.my_address,
+            "model": self.model
+        }
+
+        self.master_socket.send_json(message)
         self.master_socket.recv()
 
 class ASR:
