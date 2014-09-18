@@ -14,7 +14,8 @@ RUN ldconfig
 RUN apt-get install -y python python-dev python-distribute python-pip
 RUN pip install pyzmq
 RUN pip install flask
+RUN pip install gunicorn
 
 ADD . /opt/app
 WORKDIR /opt/app
-CMD python run.py
+CMD gunicorn -b 0.0.0.0:8000 -w 4 run:app
