@@ -24,7 +24,10 @@ class FrontendWorker:
         self.master_socket.send_json({"model": model})
         response = self.master_socket.recv_json()
 
-        return response["address"]
+        if response["status"] == "success":
+            return response["address"]
+        else:
+            raise NoWorkerAvailableError()
 
     def recognize_batch_on_worker(self, worker_address, data):
         self.worker_socket.connect(worker_address)
@@ -33,3 +36,7 @@ class FrontendWorker:
         self.worker_socket.disconnect(worker_address)
 
         return response
+
+
+class NoWorkerAvailableError(Exception):
+    pass

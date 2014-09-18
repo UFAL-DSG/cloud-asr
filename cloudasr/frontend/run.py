@@ -12,7 +12,10 @@ def recognize_batch():
         "wav": request.data
     }
 
-    return jsonify(worker.recognize_batch(data))
+    try:
+        return jsonify(worker.recognize_batch(data))
+    except NoWorkerAvailableError:
+        return jsonify({"status": "error", "message": "No worker available"}), 503
 
 
 if __name__ == "__main__":

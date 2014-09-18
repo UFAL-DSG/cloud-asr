@@ -1,5 +1,5 @@
 import unittest
-from lib import FrontendWorker
+from lib import FrontendWorker, NoWorkerAvailableError
 
 
 class TestFrontendWorker(unittest.TestCase):
@@ -49,6 +49,10 @@ class TestFrontendWorker(unittest.TestCase):
         response = self.worker.recognize_batch(self.request_data)
         self.assertEquals(self.dummy_response, response)
 
+    def test_recognize_batch_raise_exception_when_no_worker_is_available(self):
+        self.master_socket.set_response({"status": "error", "message": "No worker available"})
+        self.assertRaises(NoWorkerAvailableError, lambda: self.worker.recognize_batch(self.request_data))
+
 
 class SocketSpy:
 
@@ -57,6 +61,9 @@ class SocketSpy:
         self.sent_message = None
         self.connected_to = None
         self.is_disconnected = None
+
+    def set_response(self, response):
+        self.response = response
 
     def connect(self, address):
         self.connected_to = address
