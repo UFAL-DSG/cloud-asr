@@ -8,34 +8,43 @@ MASTER_TO_WORKER_ADDR=tcp://${IP}:${MASTER_TO_WORKER_PORT}
 MASTER_TO_FRONTEND_PORT=5680
 MASTER_TO_FRONTEND_ADDR=tcp://${IP}:${MASTER_TO_FRONTEND_PORT}
 
+
+MASTER_OPTS=--name master \
+	-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
+	-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
+	-e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} \
+	-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT}
+
+WORKER_OPTS=--name worker \
+	-p ${WORKER_PORT}:${WORKER_PORT} \
+	-e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} \
+	-e PUBLIC_ADDR=${WORKER_ADDR} \
+	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
+	-e MODEL=en-GB
+
+FRONTEND_OPTS=--name frontend \
+	-p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} \
+	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR}
+
+
 build:
 	sudo docker build -t frontend cloudasr/frontend/
 	sudo docker build -t worker cloudasr/worker/
 	sudo docker build -t master cloudasr/master/
 
 run:
-	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} -d frontend
-	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT}  -e PUBLIC_ADDR=${WORKER_ADDR} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -e MODEL=en-GB -d worker
-	sudo docker run --name master \
-		-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
-		-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
-		-e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} \
-		-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT} \
-		-d master
+	sudo docker run ${FRONTEND_OPTS} -d frontend
+	sudo docker run ${WORKER_OPTS} -d worker
+	sudo docker run ${MASTER_OPTS} -d master
 
 run_worker:
-	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e PUBLIC_ADDR=${WORKER_ADDR} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -e MODEL=en-GB -i -t --rm worker
+	sudo docker run ${WORKER_OPTS} -i -t --rm worker
 
 run_frontend:
-	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} -i -t --rm frontend
+	sudo docker run ${FRONTEND_OPTS} -i -t --rm frontend
 
 run_master:
-	sudo docker run --name master \
-		-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
-		-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
-		-e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} \
-		-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT} \
-		-i -t --rm master
+	sudo docker run ${MASTER_OPTS} -i -t --rm master
 
 stop:
 	sudo docker kill frontend worker master
