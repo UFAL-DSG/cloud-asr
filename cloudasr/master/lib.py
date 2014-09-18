@@ -87,7 +87,7 @@ class Master:
 
     def is_worker_available(self, worker):
         status = self.workers_status[worker]
-        return status["status"] == "WAITING" and status["last_heartbeat"] > self.time - 10
+        return status["status"] == "WAITING" and status["last_heartbeat"] > self.time - 3600
 
     def update_worker_status(self, worker, status):
         self.workers_status[worker] = {
