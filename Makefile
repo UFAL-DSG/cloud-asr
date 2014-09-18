@@ -14,8 +14,8 @@ build:
 	sudo docker build -t master cloudasr/master/
 
 run:
-	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e WORKER_ADDR=${WORKER_ADDR} -d frontend
-	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -e MODEL=en-GB -d worker
+	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} -d frontend
+	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT}  -e PUBLIC_ADDR=${WORKER_ADDR} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -e MODEL=en-GB -d worker
 	sudo docker run --name master \
 		-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
 		-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
@@ -24,10 +24,10 @@ run:
 		-d master
 
 run_worker:
-	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -i -t --rm worker
+	sudo docker run --name worker -p ${WORKER_PORT}:${WORKER_PORT} -e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} -e PUBLIC_ADDR=${WORKER_ADDR} -e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} -e MODEL=en-GB -i -t --rm worker
 
 run_frontend:
-	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e WORKER_ADDR=${WORKER_ADDR} -i -t --rm frontend
+	sudo docker run --name frontend -p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} -e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} -i -t --rm frontend
 
 run_master:
 	sudo docker run --name master \

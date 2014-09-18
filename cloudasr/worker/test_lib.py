@@ -27,7 +27,7 @@ class TestWorker(unittest.TestCase):
         self.asr = ASRSpy(dummy_final_hypothesis)
         self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.worker_socket.has_next_message)
 
-    def test_worker_forwards_every_message_to_asr(self):
+    def test_worker_forwards_wav_from_every_message_to_asr(self):
         self.run_worker(["message 1", "message 2"])
         self.assertEquals(["message 1", "message 2"], self.asr.processed_chunks)
 

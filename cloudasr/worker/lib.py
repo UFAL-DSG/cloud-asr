@@ -1,17 +1,17 @@
 import zmq
 
 
-def create_worker(model, worker_address, master_address):
+def create_worker(model, worker_socket_address, worker_public_address, master_address):
     context = zmq.Context()
     worker_socket = context.socket(zmq.REP)
-    worker_socket.bind(worker_address)
+    worker_socket.bind(worker_socket_address)
     master_socket = context.socket(zmq.REQ)
     master_socket.connect(master_address)
 
     asr = ASR()
     run_forever = lambda: True
 
-    return Worker(model, worker_address, worker_socket, master_socket, asr, run_forever)
+    return Worker(model, worker_public_address, worker_socket, master_socket, asr, run_forever)
 
 
 class Worker:

@@ -1,17 +1,35 @@
 import zmq
 
-def create_frontend_worker(background_worker_address):
+def create_frontend_worker(master_address):
     context = zmq.Context()
-    background_worker_socket = context.socket(zmq.REQ)
-    background_worker_socket.connect(background_worker_address)
+    master_socket = context.socket(zmq.REQ)
+    master_socket.connect(master_address)
+    worker_socket = context.socket(zmq.REQ)
 
-    return FrontendWorker(background_worker_socket)
+    return FrontendWorker(master_socket, worker_socket)
 
 
 class FrontendWorker:
-    def __init__(self, worker_socket):
+    def __init__(self, master_socket, worker_socket):
+        self.master_socket = master_socket
         self.worker_socket = worker_socket
 
     def recognize_batch(self, data):
-        self.worker_socket.send(data)
-        return self.worker_socket.recv_json()
+        worker_address = self.get_worker_address_from_master(data["model"])
+        response = self.recognize_batch_on_worker(worker_address, data)
+
+        return response
+
+    def get_worker_address_from_master(self, model):
+        self.master_socket.send_json({"model": model})
+        response = self.master_socket.recv_json()
+
+        return response["address"]
+
+    def recognize_batch_on_worker(self, worker_address, data):
+        self.worker_socket.connect(worker_address)
+        self.worker_socket.send(data["wav"])
+        response = self.worker_socket.recv_json()
+        self.worker_socket.disconnect(worker_address)
+
+        return response
