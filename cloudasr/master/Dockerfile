@@ -14,6 +14,8 @@ RUN ldconfig
 RUN apt-get install -y python python-dev python-distribute python-pip
 RUN pip install pyzmq
 
+RUN pip install nose
+
 ADD . /opt/app
 WORKDIR /opt/app
 CMD python run.py

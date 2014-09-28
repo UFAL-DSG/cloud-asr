@@ -52,6 +52,6 @@ stop:
 
 test:
 	nosetests tests/
-	nosetests cloudasr/master/
-	nosetests cloudasr/worker/
-	nosetests cloudasr/frontend/
+	sudo docker run --rm master nosetests
+	sudo docker run --rm worker nosetests
+	sudo docker run --rm frontend nosetests

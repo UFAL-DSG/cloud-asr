@@ -16,6 +16,8 @@ RUN pip install pyzmq
 RUN pip install flask
 RUN pip install gunicorn
 
+RUN pip install nose
+
 ADD . /opt/app
 WORKDIR /opt/app
 CMD gunicorn -b 0.0.0.0:8000 -w 4 run:app
