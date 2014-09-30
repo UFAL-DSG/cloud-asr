@@ -13,18 +13,21 @@ MASTER_OPTS=--name master \
 	-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
 	-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
 	-e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} \
-	-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT}
+	-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT} \
+	-v $(CURDIR)/cloudasr/master:/opt/app
 
 WORKER_OPTS=--name worker \
 	-p ${WORKER_PORT}:${WORKER_PORT} \
 	-e MY_ADDR=tcp://0.0.0.0:${WORKER_PORT} \
 	-e PUBLIC_ADDR=${WORKER_ADDR} \
 	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
-	-e MODEL=en-GB
+	-e MODEL=en-GB \
+	-v $(CURDIR)/cloudasr/worker:/opt/app
 
 FRONTEND_OPTS=--name frontend \
 	-p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} \
-	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR}
+	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} \
+	-v $(CURDIR)/cloudasr/frontend:/opt/app
 
 
 build:
