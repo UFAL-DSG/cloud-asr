@@ -1,5 +1,6 @@
 import unittest
-from lib import Worker, ASR
+from types import *
+from lib import Worker, ASR, AudioUtils
 
 dummy_final_hypothesis = {
     "result": [
@@ -20,6 +21,7 @@ asr_response = [
     (1.0, "Hello World!")
 ]
 
+
 class TestWorker(unittest.TestCase):
 
     def setUp(self):
@@ -28,11 +30,12 @@ class TestWorker(unittest.TestCase):
         self.worker_socket = SocketSpy()
         self.master_socket = MasterSocketSpy()
         self.asr = ASRSpy(asr_response)
-        self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.worker_socket.has_next_message)
+        self.audio = DummyAudio()
+        self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.audio, self.worker_socket.has_next_message)
 
-    def test_worker_forwards_wav_from_every_message_to_asr(self):
+    def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
         self.run_worker(["message 1", "message 2"])
-        self.assertEquals(["message 1", "message 2"], self.asr.processed_chunks)
+        self.assertEquals(["pcm message 1", "pcm message 2"], self.asr.processed_chunks)
 
     def test_worker_reads_final_hypothesis_from_asr(self):
         self.run_worker(["message 1", "message 2"])
@@ -55,19 +58,23 @@ class TestWorker(unittest.TestCase):
 
 class TestASR(unittest.TestCase):
 
-    def test_can_create_instance(self):
-        asr = ASR()
-
-    def test_asr_can_recognize_chunk(self):
-        asr = ASR()
-        asr.recognize_chunk(b"chunk")
-
     def test_asr_returns_dummy_final_hypothesis(self):
         asr = ASR()
-        asr.recognize_chunk(b"chunk")
+        interim_hypothesis = asr.recognize_chunk(self.load_pcm_sample_data())
         final_hypothesis = asr.get_final_hypothesis()
 
-        self.assertEquals(asr_response, final_hypothesis)
+        self.assertEqual(type(final_hypothesis), ListType)
+        self.assertGreater(len(final_hypothesis), 0)
+        for hypothesis in final_hypothesis:
+
+            self.assertEqual(type(hypothesis[0]), FloatType)
+            self.assertEqual(type(hypothesis[1]), UnicodeType)
+            self.assertGreaterEqual(hypothesis[0], 0)
+
+    def load_pcm_sample_data(self):
+        audio = AudioUtils()
+
+        return audio.load_wav_from_file_as_pcm("../resources/test.wav")
 
 
 class SocketSpy:
@@ -91,6 +98,7 @@ class SocketSpy:
     def has_next_message(self):
         return len(self.messages) > 0
 
+
 class MasterSocketSpy(SocketSpy):
 
     def recv(self):
@@ -108,3 +116,9 @@ class ASRSpy:
 
     def get_final_hypothesis(self):
         return self.final_hypothesis
+
+
+class DummyAudio:
+
+    def load_wav_from_string_as_pcm(self, string):
+        return "pcm " + string
