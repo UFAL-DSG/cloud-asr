@@ -31,7 +31,8 @@ class Worker:
             message = self.my_socket.recv()
             self.asr.recognize_chunk(message)
             final_hypothesis = self.asr.get_final_hypothesis()
-            self.my_socket.send_json(final_hypothesis)
+            response = self.create_response(final_hypothesis)
+            self.my_socket.send_json(response)
 
     def send_heartbeat(self):
         message = {
@@ -42,23 +43,22 @@ class Worker:
         self.master_socket.send_json(message)
         self.master_socket.recv()
 
+    def create_response(self, final_hypothesis):
+        return {
+            "result": [
+                {
+                    "alternative": [{"confidence": c, "transcript": t} for (c,t) in final_hypothesis],
+                    "final": True,
+                },
+            ],
+            "result_index": 0,
+        }
+
+
 class ASR:
 
     def recognize_chunk(self, chunk):
         pass
 
     def get_final_hypothesis(self):
-        return {
-            "result": [
-                {
-                    "alternative": [
-                        {
-                            "confidence": 1.0,
-                            "transcript": "Hello World!"
-                        },
-                    ],
-                    "final": True,
-                },
-            ],
-            "result_index": 0,
-        }
+        return [(1.0, "Hello World!")]

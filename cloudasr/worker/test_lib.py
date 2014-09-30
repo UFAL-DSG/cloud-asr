@@ -16,6 +16,9 @@ dummy_final_hypothesis = {
     "result_index": 0,
 }
 
+asr_response = [
+    (1.0, "Hello World!")
+]
 
 class TestWorker(unittest.TestCase):
 
@@ -24,7 +27,7 @@ class TestWorker(unittest.TestCase):
         self.worker_address = "tcp://127.0.0.1:5678"
         self.worker_socket = SocketSpy()
         self.master_socket = MasterSocketSpy()
-        self.asr = ASRSpy(dummy_final_hypothesis)
+        self.asr = ASRSpy(asr_response)
         self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.worker_socket.has_next_message)
 
     def test_worker_forwards_wav_from_every_message_to_asr(self):
@@ -64,7 +67,7 @@ class TestASR(unittest.TestCase):
         asr.recognize_chunk(b"chunk")
         final_hypothesis = asr.get_final_hypothesis()
 
-        self.assertEquals(dummy_final_hypothesis, final_hypothesis)
+        self.assertEquals(asr_response, final_hypothesis)
 
 
 class SocketSpy:
