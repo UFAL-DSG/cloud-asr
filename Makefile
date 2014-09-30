@@ -1,4 +1,4 @@
-IP=`ifconfig docker0 | sed -n 's/.*inet addr:\([^ ]*\) .*/\1/p'`
+IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
 FRONTEND_HOST_PORT=8000
 FRONTEND_GUEST_PORT=8000
 WORKER_PORT=5678
