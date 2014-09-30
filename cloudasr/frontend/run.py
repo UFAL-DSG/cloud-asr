@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from lib import create_frontend_worker
+from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError
 import os
 app = Flask(__name__)
 worker = create_frontend_worker(os.environ['MASTER_ADDR'])
@@ -13,7 +13,9 @@ def recognize_batch():
     }
 
     try:
-        return jsonify(worker.recognize_batch(data))
+        return jsonify(worker.recognize_batch(data, request.headers))
+    except MissingHeaderError:
+        return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
     except NoWorkerAvailableError:
         return jsonify({"status": "error", "message": "No worker available"}), 503
 
