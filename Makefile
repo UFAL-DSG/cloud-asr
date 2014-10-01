@@ -14,7 +14,8 @@ MASTER_OPTS=--name master \
 	-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
 	-e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} \
 	-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT} \
-	-v ${CURDIR}/cloudasr/master:/opt/app
+	-v ${CURDIR}/cloudasr/master:/opt/app \
+	-v ${CURDIR}/cloudasr/shared:/usr/local/lib/python2.7/dist-packages/cloudasr
 
 WORKER_OPTS=--name worker \
 	-p ${WORKER_PORT}:${WORKER_PORT} \
@@ -23,18 +24,25 @@ WORKER_OPTS=--name worker \
 	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
 	-e MODEL=en-GB \
 	-v ${CURDIR}/cloudasr/worker:/opt/app \
-	-v ${CURDIR}/resources:/opt/resources
+	-v ${CURDIR}/resources:/opt/resources \
+	-v ${CURDIR}/cloudasr/shared:/usr/local/lib/python2.7/dist-packages/cloudasr
 
 FRONTEND_OPTS=--name frontend \
 	-p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} \
 	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} \
-	-v ${CURDIR}/cloudasr/frontend:/opt/app
-
+	-v ${CURDIR}/cloudasr/frontend:/opt/app \
+	-v ${CURDIR}/cloudasr/shared:/usr/local/lib/python2.7/dist-packages/cloudasr
 
 build:
+	cp -r cloudasr/shared cloudasr/frontend/cloudasr
+	cp -r cloudasr/shared cloudasr/worker/cloudasr
+	cp -r cloudasr/shared cloudasr/master/cloudasr
 	sudo docker build -t frontend cloudasr/frontend/
 	sudo docker build -t worker cloudasr/worker/
 	sudo docker build -t master cloudasr/master/
+	rm -rf cloudasr/frontend/cloudasr
+	rm -rf cloudasr/worker/cloudasr
+	rm -rf cloudasr/master/cloudasr
 
 run:
 	sudo docker run ${FRONTEND_OPTS} -d frontend
