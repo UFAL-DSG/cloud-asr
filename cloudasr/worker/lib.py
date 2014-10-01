@@ -10,7 +10,7 @@ def create_worker(model, worker_socket_address, worker_public_address, master_ad
     context = zmq.Context()
     worker_socket = context.socket(zmq.REP)
     worker_socket.bind(worker_socket_address)
-    master_socket = context.socket(zmq.REQ)
+    master_socket = context.socket(zmq.PUSH)
     master_socket.connect(master_address)
 
     asr = ASR()
@@ -49,7 +49,6 @@ class Worker:
         }
 
         self.master_socket.send_json(message)
-        self.master_socket.recv()
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)

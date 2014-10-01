@@ -28,7 +28,7 @@ class TestWorker(unittest.TestCase):
         self.model = "en-GB"
         self.worker_address = "tcp://127.0.0.1:5678"
         self.worker_socket = SocketSpy()
-        self.master_socket = MasterSocketSpy()
+        self.master_socket = SocketSpy()
         self.asr = ASRSpy(asr_response)
         self.audio = DummyAudio()
         self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.audio, self.worker_socket.has_next_message)
@@ -97,12 +97,6 @@ class SocketSpy:
 
     def has_next_message(self):
         return len(self.messages) > 0
-
-
-class MasterSocketSpy(SocketSpy):
-
-    def recv(self):
-        return "OK"
 
 
 class ASRSpy:

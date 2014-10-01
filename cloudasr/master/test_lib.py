@@ -55,16 +55,6 @@ class TestMaster(unittest.TestCase):
         expected_message2 = self.make_frontend_error_response("No worker available")
         self.assertEquals([expected_message1, expected_message2], self.poller.sent_messages["frontend"])
 
-    def test_when_worker_sends_heartbeat_master_replies_witk_ok(self):
-        worker_address = "tcp://127.0.0.1:1"
-        messages = [
-            {"worker": self.make_heartbeat_request(worker_address)}
-        ]
-        self.run_master(messages)
-
-        expected_message = {"status": "success"}
-        self.assertEquals([expected_message], self.poller.sent_messages["worker"])
-
     def test_when_worker_sent_heartbeat_and_went_silent_for_3600secs_then_it_is_not_available_anymore(self):
         worker_address = "tcp://127.0.0.1:1"
         messages = [

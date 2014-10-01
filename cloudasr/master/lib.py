@@ -13,7 +13,7 @@ def create_poller(worker_address, frontend_address):
     import zmq
     from cloudasr import Poller
     context = zmq.Context()
-    worker_socket = context.socket(zmq.REP)
+    worker_socket = context.socket(zmq.PULL)
     worker_socket.bind(worker_address)
     frontend_socket = context.socket(zmq.REP)
     frontend_socket.bind(frontend_address)
@@ -74,8 +74,6 @@ class Master:
         if self.workers_status[address]["status"] != "WAITING":
             self.available_workers[model].append(address)
             self.update_worker_status(address, "WAITING")
-
-        self.poller.send("worker", {"status": "success"})
 
     def find_available_worker(self, model):
         while len(self.available_workers[model]) > 0:
