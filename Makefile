@@ -63,6 +63,7 @@ stop:
 
 test:
 	nosetests tests/
+	nosetests cloudasr/shared
 	sudo docker run ${MASTER_VOLUMES} --rm master nosetests
 	sudo docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests
 	sudo docker run ${FRONTEND_VOLUMES} --rm frontend nosetests
