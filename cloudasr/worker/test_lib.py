@@ -1,6 +1,6 @@
 import unittest
 from types import *
-from lib import Worker, ASR, AudioUtils
+from lib import Worker, Heartbeat, ASR, AudioUtils
 
 dummy_final_hypothesis = {
     "result": [
@@ -27,11 +27,13 @@ class TestWorker(unittest.TestCase):
     def setUp(self):
         self.model = "en-GB"
         self.worker_address = "tcp://127.0.0.1:5678"
-        self.worker_socket = SocketSpy()
         self.master_socket = SocketSpy()
+
+        self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
+        self.worker_socket = SocketSpy()
         self.asr = ASRSpy(asr_response)
         self.audio = DummyAudio()
-        self.worker = Worker(self.model, self.worker_address, self.worker_socket, self.master_socket, self.asr, self.audio, self.worker_socket.has_next_message)
+        self.worker = Worker(self.worker_socket, self.heartbeat, self.asr, self.audio, self.worker_socket.has_next_message)
 
     def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
         self.run_worker(["message 1", "message 2"])

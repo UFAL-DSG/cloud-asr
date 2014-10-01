@@ -13,42 +13,33 @@ def create_worker(model, worker_socket_address, worker_public_address, master_ad
     master_socket = context.socket(zmq.PUSH)
     master_socket.connect(master_address)
 
+    heartbeat = Heartbeat(model, worker_public_address, master_socket)
     asr = ASR()
     audio = AudioUtils()
     run_forever = lambda: True
 
-    return Worker(model, worker_public_address, worker_socket, master_socket, asr, audio, run_forever)
+    return Worker(worker_socket, heartbeat, asr, audio, run_forever)
 
 
 class Worker:
 
-    def __init__(self, model, my_address, my_socket, master_socket, asr, audio, should_continue):
-        self.model = model
-        self.my_address = my_address
-        self.my_socket = my_socket
-        self.master_socket = master_socket
+    def __init__(self, socket, heartbeat, asr, audio, should_continue):
+        self.socket = socket
+        self.heartbeat = heartbeat
         self.asr = asr
         self.audio = audio
         self.should_continue = should_continue
 
     def run(self):
         while self.should_continue():
-            self.send_heartbeat()
+            self.heartbeat.send()
 
-            message = self.my_socket.recv()
+            message = self.socket.recv()
             pcm = self.get_pcm_from_message(message)
             self.asr.recognize_chunk(pcm)
             final_hypothesis = self.asr.get_final_hypothesis()
             response = self.create_response(final_hypothesis)
-            self.my_socket.send_json(response)
-
-    def send_heartbeat(self):
-        message = {
-            "address": self.my_address,
-            "model": self.model
-        }
-
-        self.master_socket.send_json(message)
+            self.socket.send_json(response)
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)
@@ -63,6 +54,24 @@ class Worker:
             ],
             "result_index": 0,
         }
+
+
+class Heartbeat:
+
+    def __init__(self, model, address, socket):
+        self.model = model
+        self.address = address
+        self.socket = socket
+
+    def send(self):
+        message = {
+            "address": self.address,
+            "model": self.model
+        }
+
+        self.socket.send_json(message)
+
+
 
 
 class ASR:
