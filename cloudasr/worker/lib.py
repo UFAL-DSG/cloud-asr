@@ -1,30 +1,46 @@
 import audioop
 import wave
 import zmq
+import time
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
 
 
-def create_worker(model, worker_socket_address, worker_public_address, master_address):
-    context = zmq.Context()
-    worker_socket = context.socket(zmq.REP)
-    worker_socket.bind(worker_socket_address)
-    master_socket = context.socket(zmq.PUSH)
-    master_socket.connect(master_address)
-
-    heartbeat = Heartbeat(model, worker_public_address, master_socket)
+def create_worker(model, frontend_address, public_address, master_address):
+    poller = create_poller(frontend_address)
+    heartbeat = create_heartbeat(model, public_address, master_address)
     asr = ASR()
     audio = AudioUtils()
     run_forever = lambda: True
 
-    return Worker(worker_socket, heartbeat, asr, audio, run_forever)
+    return Worker(poller, heartbeat, asr, audio, run_forever)
+
+def create_poller(frontend_address):
+    from cloudasr import Poller
+    context = zmq.Context()
+    frontend_socket = context.socket(zmq.REP)
+    frontend_socket.bind(frontend_address)
+
+    sockets = {
+        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv},
+    }
+    time_func = time.time
+
+    return Poller(sockets, time_func)
+
+def create_heartbeat(model, address, master_address):
+    context = zmq.Context()
+    master_socket = context.socket(zmq.PUSH)
+    master_socket.connect(master_address)
+
+    return Heartbeat(model, address, master_socket)
 
 
 class Worker:
 
-    def __init__(self, socket, heartbeat, asr, audio, should_continue):
-        self.socket = socket
+    def __init__(self, poller, heartbeat, asr, audio, should_continue):
+        self.poller = poller
         self.heartbeat = heartbeat
         self.asr = asr
         self.audio = audio
@@ -32,14 +48,18 @@ class Worker:
 
     def run(self):
         while self.should_continue():
+            messages, time = self.poller.poll(1000)
             self.heartbeat.send()
 
-            message = self.socket.recv()
-            pcm = self.get_pcm_from_message(message)
-            self.asr.recognize_chunk(pcm)
-            final_hypothesis = self.asr.get_final_hypothesis()
-            response = self.create_response(final_hypothesis)
-            self.socket.send_json(response)
+            if "frontend" in messages:
+                self.handle_request(messages["frontend"])
+
+    def handle_request(self, message):
+        pcm = self.get_pcm_from_message(message)
+        self.asr.recognize_chunk(pcm)
+        final_hypothesis = self.asr.get_final_hypothesis()
+        response = self.create_response(final_hypothesis)
+        self.poller.send("frontend", response)
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)

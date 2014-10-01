@@ -1,6 +1,8 @@
 import unittest
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
+from cloudasr.test_doubles import PollerSpy
+
 
 dummy_final_hypothesis = {
     "result": [
@@ -30,31 +32,45 @@ class TestWorker(unittest.TestCase):
         self.master_socket = SocketSpy()
 
         self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
-        self.worker_socket = SocketSpy()
+        self.poller = PollerSpy()
         self.asr = ASRSpy(asr_response)
         self.audio = DummyAudio()
-        self.worker = Worker(self.worker_socket, self.heartbeat, self.asr, self.audio, self.worker_socket.has_next_message)
+        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.poller.has_next_message)
 
     def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
-        self.run_worker(["message 1", "message 2"])
+        messages = [
+            {"frontend": "message 1"},
+            {"frontend": "message 2"}
+        ]
+
+        self.run_worker(messages)
         self.assertEquals(["pcm message 1", "pcm message 2"], self.asr.processed_chunks)
 
     def test_worker_reads_final_hypothesis_from_asr(self):
-        self.run_worker(["message 1", "message 2"])
-        self.assertEquals([dummy_final_hypothesis, dummy_final_hypothesis], self.worker_socket.sent_messages)
+        messages = [
+            {"frontend": "message 1"},
+            {"frontend": "message 2"}
+        ]
+
+        self.run_worker(messages)
+        self.assertEquals([dummy_final_hypothesis, dummy_final_hypothesis], self.poller.sent_messages["frontend"])
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
-        self.run_worker(["message 1", "message 2"])
+        messages = [
+            {"frontend": "message 1"},
+            {"frontend": "message 2"}
+        ]
 
         expected_message = {
             "address": self.worker_address,
             "model": self.model
         }
 
+        self.run_worker(messages)
         self.assertEquals([expected_message, expected_message], self.master_socket.sent_messages)
 
     def run_worker(self, messages):
-        self.worker_socket.add_messages(messages)
+        self.poller.add_messages(messages)
         self.worker.run()
 
 
