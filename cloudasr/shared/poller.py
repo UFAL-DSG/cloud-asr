@@ -7,20 +7,23 @@ class Poller:
         self.poller = zmq.Poller()
 
         for socket in self.sockets.values():
-            self.poller.register(socket, zmq.POLLIN | zmq.POLLOUT)
+            self.poller.register(socket["socket"], zmq.POLLIN | zmq.POLLOUT)
 
         self.time = time
 
     def poll(self, timeout=1000):
-        socks = dict(self.poller.poll(timeout))
+        sockets = dict(self.poller.poll(timeout))
 
         messages = {}
         for name, socket in self.sockets.iteritems():
-            if socket in socks and socks[socket] == zmq.POLLIN:
+            if self.has_received_message(socket, sockets):
                 print "Received message on %s" % name
-                messages[name] = socket.recv_json()
+                messages[name] = socket["receive"]()
 
         return messages, self.time()
 
+    def has_received_message(self, socket, sockets):
+        return socket["socket"] in sockets and sockets[socket["socket"]] == zmq.POLLIN
+
     def send(self, socket, message):
-        self.sockets[socket].send_json(message)
+        self.sockets[socket]["socket"].send_json(message)
