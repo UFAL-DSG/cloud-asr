@@ -73,7 +73,8 @@ class Master:
 
         if self.workers_status[address]["status"] != "WAITING":
             self.available_workers[model].append(address)
-            self.update_worker_status(address, "WAITING")
+
+        self.update_worker_status(address, "WAITING")
 
     def find_available_worker(self, model):
         while len(self.available_workers[model]) > 0:

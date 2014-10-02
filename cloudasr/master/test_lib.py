@@ -66,6 +66,18 @@ class TestMaster(unittest.TestCase):
         expected_message = self.make_frontend_error_response("No worker available")
         self.assertEquals([expected_message], self.poller.sent_messages["frontend"])
 
+    def test_when_worker_was_not_responding_and_then_it_sent_heartbeat_it_should_be_available_again(self):
+        worker_address = "tcp://127.0.0.1:1"
+        messages = [
+            {"worker": self.make_heartbeat_request(worker_address)},
+            {"worker": self.make_heartbeat_request(worker_address), "time": +100},
+            {"frontend": self.make_frontend_request()}
+        ]
+        self.run_master(messages)
+
+        expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
+        self.assertEquals([expected_message], self.poller.sent_messages["frontend"])
+
     def run_master(self, messages):
         self.poller.add_messages(messages)
         self.master.run()
