@@ -55,11 +55,11 @@ class TestMaster(unittest.TestCase):
         expected_message2 = self.make_frontend_error_response("No worker available")
         self.assertEquals([expected_message1, expected_message2], self.poller.sent_messages["frontend"])
 
-    def test_when_worker_sent_heartbeat_and_went_silent_for_3600secs_then_it_is_not_available_anymore(self):
+    def test_when_worker_sent_heartbeat_and_went_silent_for_10secs_then_it_is_not_available_anymore(self):
         worker_address = "tcp://127.0.0.1:1"
         messages = [
             {"worker": self.make_heartbeat_request(worker_address)},
-            {"frontend": self.make_frontend_request(), "time": +3600}
+            {"frontend": self.make_frontend_request(), "time": +10}
         ]
         self.run_master(messages)
 
