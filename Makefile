@@ -36,34 +36,34 @@ build:
 	cp -r cloudasr/shared cloudasr/frontend/cloudasr
 	cp -r cloudasr/shared cloudasr/worker/cloudasr
 	cp -r cloudasr/shared cloudasr/master/cloudasr
-	sudo docker build -t frontend cloudasr/frontend/
-	sudo docker build -t worker cloudasr/worker/
-	sudo docker build -t master cloudasr/master/
+	docker build -t frontend cloudasr/frontend/
+	docker build -t worker cloudasr/worker/
+	docker build -t master cloudasr/master/
 	rm -rf cloudasr/frontend/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 
 run:
-	sudo docker run ${FRONTEND_OPTS} -d frontend
-	sudo docker run ${WORKER_OPTS} -d worker
-	sudo docker run ${MASTER_OPTS} -d master
+	docker run ${FRONTEND_OPTS} -d frontend
+	docker run ${WORKER_OPTS} -d worker
+	docker run ${MASTER_OPTS} -d master
 
 run_worker:
-	sudo docker run ${WORKER_OPTS} -i -t --rm worker
+	docker run ${WORKER_OPTS} -i -t --rm worker
 
 run_frontend:
-	sudo docker run ${FRONTEND_OPTS} -i -t --rm frontend
+	docker run ${FRONTEND_OPTS} -i -t --rm frontend
 
 run_master:
-	sudo docker run ${MASTER_OPTS} -i -t --rm master
+	docker run ${MASTER_OPTS} -i -t --rm master
 
 stop:
-	sudo docker kill frontend worker master
-	sudo docker rm frontend worker master
+	docker kill frontend worker master
+	docker rm frontend worker master
 
 test:
 	nosetests tests/
 	nosetests cloudasr/shared
-	sudo docker run ${MASTER_VOLUMES} --rm master nosetests
-	sudo docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests
-	sudo docker run ${FRONTEND_VOLUMES} --rm frontend nosetests
+	docker run ${MASTER_VOLUMES} --rm master nosetests
+	docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests
+	docker run ${FRONTEND_VOLUMES} --rm frontend nosetests
