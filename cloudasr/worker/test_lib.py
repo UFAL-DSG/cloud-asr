@@ -1,4 +1,5 @@
 import unittest
+import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
 from cloudasr.test_doubles import PollerSpy
@@ -78,7 +79,7 @@ class TestWorker(unittest.TestCase):
 class TestASR(unittest.TestCase):
 
     def test_asr_returns_dummy_final_hypothesis(self):
-        asr = ASR()
+        asr = ASR(config.kaldi_config, config.wst_path)
         interim_hypothesis = asr.recognize_chunk(self.load_pcm_sample_data())
         final_hypothesis = asr.get_final_hypothesis()
 

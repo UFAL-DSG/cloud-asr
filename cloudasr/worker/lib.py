@@ -2,6 +2,7 @@ import audioop
 import wave
 import zmq
 import time
+import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
@@ -10,7 +11,7 @@ from StringIO import StringIO
 def create_worker(model, frontend_address, public_address, master_address):
     poller = create_poller(frontend_address)
     heartbeat = create_heartbeat(model, public_address, master_address)
-    asr = ASR()
+    asr = ASR(config.kaldi_config, config.wst_path)
     audio = AudioUtils()
     run_forever = lambda: True
 
@@ -97,20 +98,10 @@ class Heartbeat:
 
 class ASR:
 
-    def __init__(self):
-        import os
-        basedir = os.path.dirname(os.path.realpath(__file__))
-
+    def __init__(self, kaldi_config, wst_path):
         self.recogniser = PyOnlineLatgenRecogniser()
-        argv = ['--config=%s/models/mfcc.conf' % basedir,
-                '--verbose=0', '--max-mem=10000000000', '--lat-lm-scale=15', '--beam=12.0',
-                '--lattice-beam=6.0', '--max-active=5000',
-                '%s/models/tri2b_bmmi.mdl' % basedir,
-                '%s/models/HCLG_tri2b_bmmi.fst' % basedir,
-                '1:2:3:4:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25',
-                '%s//models/tri2b_bmmi.mat' % basedir]
-        self.recogniser.setup(argv)
-        self.wst = wst2dict('%s/models/words.txt' % basedir)
+        self.recogniser.setup(kaldi_config)
+        self.wst = wst2dict(wst_path)
 
     def recognize_chunk(self, chunk):
         decoded_frames = 0
