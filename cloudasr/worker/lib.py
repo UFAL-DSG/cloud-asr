@@ -49,7 +49,7 @@ class Worker:
     def run(self):
         while self.should_continue():
             messages, time = self.poller.poll(1000)
-            self.heartbeat.send()
+            self.heartbeat.send("READY")
 
             if "frontend" in messages:
                 self.handle_request(messages["frontend"])
@@ -83,10 +83,11 @@ class Heartbeat:
         self.address = address
         self.socket = socket
 
-    def send(self):
+    def send(self, state):
         message = {
             "address": self.address,
-            "model": self.model
+            "model": self.model,
+            "state": state
         }
 
         self.socket.send_json(message)

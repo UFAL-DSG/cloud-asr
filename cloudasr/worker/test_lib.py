@@ -63,7 +63,8 @@ class TestWorker(unittest.TestCase):
 
         expected_message = {
             "address": self.worker_address,
-            "model": self.model
+            "model": self.model,
+            "state": "READY"
         }
 
         self.run_worker(messages)
