@@ -32,7 +32,7 @@ class Master:
     def __init__(self, poller, should_continue):
         self.poller = poller
         self.should_continue = should_continue
-        self.workers_status = defaultdict(lambda: {"status": "DEAD", "last_heartbeat": 0})
+        self.workers_status = defaultdict(lambda: {"status": "READY", "last_heartbeat": 0})
         self.available_workers = defaultdict(list)
         self.time = 0
 
@@ -69,12 +69,17 @@ class Master:
 
     def handle_worker_request(self, message):
         model = message["model"]
+        state = message["state"]
         address = message["address"]
 
-        if self.workers_status[address]["status"] != "WAITING":
+        if self.workers_status[address]["status"] == "WORKING":
+            next_state = "READY" if state == "FINISHED" else "WORKING"
+            self.update_worker_status(address, next_state)
+        elif self.workers_status[address]["status"] == "READY":
             self.available_workers[model].append(address)
-
-        self.update_worker_status(address, "WAITING")
+            self.update_worker_status(address, "WAITING")
+        elif self.workers_status[address]["status"] == "WAITING":
+            self.update_worker_status(address, "WAITING")
 
     def find_available_worker(self, model):
         while len(self.available_workers[model]) > 0:

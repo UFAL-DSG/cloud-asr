@@ -28,11 +28,37 @@ class TestMaster(unittest.TestCase):
         expected_message = self.make_frontend_error_response("No worker available")
         self.assertEquals([expected_message], self.poller.sent_messages["frontend"])
 
-    def test_when_worker_is_available_master_sends_his_address_to_frontend(self):
+    def test_when_appropriate_worker_is_available_master_sends_its_address_to_client(self):
         worker_address = "tcp://127.0.0.1:1"
         messages = [
             {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
             {"frontend": self.make_frontend_request()},
+        ]
+        self.run_master(messages)
+
+        expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
+        self.assertEquals([expected_message], self.poller.sent_messages["frontend"])
+
+    def test_worker_cant_be_assigned_to_another_client_before_finishing_its_task(self):
+        worker_address = "tcp://127.0.0.1:1"
+        messages = [
+            {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
+            {"frontend": self.make_frontend_request()},
+            {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
+            {"frontend": self.make_frontend_request()}
+        ]
+        self.run_master(messages)
+
+        expected_message1 = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
+        expected_message2 = self.make_frontend_error_response("No worker available")
+        self.assertEquals([expected_message1, expected_message2], self.poller.sent_messages["frontend"])
+
+    def test_when_worker_finished_its_task_it_can_be_assigned_to_another_client(self):
+        worker_address = "tcp://127.0.0.1:1"
+        messages = [
+            {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
+            {"frontend": self.make_frontend_request()},
+            {"worker": self.make_heartbeat_request(worker_address, "en-GB", "FINISHED")},
             {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
             {"frontend": self.make_frontend_request()}
         ]

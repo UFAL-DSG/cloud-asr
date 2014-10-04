@@ -61,6 +61,7 @@ class Worker:
         final_hypothesis = self.asr.get_final_hypothesis()
         response = self.create_response(final_hypothesis)
         self.poller.send("frontend", response)
+        self.heartbeat.send("FINISHED")
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)

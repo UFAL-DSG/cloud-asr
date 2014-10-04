@@ -57,10 +57,7 @@ class TestWorker(unittest.TestCase):
         self.assertEquals([dummy_final_hypothesis, dummy_final_hypothesis], self.poller.sent_messages["frontend"])
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
-        messages = [
-            {"frontend": "message 1"},
-            {"frontend": "message 2"}
-        ]
+        messages = [{}]
 
         expected_message = {
             "address": self.worker_address,
@@ -69,7 +66,20 @@ class TestWorker(unittest.TestCase):
         }
 
         self.run_worker(messages)
-        self.assertEquals([expected_message, expected_message], self.master_socket.sent_messages)
+        self.assertEquals([expected_message], self.master_socket.sent_messages)
+
+    def test_worker_sends_heartbeat_after_finishing_task(self):
+        messages = [
+            {"frontend": "message 1"}
+        ]
+
+        expected_messages = [
+            {"state": "READY", "address": self.worker_address, "model": self.model},
+            {"state": "FINISHED", "address": self.worker_address, "model": self.model}
+        ]
+
+        self.run_worker(messages)
+        self.assertEquals(expected_messages, self.master_socket.sent_messages)
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
