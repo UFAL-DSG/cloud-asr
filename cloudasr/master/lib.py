@@ -32,8 +32,7 @@ class Master:
     def __init__(self, poller, should_continue):
         self.poller = poller
         self.should_continue = should_continue
-        self.workers_status = defaultdict(lambda: {"status": "READY", "last_heartbeat": 0})
-        self.available_workers = defaultdict(list)
+        self.workers = WorkerPool()
         self.time = 0
 
     def run(self):
@@ -47,11 +46,9 @@ class Master:
                 self.handle_fronted_request(messages["frontend"])
 
     def handle_fronted_request(self, message):
-        model = message["model"]
-
-        worker = self.find_available_worker(model)
-        if worker is not None:
-            self.update_worker_status(worker, "WORKING")
+        try:
+            model = message["model"]
+            worker = self.workers.get_worker(model, self.time)
 
             message = {
                 "status": "success",
@@ -59,7 +56,7 @@ class Master:
             }
 
             self.poller.send("frontend", message)
-        else:
+        except NoWorkerAvailableException:
             message = {
                 "status": "error",
                 "message": "No worker available"
@@ -69,33 +66,55 @@ class Master:
 
     def handle_worker_request(self, message):
         model = message["model"]
-        state = message["state"]
         address = message["address"]
+        status = message["status"]
 
-        if self.workers_status[address]["status"] == "WORKING":
-            next_state = "READY" if state == "FINISHED" else "WORKING"
-            self.update_worker_status(address, next_state)
-        elif self.workers_status[address]["status"] == "READY":
-            self.available_workers[model].append(address)
-            self.update_worker_status(address, "WAITING")
-        elif self.workers_status[address]["status"] == "WAITING":
-            self.update_worker_status(address, "WAITING")
+        self.workers.add_worker(model, address, status, self.time)
 
-    def find_available_worker(self, model):
+
+class WorkerPool:
+
+    def __init__(self):
+        self.workers_status = defaultdict(lambda: {"status": "READY", "last_heartbeat": 0})
+        self.available_workers = defaultdict(list)
+
+    def get_worker(self, model, time):
+        worker = self.find_available_worker(model, time)
+
+        if worker is None:
+            raise NoWorkerAvailableException()
+
+        self.update_worker_status(worker, "WORKING", time)
+        return worker
+
+    def find_available_worker(self, model, time):
         while len(self.available_workers[model]) > 0:
             worker = self.available_workers[model].pop(0)
 
-            if self.is_worker_available(worker):
+            if self.is_worker_available(worker, time):
                 return worker
 
         return None
 
-    def is_worker_available(self, worker):
+    def is_worker_available(self, worker, time):
         status = self.workers_status[worker]
-        return status["status"] == "WAITING" and status["last_heartbeat"] > self.time - 10
+        return status["status"] == "WAITING" and status["last_heartbeat"] > time - 10
 
-    def update_worker_status(self, worker, status):
+    def add_worker(self, model, address, status, time):
+        if self.workers_status[address]["status"] == "WORKING":
+            next_state = "READY" if status == "FINISHED" else "WORKING"
+            self.update_worker_status(address, next_state, time)
+        elif self.workers_status[address]["status"] == "READY":
+            self.available_workers[model].append(address)
+            self.update_worker_status(address, "WAITING", time)
+        elif self.workers_status[address]["status"] == "WAITING":
+            self.update_worker_status(address, "WAITING", time)
+
+    def update_worker_status(self, worker, status, time):
         self.workers_status[worker] = {
             "status": status,
-            "last_heartbeat": self.time
+            "last_heartbeat": time
         }
+
+class NoWorkerAvailableException(Exception):
+    pass

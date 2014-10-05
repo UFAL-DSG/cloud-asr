@@ -85,11 +85,11 @@ class Heartbeat:
         self.address = address
         self.socket = socket
 
-    def send(self, state):
+    def send(self, status):
         message = {
             "address": self.address,
             "model": self.model,
-            "state": state
+            "status": status
         }
 
         self.socket.send_json(message)

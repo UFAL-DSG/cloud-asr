@@ -108,11 +108,11 @@ class TestMaster(unittest.TestCase):
         self.poller.add_messages(messages)
         self.master.run()
 
-    def make_heartbeat_request(self, worker_address, model, state):
+    def make_heartbeat_request(self, worker_address, model, status):
         return {
             "address": worker_address,
             "model": model,
-            "state": state
+            "status": status
         }
 
     def make_frontend_request(self, model="en-GB"):

@@ -62,7 +62,7 @@ class TestWorker(unittest.TestCase):
         expected_message = {
             "address": self.worker_address,
             "model": self.model,
-            "state": "READY"
+            "status": "READY"
         }
 
         self.run_worker(messages)
@@ -74,8 +74,8 @@ class TestWorker(unittest.TestCase):
         ]
 
         expected_messages = [
-            {"state": "READY", "address": self.worker_address, "model": self.model},
-            {"state": "FINISHED", "address": self.worker_address, "model": self.model}
+            {"status": "READY", "address": self.worker_address, "model": self.model},
+            {"status": "FINISHED", "address": self.worker_address, "model": self.model}
         ]
 
         self.run_worker(messages)
