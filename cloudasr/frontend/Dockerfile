@@ -13,11 +13,11 @@ RUN ldconfig
 
 RUN apt-get install -y python python-dev python-distribute python-pip
 RUN pip install pyzmq
-RUN pip install flask
+RUN pip install flask flask-socketio
 RUN pip install gunicorn
 
 RUN pip install nose
 
 ADD . /opt/app
 WORKDIR /opt/app
-CMD gunicorn -b 0.0.0.0:8000 -w 4 run:app
+CMD gunicorn -b 0.0.0.0:8000 -k socketio.sgunicorn.GeventSocketIOWorker run:app

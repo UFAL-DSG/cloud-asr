@@ -1,7 +1,10 @@
 from flask import Flask, request, jsonify
+from flask.ext.socketio import SocketIO
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError
 import os
 app = Flask(__name__)
+app.config['DEBUG'] = True
+socketio = SocketIO(app)
 worker = create_frontend_worker(os.environ['MASTER_ADDR'])
 
 
@@ -21,4 +24,4 @@ def recognize_batch():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=8000)
