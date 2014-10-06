@@ -21,7 +21,7 @@ RUN pip install nose
 #
 # Prerequesities.
 RUN apt-get install -y build-essential libatlas-base-dev python-dev python-pip git wget
-# Addid pykaldi source files
+# Add pykaldi source files
 WORKDIR /app
 RUN git clone https://github.com/UFAL-DSG/pykaldi.git
 WORKDIR /app/pykaldi
