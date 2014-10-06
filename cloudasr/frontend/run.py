@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from flask.ext.socketio import SocketIO
+from flask.ext.socketio import SocketIO, emit
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError
 import os
 app = Flask(__name__)
@@ -21,6 +21,26 @@ def recognize_batch():
         return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
     except NoWorkerAvailableError:
         return jsonify({"status": "error", "message": "No worker available"}), 503
+
+@socketio.on('begin')
+def begin_online_recognition(message):
+    pass
+
+@socketio.on('chunk')
+def recognize_chunk(message):
+    emit('result', {
+        'status': 0,
+        'result': {
+            'hypotheses': [
+                {'transcript': 'Hello World!'}
+            ]
+        },
+        'final': False
+    })
+
+@socketio.on('end')
+def end_recognition(message):
+    pass
 
 
 if __name__ == "__main__":
