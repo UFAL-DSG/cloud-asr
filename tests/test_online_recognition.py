@@ -1,22 +1,24 @@
 import os
+import base64
 import urllib2
-import StringIO
 import unittest
+import wave
+import struct
 from jsonschema import validate
 from socketIO_client import SocketIO
 
 
 class TestOnlineRecognition(unittest.TestCase):
 
-
     def setUp(self):
         self.socketIO = SocketIO('localhost', 8000)
         self.received_responses = 0
+        self.expected_responses = 0
 
     def test_online_recognition(self):
         self.socketIO.on('result', self.assertMessageHasCorrectSchema)
         self.send_chunks()
-        self.assertEquals(len(self.chunks()), self.received_responses)
+        self.assertEquals(self.expected_responses, self.received_responses)
 
     def send_chunks(self):
         self.socketIO.emit('begin', {'model': 'en-GB'})
@@ -29,7 +31,22 @@ class TestOnlineRecognition(unittest.TestCase):
         self.socketIO.wait_for_callbacks()
 
     def chunks(self):
-        return range(1,10)
+        basedir = os.path.dirname(os.path.realpath(__file__))
+        wav = wave.open("%s/../resources/test.wav" % basedir, "rb")
+
+        while True:
+            frames = wav.readframes(16384)
+            if len(frames) == 0:
+                break
+
+            self.expected_responses += 1
+            yield self.encode_chunk(self.frames_to_pcm_array(frames))
+
+    def frames_to_pcm_array(self, frames):
+        return [struct.unpack('h', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
+
+    def encode_chunk(self, chunk):
+        return base64.b64encode(''.join(str(x) for x in chunk))
 
     def assertMessageHasCorrectSchema(self, message):
         schema = {
