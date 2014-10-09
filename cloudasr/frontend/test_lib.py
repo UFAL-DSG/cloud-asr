@@ -1,6 +1,6 @@
 import unittest
 from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage
 
 
 class TestFrontendWorker(unittest.TestCase):
@@ -64,7 +64,14 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_batch_sends_data_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-        self.assertEquals(b"some wav", self.worker_socket.sent_message)
+
+        expected_message = RecognitionRequestMessage()
+        expected_message.body = b"some wav"
+
+        received_message = RecognitionRequestMessage()
+        received_message.ParseFromString(self.worker_socket.sent_message)
+
+        self.assertEquals(expected_message, received_message)
 
     def test_recognize_batch_reads_response_from_worker(self):
         response = self.worker.recognize_batch(self.request_data, self.request_headers)

@@ -6,7 +6,7 @@ import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
-from cloudasr.messages import HeartbeatMessage
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage
 
 
 def create_worker(model, frontend_address, public_address, master_address):
@@ -57,7 +57,10 @@ class Worker:
                 self.handle_request(messages["frontend"])
 
     def handle_request(self, message):
-        pcm = self.get_pcm_from_message(message)
+        request = RecognitionRequestMessage()
+        request.ParseFromString(message)
+
+        pcm = self.get_pcm_from_message(request.body)
         self.asr.recognize_chunk(pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
         response = self.create_response(final_hypothesis)

@@ -24,3 +24,7 @@ message MasterResponseMessage {
 		ERROR = 1;
 	};
 }
+
+message RecognitionRequestMessage {
+	required bytes body = 1;
+}

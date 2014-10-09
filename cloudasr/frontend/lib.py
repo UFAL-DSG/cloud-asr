@@ -1,6 +1,6 @@
 import zmq
 import re
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage
 
 def create_frontend_worker(master_address):
     context = zmq.Context()
@@ -45,8 +45,11 @@ class FrontendWorker:
             raise NoWorkerAvailableError()
 
     def recognize_batch_on_worker(self, worker_address, data):
+        message = RecognitionRequestMessage()
+        message.body = data["wav"]
+
         self.worker_socket.connect(worker_address)
-        self.worker_socket.send(data["wav"])
+        self.worker_socket.send(message.SerializeToString())
         response = self.worker_socket.recv_json()
         self.worker_socket.disconnect(worker_address)
 

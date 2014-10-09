@@ -2,7 +2,7 @@ import unittest
 import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
-from cloudasr.messages import HeartbeatMessage
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage
 from cloudasr.test_doubles import PollerSpy
 
 
@@ -41,8 +41,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
         messages = [
-            {"frontend": "message 1"},
-            {"frontend": "message 2"}
+            {"frontend": self.make_fronted_request("message 1")},
+            {"frontend": self.make_fronted_request("message 2")}
         ]
 
         self.run_worker(messages)
@@ -50,8 +50,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_reads_final_hypothesis_from_asr(self):
         messages = [
-            {"frontend": "message 1"},
-            {"frontend": "message 2"}
+            {"frontend": self.make_fronted_request("message 1")},
+            {"frontend": self.make_fronted_request("message 2")}
         ]
 
         self.run_worker(messages)
@@ -71,7 +71,7 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_heartbeat_after_finishing_task(self):
         messages = [
-            {"frontend": "message 1"}
+            {"frontend": self.make_fronted_request("message 1")}
         ]
         self.run_worker(messages)
 
@@ -99,6 +99,12 @@ class TestWorker(unittest.TestCase):
         heartbeat.ParseFromString(message)
 
         return heartbeat
+
+    def make_fronted_request(self, message):
+        request = RecognitionRequestMessage()
+        request.body = message
+
+        return request.SerializeToString()
 
 
 class TestASR(unittest.TestCase):
