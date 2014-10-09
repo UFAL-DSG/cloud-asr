@@ -1,6 +1,6 @@
 import time
 from collections import defaultdict
-from cloudasr.messages import HeartbeatMessage, WorkerRequestMessage
+from cloudasr.messages import HeartbeatMessage, WorkerRequestMessage, MasterResponseMessage
 
 
 def create_master(worker_address, frontend_address):
@@ -21,7 +21,7 @@ def create_poller(worker_address, frontend_address):
 
     sockets = {
         "worker": {"socket": worker_socket, "receive": worker_socket.recv, "send": worker_socket.send_json},
-        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv, "send": frontend_socket.send_json},
+        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv, "send": frontend_socket.send},
     }
     time_func = time.time
 
@@ -54,19 +54,16 @@ class Master:
             model = request.model
             worker = self.workers.get_worker(model, self.time)
 
-            message = {
-                "status": "success",
-                "address": worker
-            }
+            message = MasterResponseMessage()
+            message.status = MasterResponseMessage.SUCCESS
+            message.address = worker
 
-            self.poller.send("frontend", message)
+            self.poller.send("frontend", message.SerializeToString())
         except NoWorkerAvailableException:
-            message = {
-                "status": "error",
-                "message": "No worker available"
-            }
+            message = MasterResponseMessage()
+            message.status = MasterResponseMessage.ERROR
 
-            self.poller.send("frontend", message)
+            self.poller.send("frontend", message.SerializeToString())
 
     def handle_worker_request(self, message):
         heartbeat = HeartbeatMessage()

@@ -1,6 +1,6 @@
 import unittest
 from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
-from cloudasr.messages import WorkerRequestMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage
 
 
 class TestFrontendWorker(unittest.TestCase):
@@ -29,7 +29,11 @@ class TestFrontendWorker(unittest.TestCase):
     }
 
     def setUp(self):
-        self.master_socket = SocketSpy({"status": "success", "address": self.background_worker_socket})
+        response = MasterResponseMessage()
+        response.status = MasterResponseMessage.SUCCESS
+        response.address = self.background_worker_socket
+
+        self.master_socket = SocketSpy(response.SerializeToString())
         self.worker_socket = SocketSpy(self.dummy_response)
         self.worker = FrontendWorker(self.master_socket, self.worker_socket)
 
@@ -67,7 +71,10 @@ class TestFrontendWorker(unittest.TestCase):
         self.assertEquals(self.dummy_response, response)
 
     def test_recognize_batch_raise_exception_when_no_worker_is_available(self):
-        self.master_socket.set_response({"status": "error", "message": "No worker available"})
+        response = MasterResponseMessage()
+        response.status = MasterResponseMessage.ERROR
+
+        self.master_socket.set_response(response.SerializeToString())
         self.assertRaises(NoWorkerAvailableError, lambda: self.worker.recognize_batch(self.request_data, self.request_headers))
 
 
@@ -95,6 +102,9 @@ class SocketSpy:
 
     def send_json(self, message):
         self.sent_message = message
+
+    def recv(self):
+        return self.response
 
     def recv_json(self):
         return self.response

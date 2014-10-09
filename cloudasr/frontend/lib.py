@@ -1,6 +1,6 @@
 import zmq
 import re
-from cloudasr.messages import WorkerRequestMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage
 
 def create_frontend_worker(master_address):
     context = zmq.Context()
@@ -36,10 +36,11 @@ class FrontendWorker:
         request.model = model
 
         self.master_socket.send(request.SerializeToString())
-        response = self.master_socket.recv_json()
+        response = MasterResponseMessage()
+        response.ParseFromString(self.master_socket.recv())
 
-        if response["status"] == "success":
-            return response["address"]
+        if response.status == MasterResponseMessage.SUCCESS:
+            return response.address
         else:
             raise NoWorkerAvailableError()
 
