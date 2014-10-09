@@ -1,5 +1,6 @@
 import unittest
 from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
+from cloudasr.messages import WorkerRequestMessage
 
 
 class TestFrontendWorker(unittest.TestCase):
@@ -40,7 +41,14 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_batch_asks_master_for_worker_address(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-        self.assertEquals({"model": "en-GB"}, self.master_socket.sent_message)
+
+        expected_message = WorkerRequestMessage()
+        expected_message.model = "en-GB"
+
+        received_message = WorkerRequestMessage()
+        received_message.ParseFromString(self.master_socket.sent_message)
+
+        self.assertEquals(expected_message, received_message)
 
     def test_recognize_batch_connects_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)

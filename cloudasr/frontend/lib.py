@@ -1,5 +1,6 @@
 import zmq
 import re
+from cloudasr.messages import WorkerRequestMessage
 
 def create_frontend_worker(master_address):
     context = zmq.Context()
@@ -31,7 +32,10 @@ class FrontendWorker:
             raise MissingHeaderError()
 
     def get_worker_address_from_master(self, model):
-        self.master_socket.send_json({"model": model})
+        request = WorkerRequestMessage()
+        request.model = model
+
+        self.master_socket.send(request.SerializeToString())
         response = self.master_socket.recv_json()
 
         if response["status"] == "success":

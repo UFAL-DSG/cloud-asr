@@ -1,7 +1,7 @@
 import unittest
 from lib import Master
 from cloudasr.test_doubles import PollerSpy
-from cloudasr.messages import HeartbeatMessage
+from cloudasr.messages import HeartbeatMessage, WorkerRequestMessage
 
 
 class TestMaster(unittest.TestCase):
@@ -123,9 +123,10 @@ class TestMaster(unittest.TestCase):
         return message.SerializeToString()
 
     def make_frontend_request(self, model="en-GB"):
-        return {
-            "model": model
-        }
+        message = WorkerRequestMessage()
+        message.model = model
+
+        return message.SerializeToString()
 
     def make_frontend_successfull_response(self, address):
         return {

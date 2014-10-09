@@ -9,5 +9,8 @@ message HeartbeatMessage {
 		READY = 0;
 		FINISHED = 1;
 	};
+}
 
+message WorkerRequestMessage {
+	required string model = 1;
 }

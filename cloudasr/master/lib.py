@@ -1,6 +1,6 @@
 import time
 from collections import defaultdict
-from cloudasr.messages import HeartbeatMessage
+from cloudasr.messages import HeartbeatMessage, WorkerRequestMessage
 
 
 def create_master(worker_address, frontend_address):
@@ -21,7 +21,7 @@ def create_poller(worker_address, frontend_address):
 
     sockets = {
         "worker": {"socket": worker_socket, "receive": worker_socket.recv},
-        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv_json},
+        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv},
     }
     time_func = time.time
 
@@ -48,7 +48,10 @@ class Master:
 
     def handle_fronted_request(self, message):
         try:
-            model = message["model"]
+            request = WorkerRequestMessage()
+            request.ParseFromString(message)
+
+            model = request.model
             worker = self.workers.get_worker(model, self.time)
 
             message = {
