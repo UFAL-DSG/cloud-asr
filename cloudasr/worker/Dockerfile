@@ -48,6 +48,8 @@ RUN python -c 'import fst; import kaldi.decoders'
 WORKDIR /app
 RUN rm -rf pykaldi
 
+RUN pip install protobuf
+
 ADD . /opt/app
 WORKDIR /opt/app
 CMD python run.py

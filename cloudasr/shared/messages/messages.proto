@@ -1,0 +1,13 @@
+package cloudasr.messages;
+
+message HeartbeatMessage {
+	required string address = 1;
+	required string model = 2;
+	required Status status = 3;
+
+	enum Status {
+		READY = 0;
+		FINISHED = 1;
+	};
+
+}

@@ -2,6 +2,7 @@ import unittest
 import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
+from cloudasr.messages import HeartbeatMessage
 from cloudasr.test_doubles import PollerSpy
 
 
@@ -58,32 +59,46 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
         messages = [{}]
-
-        expected_message = {
-            "address": self.worker_address,
-            "model": self.model,
-            "status": "READY"
-        }
-
         self.run_worker(messages)
-        self.assertEquals([expected_message], self.master_socket.sent_messages)
+
+        expected_message = HeartbeatMessage()
+        expected_message.address = self.worker_address
+        expected_message.model = self.model
+        expected_message.status = HeartbeatMessage.READY
+
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+        self.assertEquals([expected_message], received_messages)
 
     def test_worker_sends_heartbeat_after_finishing_task(self):
         messages = [
             {"frontend": "message 1"}
         ]
-
-        expected_messages = [
-            {"status": "READY", "address": self.worker_address, "model": self.model},
-            {"status": "FINISHED", "address": self.worker_address, "model": self.model}
-        ]
-
         self.run_worker(messages)
-        self.assertEquals(expected_messages, self.master_socket.sent_messages)
+
+        expected_message1 = HeartbeatMessage()
+        expected_message1.address = self.worker_address
+        expected_message1.model = self.model
+        expected_message1.status = HeartbeatMessage.READY
+
+        expected_message2 = HeartbeatMessage()
+        expected_message2.address = self.worker_address
+        expected_message2.model = self.model
+        expected_message2.status = HeartbeatMessage.FINISHED
+
+        expected_messages = [expected_message1, expected_message2]
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(expected_messages, received_messages)
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
         self.worker.run()
+
+    def parseHeartbeatFromString(self, message):
+        heartbeat = HeartbeatMessage()
+        heartbeat.ParseFromString(message)
+
+        return heartbeat
 
 
 class TestASR(unittest.TestCase):

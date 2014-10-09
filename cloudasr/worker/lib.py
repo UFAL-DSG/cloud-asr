@@ -6,6 +6,7 @@ import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
+from cloudasr.messages import HeartbeatMessage
 
 
 def create_worker(model, frontend_address, public_address, master_address):
@@ -86,13 +87,12 @@ class Heartbeat:
         self.socket = socket
 
     def send(self, status):
-        message = {
-            "address": self.address,
-            "model": self.model,
-            "status": status
-        }
+        heartbeat = HeartbeatMessage()
+        heartbeat.address = self.address
+        heartbeat.model = self.model
+        heartbeat.status = HeartbeatMessage.READY if status == "READY" else HeartbeatMessage.FINISHED
 
-        self.socket.send_json(message)
+        self.socket.send(heartbeat.SerializeToString())
 
 
 

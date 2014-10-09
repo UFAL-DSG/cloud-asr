@@ -67,3 +67,6 @@ test:
 	docker run ${MASTER_VOLUMES} --rm master nosetests
 	docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests
 	docker run ${FRONTEND_VOLUMES} --rm frontend nosetests
+
+compile-messages:
+	protoc --python_out=. ./cloudasr/shared/messages/messages.proto

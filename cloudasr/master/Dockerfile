@@ -16,6 +16,8 @@ RUN pip install pyzmq
 
 RUN pip install nose
 
+RUN pip install protobuf
+
 ADD . /opt/app
 WORKDIR /opt/app
 CMD python run.py

@@ -1,6 +1,7 @@
 import unittest
 from lib import Master
 from cloudasr.test_doubles import PollerSpy
+from cloudasr.messages import HeartbeatMessage
 
 
 class TestMaster(unittest.TestCase):
@@ -109,11 +110,17 @@ class TestMaster(unittest.TestCase):
         self.master.run()
 
     def make_heartbeat_request(self, worker_address, model, status):
-        return {
-            "address": worker_address,
-            "model": model,
-            "status": status
-        }
+        message = HeartbeatMessage()
+        message.address = worker_address
+        message.model = model
+
+        if status == "READY":
+            message.status = HeartbeatMessage.READY
+
+        if status == "FINISHED":
+            message.status = HeartbeatMessage.FINISHED
+
+        return message.SerializeToString()
 
     def make_frontend_request(self, model="en-GB"):
         return {

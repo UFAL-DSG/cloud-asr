@@ -1,5 +1,6 @@
 import time
 from collections import defaultdict
+from cloudasr.messages import HeartbeatMessage
 
 
 def create_master(worker_address, frontend_address):
@@ -19,7 +20,7 @@ def create_poller(worker_address, frontend_address):
     frontend_socket.bind(frontend_address)
 
     sockets = {
-        "worker": {"socket": worker_socket, "receive": worker_socket.recv_json},
+        "worker": {"socket": worker_socket, "receive": worker_socket.recv},
         "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv_json},
     }
     time_func = time.time
@@ -65,9 +66,12 @@ class Master:
             self.poller.send("frontend", message)
 
     def handle_worker_request(self, message):
-        model = message["model"]
-        address = message["address"]
-        status = message["status"]
+        heartbeat = HeartbeatMessage()
+        heartbeat.ParseFromString(message)
+
+        address = heartbeat.address
+        model = heartbeat.model
+        status = "READY" if heartbeat.status == HeartbeatMessage.READY else "FINISHED"
 
         self.workers.add_worker(model, address, status, self.time)
 
