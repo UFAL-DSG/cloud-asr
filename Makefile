@@ -8,7 +8,7 @@ MASTER_TO_WORKER_ADDR=tcp://${IP}:${MASTER_TO_WORKER_PORT}
 MASTER_TO_FRONTEND_PORT=5680
 MASTER_TO_FRONTEND_ADDR=tcp://${IP}:${MASTER_TO_FRONTEND_PORT}
 
-SHARED_VOLUME=${CURDIR}/cloudasr/shared:/opt/app/cloudasr
+SHARED_VOLUME=${CURDIR}/cloudasr/shared:/usr/local/lib/python2.7/dist-packages/cloudasr
 MASTER_VOLUMES=-v ${CURDIR}/cloudasr/master:/opt/app -v ${SHARED_VOLUME}
 MASTER_OPTS=--name master \
 	-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
