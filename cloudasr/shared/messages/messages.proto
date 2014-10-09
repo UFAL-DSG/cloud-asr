@@ -28,3 +28,14 @@ message MasterResponseMessage {
 message RecognitionRequestMessage {
 	required bytes body = 1;
 }
+
+message Alternative {
+	required string transcript = 1;
+	required float confidence = 2;
+}
+
+
+message FinalResultMessage {
+	required bool final = 1;
+	repeated Alternative alternatives = 2;
+}

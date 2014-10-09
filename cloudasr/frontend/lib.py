@@ -1,6 +1,6 @@
 import zmq
 import re
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, FinalResultMessage
 
 def create_frontend_worker(master_address):
     context = zmq.Context()
@@ -50,11 +50,23 @@ class FrontendWorker:
 
         self.worker_socket.connect(worker_address)
         self.worker_socket.send(message.SerializeToString())
-        response = self.worker_socket.recv_json()
+        response = FinalResultMessage()
+        response.ParseFromString(self.worker_socket.recv())
+
         self.worker_socket.disconnect(worker_address)
 
-        return response
+        return self.format_response(response)
 
+    def format_response(self, response):
+        return {
+            "result": [
+                {
+                    "alternative": [{"confidence": a.confidence, "transcript": a.transcript} for a in response.alternatives],
+                    "final": response.final,
+                },
+            ],
+            "result_index": 0,
+        }
 
 class NoWorkerAvailableError(Exception):
     pass

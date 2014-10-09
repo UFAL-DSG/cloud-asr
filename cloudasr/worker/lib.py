@@ -6,7 +6,7 @@ import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage
 
 
 def create_worker(model, frontend_address, public_address, master_address):
@@ -25,7 +25,7 @@ def create_poller(frontend_address):
     frontend_socket.bind(frontend_address)
 
     sockets = {
-        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv, "send": frontend_socket.send_json},
+        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv, "send": frontend_socket.send},
     }
     time_func = time.time
 
@@ -64,22 +64,22 @@ class Worker:
         self.asr.recognize_chunk(pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
         response = self.create_response(final_hypothesis)
-        self.poller.send("frontend", response)
+        self.poller.send("frontend", response.SerializeToString())
         self.heartbeat.send("FINISHED")
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)
 
     def create_response(self, final_hypothesis):
-        return {
-            "result": [
-                {
-                    "alternative": [{"confidence": c, "transcript": t} for (c, t) in final_hypothesis],
-                    "final": True,
-                },
-            ],
-            "result_index": 0,
-        }
+        response = FinalResultMessage()
+        response.final = True
+
+        for (confidence, transcript) in final_hypothesis:
+            alternative = response.alternatives.add()
+            alternative.confidence = confidence
+            alternative.transcript = transcript
+
+        return response
 
 
 class Heartbeat:

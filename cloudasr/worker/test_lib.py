@@ -2,24 +2,11 @@ import unittest
 import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage, Alternative
 from cloudasr.test_doubles import PollerSpy
 
 
-dummy_final_hypothesis = {
-    "result": [
-        {
-            "alternative": [
-                {
-                    "confidence": 1.0,
-                    "transcript": "Hello World!"
-                },
-            ],
-            "final": True,
-        },
-    ],
-    "result_index": 0,
-}
+
 
 asr_response = [
     (1.0, "Hello World!")
@@ -55,7 +42,19 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertEquals([dummy_final_hypothesis, dummy_final_hypothesis], self.poller.sent_messages["frontend"])
+
+        alternative = Alternative()
+        alternative.confidence = 1.0
+        alternative.transcript = "Hello World!"
+
+        expected_message = FinalResultMessage()
+        expected_message.final = True
+        expected_message.alternatives.extend([alternative])
+
+        received_messages = [self.parseFinalResultFromString(message) for message in self.poller.sent_messages["frontend"]]
+
+
+        self.assertEquals([expected_message, expected_message], received_messages)
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
         messages = [{}]
@@ -99,6 +98,12 @@ class TestWorker(unittest.TestCase):
         heartbeat.ParseFromString(message)
 
         return heartbeat
+
+    def parseFinalResultFromString(self, message):
+        result = FinalResultMessage()
+        result.ParseFromString(message)
+
+        return result
 
     def make_fronted_request(self, message):
         request = RecognitionRequestMessage()

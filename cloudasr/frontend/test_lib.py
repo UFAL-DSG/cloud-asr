@@ -1,6 +1,6 @@
 import unittest
 from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, FinalResultMessage, Alternative
 
 
 class TestFrontendWorker(unittest.TestCase):
@@ -13,28 +13,22 @@ class TestFrontendWorker(unittest.TestCase):
     request_headers = {
         "Content-Type": "audio/x-wav; rate=44100;"
     }
-    dummy_response = {
-        "result": [
-            {
-                "alternative": [
-                    {
-                        "confidence": 1.0,
-                        "transcript": "Hello World!"
-                    },
-                ],
-                "final": True,
-            },
-        ],
-        "result_index": 0,
-    }
 
     def setUp(self):
         response = MasterResponseMessage()
         response.status = MasterResponseMessage.SUCCESS
         response.address = self.background_worker_socket
 
+        alternative = Alternative()
+        alternative.confidence = 1.0
+        alternative.transcript = "Hello World!"
+
+        worker_response = FinalResultMessage()
+        worker_response.final = True
+        worker_response.alternatives.extend([alternative])
+
         self.master_socket = SocketSpy(response.SerializeToString())
-        self.worker_socket = SocketSpy(self.dummy_response)
+        self.worker_socket = SocketSpy(worker_response.SerializeToString())
         self.worker = FrontendWorker(self.master_socket, self.worker_socket)
 
     def test_recognize_batch_requires_content_type_header_with_frame_rate(self):
@@ -74,8 +68,24 @@ class TestFrontendWorker(unittest.TestCase):
         self.assertEquals(expected_message, received_message)
 
     def test_recognize_batch_reads_response_from_worker(self):
-        response = self.worker.recognize_batch(self.request_data, self.request_headers)
-        self.assertEquals(self.dummy_response, response)
+        expected_response = {
+            "result": [
+                {
+                    "alternative": [
+                        {
+                            "confidence": 1.0,
+                            "transcript": "Hello World!"
+                        },
+                    ],
+                    "final": True,
+                },
+            ],
+            "result_index": 0,
+        }
+
+        received_response = self.worker.recognize_batch(self.request_data, self.request_headers)
+
+        self.assertEquals(expected_response, received_response)
 
     def test_recognize_batch_raise_exception_when_no_worker_is_available(self):
         response = MasterResponseMessage()
