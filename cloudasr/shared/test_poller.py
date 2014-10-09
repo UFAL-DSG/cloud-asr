@@ -12,8 +12,8 @@ class TestPoller(unittest.TestCase):
         frontend_socket.bind("ipc:///tmp/frontend")
 
         sockets = {
-            "worker": {"socket": worker_socket, "receive": worker_socket.recv_json},
-            "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv_json},
+            "worker": {"socket": worker_socket, "receive": worker_socket.recv_json, "send": worker_socket.send_json},
+            "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv_json, "send": worker_socket.send_json},
         }
         time = TimeStub()
 

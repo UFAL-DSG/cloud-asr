@@ -20,8 +20,8 @@ def create_poller(worker_address, frontend_address):
     frontend_socket.bind(frontend_address)
 
     sockets = {
-        "worker": {"socket": worker_socket, "receive": worker_socket.recv},
-        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv},
+        "worker": {"socket": worker_socket, "receive": worker_socket.recv, "send": worker_socket.send_json},
+        "frontend": {"socket": frontend_socket, "receive": frontend_socket.recv, "send": frontend_socket.send_json},
     }
     time_func = time.time
 

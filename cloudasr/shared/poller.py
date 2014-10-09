@@ -26,4 +26,4 @@ class Poller:
         return socket["socket"] in sockets and sockets[socket["socket"]] == zmq.POLLIN
 
     def send(self, socket, message):
-        self.sockets[socket]["socket"].send_json(message)
+        self.sockets[socket]["send"](message)

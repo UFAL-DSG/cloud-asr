@@ -14,3 +14,13 @@ message HeartbeatMessage {
 message WorkerRequestMessage {
 	required string model = 1;
 }
+
+message MasterResponseMessage {
+	required Status status = 1;
+	optional string address = 2;
+
+	enum Status {
+		SUCCESS = 0;
+		ERROR = 1;
+	};
+}
