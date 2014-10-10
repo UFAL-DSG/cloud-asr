@@ -47,6 +47,7 @@ class FrontendWorker:
     def recognize_batch_on_worker(self, worker_address, data):
         message = RecognitionRequestMessage()
         message.body = data["wav"]
+        message.type = RecognitionRequestMessage.BATCH
 
         self.worker_socket.connect(worker_address)
         self.worker_socket.send(message.SerializeToString())

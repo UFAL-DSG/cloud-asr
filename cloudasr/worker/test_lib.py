@@ -2,13 +2,8 @@ import unittest
 import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage, Alternative
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage, InterimResultMessage, Alternative
 from cloudasr.test_doubles import PollerSpy
-
-
-asr_response = [
-    (1.0, "Hello World!")
-]
 
 
 class TestWorker(unittest.TestCase):
@@ -20,7 +15,7 @@ class TestWorker(unittest.TestCase):
 
         self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
         self.poller = PollerSpy()
-        self.asr = ASRSpy(asr_response)
+        self.asr = ASRSpy([(1.0, "Hello World!")], (1.0, "Interim result"))
         self.audio = DummyAudio()
         self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.poller.has_next_message)
 
@@ -50,8 +45,6 @@ class TestWorker(unittest.TestCase):
         expected_message.alternatives.extend([alternative])
 
         received_messages = [self.parseFinalResultFromString(message) for message in self.poller.sent_messages["frontend"]]
-
-
         self.assertEquals([expected_message, expected_message], received_messages)
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
@@ -86,6 +79,25 @@ class TestWorker(unittest.TestCase):
         received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(expected_messages, received_messages)
+
+    def test_worker_sends_interim_results_after_each_chunk(self):
+        messages = [
+            {"frontend": self.make_fronted_request("message 1", "online")},
+            {"frontend": self.make_fronted_request("message 2", "online")}
+        ]
+        self.run_worker(messages)
+
+        alternative = Alternative()
+        alternative.confidence = 1.0
+        alternative.transcript = "Interim result"
+
+        expected_message = InterimResultMessage()
+        expected_message.final = False
+        expected_message.alternatives.extend([alternative])
+
+        received_messages = [self.parseInterimResultFromString(message) for message in self.poller.sent_messages["frontend"]]
+        self.assertEquals([expected_message, expected_message], received_messages)
+
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
@@ -163,12 +175,15 @@ class SocketSpy:
 
 class ASRSpy:
 
-    def __init__(self, final_hypothesis):
+    def __init__(self, final_hypothesis, interim_hypothesis):
         self.processed_chunks = []
         self.final_hypothesis = final_hypothesis
+        self.interim_hypothesis = interim_hypothesis
 
     def recognize_chunk(self, chunk):
         self.processed_chunks.append(chunk)
+
+        return self.interim_hypothesis
 
     def get_final_hypothesis(self):
         return self.final_hypothesis

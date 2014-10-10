@@ -6,7 +6,7 @@ import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage, InterimResultMessage
 
 
 def create_worker(model, frontend_address, public_address, master_address):
@@ -60,11 +60,18 @@ class Worker:
         request = RecognitionRequestMessage()
         request.ParseFromString(message)
 
-        pcm = self.get_pcm_from_message(request.body)
-        self.asr.recognize_chunk(pcm)
-        final_hypothesis = self.asr.get_final_hypothesis()
-        response = self.create_response(final_hypothesis)
-        self.poller.send("frontend", response.SerializeToString())
+        if request.type == RecognitionRequestMessage.BATCH:
+            pcm = self.get_pcm_from_message(request.body)
+            self.asr.recognize_chunk(pcm)
+            final_hypothesis = self.asr.get_final_hypothesis()
+            response = self.create_response(final_hypothesis)
+            self.poller.send("frontend", response.SerializeToString())
+        else:
+            pcm = self.get_pcm_from_message(request.body)
+            interim_hypothesis = self.asr.recognize_chunk(pcm)
+            response = self.create_interim_response(interim_hypothesis)
+            self.poller.send("frontend", response.SerializeToString())
+
         self.heartbeat.send("FINISHED")
 
     def get_pcm_from_message(self, message):
@@ -78,6 +85,16 @@ class Worker:
             alternative = response.alternatives.add()
             alternative.confidence = confidence
             alternative.transcript = transcript
+
+        return response
+
+    def create_interim_response(self, interim_hypothesis):
+        response = InterimResultMessage()
+        response.final = False
+
+        alternative = response.alternatives.add()
+        alternative.confidence = interim_hypothesis[0]
+        alternative.transcript = interim_hypothesis[1]
 
         return response
 

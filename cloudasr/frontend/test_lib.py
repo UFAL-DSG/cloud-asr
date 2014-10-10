@@ -61,6 +61,7 @@ class TestFrontendWorker(unittest.TestCase):
 
         expected_message = RecognitionRequestMessage()
         expected_message.body = b"some wav"
+        expected_message.type = RecognitionRequestMessage.BATCH
 
         received_message = RecognitionRequestMessage()
         received_message.ParseFromString(self.worker_socket.sent_message)

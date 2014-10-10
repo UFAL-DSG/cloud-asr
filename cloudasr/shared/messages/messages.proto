@@ -26,7 +26,13 @@ message MasterResponseMessage {
 }
 
 message RecognitionRequestMessage {
-	required bytes body = 1;
+	required Type type = 1;
+	required bytes body = 2;
+
+	enum Type {
+		BATCH = 0;
+		ONLINE = 1;
+	}
 }
 
 message Alternative {
@@ -36,6 +42,11 @@ message Alternative {
 
 
 message FinalResultMessage {
+	required bool final = 1;
+	repeated Alternative alternatives = 2;
+}
+
+message InterimResultMessage {
 	required bool final = 1;
 	repeated Alternative alternatives = 2;
 }
