@@ -6,8 +6,6 @@ from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, Final
 from cloudasr.test_doubles import PollerSpy
 
 
-
-
 asr_response = [
     (1.0, "Hello World!")
 ]
@@ -126,6 +124,14 @@ class TestASR(unittest.TestCase):
             self.assertEqual(type(hypothesis[0]), FloatType)
             self.assertEqual(type(hypothesis[1]), UnicodeType)
             self.assertGreaterEqual(hypothesis[0], 0)
+
+    def test_recognize_chunk_returns_interim_results(self):
+        asr = ASR(config.kaldi_config, config.wst_path)
+        interim_hypothesis = asr.recognize_chunk(self.load_pcm_sample_data())
+
+        self.assertEquals(type(interim_hypothesis[0]), FloatType)
+        self.assertEquals(type(interim_hypothesis[1]), UnicodeType)
+
 
     def load_pcm_sample_data(self):
         audio = AudioUtils()

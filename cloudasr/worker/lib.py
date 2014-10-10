@@ -115,7 +115,7 @@ class ASR:
             decoded_frames += dec_t
             dec_t = self.recogniser.decode(max_frames=10)
 
-        return self.recogniser.get_best_path()
+        return (0.0, u"Not Implemented Yet")
 
     def get_final_hypothesis(self):
         self.recogniser.prune_final()
