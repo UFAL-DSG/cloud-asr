@@ -6,7 +6,7 @@ import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage, InterimResultMessage
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, ResultsMessage
 
 
 def create_worker(model, frontend_address, public_address, master_address):
@@ -85,7 +85,7 @@ class Worker:
         return self.audio.load_wav_from_string_as_pcm(message)
 
     def create_response(self, final_hypothesis):
-        response = FinalResultMessage()
+        response = ResultsMessage()
         response.final = True
 
         for (confidence, transcript) in final_hypothesis:
@@ -96,7 +96,7 @@ class Worker:
         return response
 
     def create_interim_response(self, interim_hypothesis):
-        response = InterimResultMessage()
+        response = ResultsMessage()
         response.final = False
 
         alternative = response.alternatives.add()

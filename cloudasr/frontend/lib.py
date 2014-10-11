@@ -1,6 +1,6 @@
 import zmq
 import re
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, FinalResultMessage
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage
 
 def create_frontend_worker(master_address):
     context = zmq.Context()
@@ -51,7 +51,7 @@ class FrontendWorker:
 
         self.worker_socket.connect(worker_address)
         self.worker_socket.send(message.SerializeToString())
-        response = FinalResultMessage()
+        response = ResultsMessage()
         response.ParseFromString(self.worker_socket.recv())
 
         self.worker_socket.disconnect(worker_address)

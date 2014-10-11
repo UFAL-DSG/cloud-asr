@@ -2,7 +2,7 @@ import unittest
 import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, FinalResultMessage, InterimResultMessage, Alternative
+from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, ResultsMessage, Alternative
 from cloudasr.test_doubles import PollerSpy
 
 
@@ -37,7 +37,7 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
 
         expected_message = self.make_final_results_response()
-        received_messages = [self.parseFinalResultFromString(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
@@ -81,7 +81,7 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
 
         expected_message = self.make_interim_results_response()
-        received_messages = [self.parseInterimResultFromString(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
 
     def test_worker_sends_final_results_after_last_chunk(self):
@@ -93,11 +93,8 @@ class TestWorker(unittest.TestCase):
 
         expected_message1 = self.make_interim_results_response()
         expected_message2 = self.make_final_results_response()
+        received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
 
-        received_messages = [
-            self.parseInterimResultFromString(self.poller.sent_messages["frontend"][0]),
-            self.parseFinalResultFromString(self.poller.sent_messages["frontend"][1])
-        ]
         self.assertEquals([expected_message1, expected_message2], received_messages)
 
 
@@ -111,14 +108,8 @@ class TestWorker(unittest.TestCase):
 
         return heartbeat
 
-    def parseFinalResultFromString(self, message):
-        result = FinalResultMessage()
-        result.ParseFromString(message)
-
-        return result
-
-    def parseInterimResultFromString(self, message):
-        result = InterimResultMessage()
+    def parseResultsFromString(self, message):
+        result = ResultsMessage()
         result.ParseFromString(message)
 
         return result
@@ -136,7 +127,7 @@ class TestWorker(unittest.TestCase):
         alternative.confidence = 1.0
         alternative.transcript = "Interim result"
 
-        interim_results = InterimResultMessage()
+        interim_results = ResultsMessage()
         interim_results.final = False
         interim_results.alternatives.extend([alternative])
 
@@ -147,12 +138,11 @@ class TestWorker(unittest.TestCase):
         alternative.confidence = 1.0
         alternative.transcript = "Hello World!"
 
-        final_results = FinalResultMessage()
+        final_results = ResultsMessage()
         final_results.final = True
         final_results.alternatives.extend([alternative])
 
         return final_results
-
 
 
 class TestASR(unittest.TestCase):

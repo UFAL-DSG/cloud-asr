@@ -1,6 +1,6 @@
 import unittest
 from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, FinalResultMessage, Alternative
+from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage, Alternative
 
 
 class TestFrontendWorker(unittest.TestCase):
@@ -23,7 +23,7 @@ class TestFrontendWorker(unittest.TestCase):
         alternative.confidence = 1.0
         alternative.transcript = "Hello World!"
 
-        worker_response = FinalResultMessage()
+        worker_response = ResultsMessage()
         worker_response.final = True
         worker_response.alternatives.extend([alternative])
 

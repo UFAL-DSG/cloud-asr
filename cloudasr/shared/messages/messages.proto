@@ -42,12 +42,7 @@ message Alternative {
 }
 
 
-message FinalResultMessage {
-	required bool final = 1;
-	repeated Alternative alternatives = 2;
-}
-
-message InterimResultMessage {
+message ResultsMessage {
 	required bool final = 1;
 	repeated Alternative alternatives = 2;
 }
