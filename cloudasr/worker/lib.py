@@ -69,8 +69,15 @@ class Worker:
         else:
             pcm = self.get_pcm_from_message(request.body)
             interim_hypothesis = self.asr.recognize_chunk(pcm)
-            response = self.create_interim_response(interim_hypothesis)
-            self.poller.send("frontend", response.SerializeToString())
+
+            if request.has_next == True:
+                response = self.create_interim_response(interim_hypothesis)
+                self.poller.send("frontend", response.SerializeToString())
+            else:
+                final_hypothesis = self.asr.get_final_hypothesis()
+                response = self.create_response(final_hypothesis)
+                self.poller.send("frontend", response.SerializeToString())
+
 
         self.heartbeat.send("FINISHED")
 

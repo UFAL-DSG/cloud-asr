@@ -28,6 +28,7 @@ message MasterResponseMessage {
 message RecognitionRequestMessage {
 	required Type type = 1;
 	required bytes body = 2;
+	optional bool has_next = 3;
 
 	enum Type {
 		BATCH = 0;

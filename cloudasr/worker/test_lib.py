@@ -36,14 +36,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        alternative = Alternative()
-        alternative.confidence = 1.0
-        alternative.transcript = "Hello World!"
-
-        expected_message = FinalResultMessage()
-        expected_message.final = True
-        expected_message.alternatives.extend([alternative])
-
+        expected_message = self.make_final_results_response()
         received_messages = [self.parseFinalResultFromString(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
 
@@ -87,16 +80,25 @@ class TestWorker(unittest.TestCase):
         ]
         self.run_worker(messages)
 
-        alternative = Alternative()
-        alternative.confidence = 1.0
-        alternative.transcript = "Interim result"
-
-        expected_message = InterimResultMessage()
-        expected_message.final = False
-        expected_message.alternatives.extend([alternative])
-
+        expected_message = self.make_interim_results_response()
         received_messages = [self.parseInterimResultFromString(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
+
+    def test_worker_sends_final_results_after_last_chunk(self):
+        messages = [
+            {"frontend": self.make_fronted_request("message 1", "online", has_next = True)},
+            {"frontend": self.make_fronted_request("message 2", "online", has_next = False)}
+        ]
+        self.run_worker(messages)
+
+        expected_message1 = self.make_interim_results_response()
+        expected_message2 = self.make_final_results_response()
+
+        received_messages = [
+            self.parseInterimResultFromString(self.poller.sent_messages["frontend"][0]),
+            self.parseFinalResultFromString(self.poller.sent_messages["frontend"][1])
+        ]
+        self.assertEquals([expected_message1, expected_message2], received_messages)
 
 
     def run_worker(self, messages):
@@ -115,11 +117,42 @@ class TestWorker(unittest.TestCase):
 
         return result
 
-    def make_fronted_request(self, message):
+    def parseInterimResultFromString(self, message):
+        result = InterimResultMessage()
+        result.ParseFromString(message)
+
+        return result
+
+    def make_fronted_request(self, message, type = "BATCH", has_next = True):
         request = RecognitionRequestMessage()
+        request.type = RecognitionRequestMessage.BATCH if type == "BATCH" else RecognitionRequestMessage.ONLINE
+        request.has_next = has_next
         request.body = message
 
         return request.SerializeToString()
+
+    def make_interim_results_response(self):
+        alternative = Alternative()
+        alternative.confidence = 1.0
+        alternative.transcript = "Interim result"
+
+        interim_results = InterimResultMessage()
+        interim_results.final = False
+        interim_results.alternatives.extend([alternative])
+
+        return interim_results
+
+    def make_final_results_response(self):
+        alternative = Alternative()
+        alternative.confidence = 1.0
+        alternative.transcript = "Hello World!"
+
+        final_results = FinalResultMessage()
+        final_results.final = True
+        final_results.alternatives.extend([alternative])
+
+        return final_results
+
 
 
 class TestASR(unittest.TestCase):
