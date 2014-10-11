@@ -40,39 +40,6 @@ class TestWorker(unittest.TestCase):
         received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
 
-    def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
-        messages = [{}]
-        self.run_worker(messages)
-
-        expected_message = HeartbeatMessage()
-        expected_message.address = self.worker_address
-        expected_message.model = self.model
-        expected_message.status = HeartbeatMessage.READY
-
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
-        self.assertEquals([expected_message], received_messages)
-
-    def test_worker_sends_heartbeat_after_finishing_task(self):
-        messages = [
-            {"frontend": self.make_fronted_request("message 1")}
-        ]
-        self.run_worker(messages)
-
-        expected_message1 = HeartbeatMessage()
-        expected_message1.address = self.worker_address
-        expected_message1.model = self.model
-        expected_message1.status = HeartbeatMessage.READY
-
-        expected_message2 = HeartbeatMessage()
-        expected_message2.address = self.worker_address
-        expected_message2.model = self.model
-        expected_message2.status = HeartbeatMessage.FINISHED
-
-        expected_messages = [expected_message1, expected_message2]
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
-
-        self.assertEquals(expected_messages, received_messages)
-
     def test_worker_sends_interim_results_after_each_chunk(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "online")},
@@ -97,6 +64,42 @@ class TestWorker(unittest.TestCase):
 
         self.assertEquals([expected_message1, expected_message2], received_messages)
 
+    def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
+        messages = [{}]
+        self.run_worker(messages)
+
+        ready_heartbeat = self.make_heartbeat("READY")
+        expected_messages = [ready_heartbeat]
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(expected_messages, received_messages)
+
+    def test_worker_sends_heartbeat_after_finishing_task(self):
+        messages = [
+            {"frontend": self.make_fronted_request("message 1")}
+        ]
+        self.run_worker(messages)
+
+        ready_heartbeat = self.make_heartbeat("READY")
+        finished_heartbeat = self.make_heartbeat("FINISHED")
+        expected_messages = [ready_heartbeat, finished_heartbeat]
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(expected_messages, received_messages)
+
+    def test_worker_sends_working_heartbeats_during_online_recognition(self):
+        messages = [
+            {"frontend": self.make_fronted_request("message 1", "online", has_next = True)},
+            {"frontend": self.make_fronted_request("message 2", "online", has_next = True)}
+        ]
+        self.run_worker(messages)
+
+        ready_heartbeat = self.make_heartbeat("READY")
+        working_heartbeat = self.make_heartbeat("WORKING")
+        expected_messages = [ready_heartbeat, working_heartbeat, working_heartbeat]
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(expected_messages, received_messages)
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
@@ -144,6 +147,19 @@ class TestWorker(unittest.TestCase):
 
         return final_results
 
+    def make_heartbeat(self, status):
+        statuses = {
+            "READY": HeartbeatMessage.READY,
+            "WORKING": HeartbeatMessage.WORKING,
+            "FINISHED": HeartbeatMessage.FINISHED
+        }
+
+        heartbeat = HeartbeatMessage()
+        heartbeat.address = self.worker_address
+        heartbeat.model = self.model
+        heartbeat.status = statuses[status]
+
+        return heartbeat
 
 class TestASR(unittest.TestCase):
 

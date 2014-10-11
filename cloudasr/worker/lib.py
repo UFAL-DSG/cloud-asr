@@ -49,9 +49,10 @@ class Worker:
         self.should_continue = should_continue
 
     def run(self):
+        self.heartbeat.send("READY")
+
         while self.should_continue():
             messages, time = self.poller.poll(1000)
-            self.heartbeat.send("READY")
 
             if "frontend" in messages:
                 self.handle_request(messages["frontend"])
@@ -65,7 +66,9 @@ class Worker:
             self.asr.recognize_chunk(pcm)
             final_hypothesis = self.asr.get_final_hypothesis()
             response = self.create_response(final_hypothesis)
+
             self.poller.send("frontend", response.SerializeToString())
+            self.heartbeat.send("FINISHED")
         else:
             pcm = self.get_pcm_from_message(request.body)
             interim_hypothesis = self.asr.recognize_chunk(pcm)
@@ -78,8 +81,7 @@ class Worker:
                 response = self.create_response(final_hypothesis)
                 self.poller.send("frontend", response.SerializeToString())
 
-
-        self.heartbeat.send("FINISHED")
+            self.heartbeat.send("WORKING")
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)
@@ -114,14 +116,18 @@ class Heartbeat:
         self.socket = socket
 
     def send(self, status):
+        statuses = {
+            "READY": HeartbeatMessage.READY,
+            "WORKING": HeartbeatMessage.WORKING,
+            "FINISHED": HeartbeatMessage.FINISHED
+        }
+
         heartbeat = HeartbeatMessage()
         heartbeat.address = self.address
         heartbeat.model = self.model
-        heartbeat.status = HeartbeatMessage.READY if status == "READY" else HeartbeatMessage.FINISHED
+        heartbeat.status = statuses[status]
 
         self.socket.send(heartbeat.SerializeToString())
-
-
 
 
 class ASR:
