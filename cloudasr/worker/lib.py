@@ -76,12 +76,13 @@ class Worker:
             if request.has_next == True:
                 response = self.create_interim_response(interim_hypothesis)
                 self.poller.send("frontend", response.SerializeToString())
+                self.heartbeat.send("WORKING")
             else:
                 final_hypothesis = self.asr.get_final_hypothesis()
                 response = self.create_response(final_hypothesis)
                 self.poller.send("frontend", response.SerializeToString())
+                self.heartbeat.send("FINISHED")
 
-            self.heartbeat.send("WORKING")
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)

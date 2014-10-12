@@ -101,6 +101,22 @@ class TestWorker(unittest.TestCase):
 
         self.assertEquals(expected_messages, received_messages)
 
+    def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
+        messages = [
+            {"frontend": self.make_fronted_request("message 1", "online", has_next = True)},
+            {"frontend": self.make_fronted_request("message 2", "online", has_next = False)}
+        ]
+        self.run_worker(messages)
+
+        ready_heartbeat = self.make_heartbeat("READY")
+        working_heartbeat = self.make_heartbeat("WORKING")
+        finished_heartbeat = self.make_heartbeat("FINISHED")
+        expected_messages = [ready_heartbeat, working_heartbeat, finished_heartbeat]
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(expected_messages, received_messages)
+
+
     def run_worker(self, messages):
         self.poller.add_messages(messages)
         self.worker.run()
