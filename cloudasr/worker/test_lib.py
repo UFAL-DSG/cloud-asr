@@ -70,7 +70,7 @@ class TestWorker(unittest.TestCase):
 
         ready_heartbeat = self.make_heartbeat("READY")
         expected_messages = [ready_heartbeat]
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+        received_messages = [self.parseHeartbeatFromString(self.master_socket.sent_messages[0])]
 
         self.assertEquals(expected_messages, received_messages)
 
@@ -112,6 +112,16 @@ class TestWorker(unittest.TestCase):
         working_heartbeat = self.make_heartbeat("WORKING")
         finished_heartbeat = self.make_heartbeat("FINISHED")
         expected_messages = [ready_heartbeat, working_heartbeat, finished_heartbeat]
+        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(expected_messages, received_messages)
+
+    def test_worker_sends_ready_heartbeat_when_it_doesnt_receive_any_task(self):
+        messages = [{}]
+        self.run_worker(messages)
+
+        ready_heartbeat = self.make_heartbeat("READY")
+        expected_messages = [ready_heartbeat, ready_heartbeat]
         received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(expected_messages, received_messages)

@@ -56,6 +56,8 @@ class Worker:
 
             if "frontend" in messages:
                 self.handle_request(messages["frontend"])
+            else:
+                self.heartbeat.send("READY")
 
     def handle_request(self, message):
         request = RecognitionRequestMessage()
