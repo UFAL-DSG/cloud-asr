@@ -68,7 +68,6 @@ class TestMaster(unittest.TestCase):
             {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
             {"frontend": self.make_frontend_request()},
             {"worker": self.make_heartbeat_request(worker_address, "en-GB", "FINISHED")},
-            {"worker": self.make_heartbeat_request(worker_address, "en-GB", "READY")},
             {"frontend": self.make_frontend_request()}
         ]
         self.run_master(messages)

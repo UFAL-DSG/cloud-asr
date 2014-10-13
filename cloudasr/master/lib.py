@@ -106,8 +106,12 @@ class WorkerPool:
 
     def add_worker(self, model, address, status, time):
         if self.workers_status[address]["status"] == "WORKING":
-            next_state = "READY" if status == "FINISHED" else "WORKING"
-            self.update_worker_status(address, next_state, time)
+            if status == "FINISHED":
+                self.available_workers[model].append(address)
+                self.update_worker_status(address, "WAITING", time)
+
+            if status == "WORKING":
+                self.update_worker_status(address, "WORKING", time)
         elif self.workers_status[address]["status"] == "READY":
             self.available_workers[model].append(address)
             self.update_worker_status(address, "WAITING", time)
