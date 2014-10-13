@@ -72,7 +72,7 @@ class Worker:
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("FINISHED")
         else:
-            pcm = self.get_pcm_from_message(request.body)
+            pcm = request.body
             interim_hypothesis = self.asr.recognize_chunk(pcm)
 
             if request.has_next == True:
