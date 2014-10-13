@@ -18,11 +18,14 @@ class FrontendWorker:
 
     def recognize_batch(self, data, headers):
         self.validate_headers(headers)
-
-        worker_address = self.get_worker_address_from_master(data["model"])
-        response = self.recognize_batch_on_worker(worker_address, data)
+        self.connect_to_worker(data["model"])
+        response = self.recognize_batch_on_worker(data)
 
         return response
+
+    def connect_to_worker(self, model):
+        self.worker_address = self.get_worker_address_from_master(model)
+        self.worker_socket.connect(self.worker_address)
 
     def validate_headers(self, headers):
         if "Content-Type" not in headers:
@@ -44,17 +47,16 @@ class FrontendWorker:
         else:
             raise NoWorkerAvailableError()
 
-    def recognize_batch_on_worker(self, worker_address, data):
+    def recognize_batch_on_worker(self, data):
         message = RecognitionRequestMessage()
         message.body = data["wav"]
         message.type = RecognitionRequestMessage.BATCH
 
-        self.worker_socket.connect(worker_address)
         self.worker_socket.send(message.SerializeToString())
         response = ResultsMessage()
         response.ParseFromString(self.worker_socket.recv())
 
-        self.worker_socket.disconnect(worker_address)
+        self.worker_socket.disconnect(self.worker_address)
 
         return self.format_response(response)
 

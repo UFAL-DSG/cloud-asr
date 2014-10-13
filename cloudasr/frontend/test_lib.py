@@ -88,12 +88,34 @@ class TestFrontendWorker(unittest.TestCase):
 
         self.assertEquals(expected_response, received_response)
 
-    def test_recognize_batch_raise_exception_when_no_worker_is_available(self):
+    def test_recognize_batch_raises_exception_when_no_worker_is_available(self):
         response = MasterResponseMessage()
         response.status = MasterResponseMessage.ERROR
 
         self.master_socket.set_response(response.SerializeToString())
         self.assertRaises(NoWorkerAvailableError, lambda: self.worker.recognize_batch(self.request_data, self.request_headers))
+
+    def test_connect_to_worker_asks_master_for_worker_address(self):
+        self.worker.connect_to_worker("en-GB")
+
+        expected_message = WorkerRequestMessage()
+        expected_message.model = "en-GB"
+
+        received_message = WorkerRequestMessage()
+        received_message.ParseFromString(self.master_socket.sent_message)
+
+        self.assertEquals(expected_message, received_message)
+
+    def test_connect_to_worker_raises_exception_when_no_worker_is_available(self):
+        response = MasterResponseMessage()
+        response.status = MasterResponseMessage.ERROR
+
+        self.master_socket.set_response(response.SerializeToString())
+        self.assertRaises(NoWorkerAvailableError, lambda: self.worker.connect_to_worker("en-GB"))
+
+    def test_connect_to_worker_connects_to_worker(self):
+        self.worker.connect_to_worker("en-GB")
+        self.assertEquals(self.background_worker_socket, self.worker_socket.connected_to)
 
 
 class SocketSpy:
