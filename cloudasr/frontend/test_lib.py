@@ -29,7 +29,8 @@ class TestFrontendWorker(unittest.TestCase):
 
         self.master_socket = SocketSpy(response.SerializeToString())
         self.worker_socket = SocketSpy(worker_response.SerializeToString())
-        self.worker = FrontendWorker(self.master_socket, self.worker_socket)
+        self.decoder = DummyDecoder()
+        self.worker = FrontendWorker(self.master_socket, self.worker_socket, self.decoder)
 
     def test_recognize_batch_requires_content_type_header_with_frame_rate(self):
         self.assertRaises(MissingHeaderError, lambda: self.worker.recognize_batch(self.request_data,{}))
@@ -62,6 +63,7 @@ class TestFrontendWorker(unittest.TestCase):
         expected_message = RecognitionRequestMessage()
         expected_message.body = b"some wav"
         expected_message.type = RecognitionRequestMessage.BATCH
+        expected_message.has_next = False
 
         received_message = RecognitionRequestMessage()
         received_message.ParseFromString(self.worker_socket.sent_message)
@@ -117,6 +119,36 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.connect_to_worker("en-GB")
         self.assertEquals(self.background_worker_socket, self.worker_socket.connected_to)
 
+    def test_recognize_chunk_sends_data_to_worker(self):
+        self.worker.connect_to_worker("en-GB")
+        self.worker.recognize_chunk(b"some binary chunk encoded in base64")
+
+        expected_message = RecognitionRequestMessage()
+        expected_message.body = b"some binary chunk decoded from base64"
+        expected_message.type = RecognitionRequestMessage.ONLINE
+        expected_message.has_next = True
+
+        received_message = RecognitionRequestMessage()
+        received_message.ParseFromString(self.worker_socket.sent_message)
+
+        self.assertEquals(expected_message, received_message)
+
+    def test_recognize_chunk_reads_response_from_worker(self):
+        self.worker.connect_to_worker("en-GB")
+        received_response = self.worker.recognize_chunk(b"some binary chunk encoded in base64")
+
+        expected_response = {
+            'status': 0,
+            'result': {
+                'hypotheses': [
+                    {'transcript': 'Hello World!'}
+                ]
+            },
+            'final': False
+        }
+
+        self.assertEquals(expected_response, received_response)
+
 
 class SocketSpy:
 
@@ -148,3 +180,8 @@ class SocketSpy:
 
     def recv_json(self):
         return self.response
+
+class DummyDecoder:
+
+    def decode(self, data):
+        return b"some binary chunk decoded from base64"

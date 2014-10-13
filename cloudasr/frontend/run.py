@@ -33,15 +33,8 @@ def begin_online_recognition(message):
 
 @socketio.on('chunk')
 def recognize_chunk(message):
-    emit('result', {
-        'status': 0,
-        'result': {
-            'hypotheses': [
-                {'transcript': 'Hello World!'}
-            ]
-        },
-        'final': False
-    })
+    response = session["worker"].recognize_chunk(message["chunk"])
+    emit('result', response)
 
 @socketio.on('end')
 def end_recognition(message):

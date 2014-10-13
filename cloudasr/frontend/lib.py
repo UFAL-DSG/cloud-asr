@@ -1,3 +1,4 @@
+import base64
 import zmq
 import re
 from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage
@@ -7,14 +8,16 @@ def create_frontend_worker(master_address):
     master_socket = context.socket(zmq.REQ)
     master_socket.connect(master_address)
     worker_socket = context.socket(zmq.REQ)
+    decoder = Base64Decoder()
 
-    return FrontendWorker(master_socket, worker_socket)
+    return FrontendWorker(master_socket, worker_socket, decoder)
 
 
 class FrontendWorker:
-    def __init__(self, master_socket, worker_socket):
+    def __init__(self, master_socket, worker_socket, decoder):
         self.master_socket = master_socket
         self.worker_socket = worker_socket
+        self.decoder = decoder
 
     def recognize_batch(self, data, headers):
         self.validate_headers(headers)
@@ -26,6 +29,13 @@ class FrontendWorker:
     def connect_to_worker(self, model):
         self.worker_address = self.get_worker_address_from_master(model)
         self.worker_socket.connect(self.worker_address)
+
+    def recognize_chunk(self, data):
+        chunk = self.decoder.decode(data)
+        message = self.send_request_to_worker(chunk, "ONLINE", has_next = True)
+        response = self.read_response_from_worker()
+
+        return self.format_interim_response(response)
 
     def validate_headers(self, headers):
         if "Content-Type" not in headers:
@@ -48,19 +58,37 @@ class FrontendWorker:
             raise NoWorkerAvailableError()
 
     def recognize_batch_on_worker(self, data):
-        message = RecognitionRequestMessage()
-        message.body = data["wav"]
-        message.type = RecognitionRequestMessage.BATCH
+        self.send_request_to_worker(data["wav"], "BATCH", has_next = False)
+        response = self.read_response_from_worker()
+        self.worker_socket.disconnect(self.worker_address)
 
-        self.worker_socket.send(message.SerializeToString())
+        return self.format_final_response(response)
+
+    def send_request_to_worker(self, data, type, has_next = False):
+        request = self.make_request_message(data, type, has_next)
+        self.worker_socket.send(request.SerializeToString())
+
+
+    def make_request_message(self, data, type, has_next):
+        types = {
+            "BATCH": RecognitionRequestMessage.BATCH,
+            "ONLINE": RecognitionRequestMessage.ONLINE,
+        }
+
+        message = RecognitionRequestMessage()
+        message.body = data
+        message.type = types[type]
+        message.has_next = has_next
+
+        return message
+
+    def read_response_from_worker(self):
         response = ResultsMessage()
         response.ParseFromString(self.worker_socket.recv())
 
-        self.worker_socket.disconnect(self.worker_address)
+        return response
 
-        return self.format_response(response)
-
-    def format_response(self, response):
+    def format_final_response(self, response):
         return {
             "result": [
                 {
@@ -70,6 +98,22 @@ class FrontendWorker:
             ],
             "result_index": 0,
         }
+
+    def format_interim_response(self, response):
+        return {
+            'status': 0,
+            'result': {
+                'hypotheses': [
+                    {'transcript': response.alternatives[0].transcript}
+                ]
+            },
+            'final': False
+        }
+
+class Base64Decoder:
+
+    def decode(self, data):
+        return base64.b64decode(data)
 
 class NoWorkerAvailableError(Exception):
     pass

@@ -40,7 +40,7 @@ class TestOnlineRecognition(unittest.TestCase):
                 break
 
             self.expected_responses += 1
-            yield self.encode_chunk(self.frames_to_pcm_array(frames))
+            yield self.encode_chunk(frames)
 
     def frames_to_pcm_array(self, frames):
         return [struct.unpack('h', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
