@@ -1,4 +1,4 @@
-import base64
+import struct
 import zmq
 import re
 from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage
@@ -8,7 +8,7 @@ def create_frontend_worker(master_address):
     master_socket = context.socket(zmq.REQ)
     master_socket.connect(master_address)
     worker_socket = context.socket(zmq.REQ)
-    decoder = Base64Decoder()
+    decoder = Decoder()
 
     return FrontendWorker(master_socket, worker_socket, decoder)
 
@@ -120,10 +120,10 @@ class FrontendWorker:
             'final': False
         }
 
-class Base64Decoder:
+class Decoder:
 
     def decode(self, data):
-        return base64.b64decode(data)
+        return b''.join([struct.pack('h', pcm) for pcm in data])
 
 class NoWorkerAvailableError(Exception):
     pass
