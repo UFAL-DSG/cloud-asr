@@ -72,7 +72,7 @@ class Worker:
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("FINISHED")
         else:
-            pcm = request.body
+            pcm = self.audio.resample_to_default_sample_rate(request.body, request.frame_rate)
             interim_hypothesis = self.asr.recognize_chunk(pcm)
 
             if request.has_next == True:

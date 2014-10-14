@@ -33,7 +33,7 @@ def begin_online_recognition(message):
 
 @socketio.on('chunk')
 def recognize_chunk(message):
-    response = session["worker"].recognize_chunk(message["chunk"])
+    response = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
     emit('result', response)
 
 @socketio.on('end')

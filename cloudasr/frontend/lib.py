@@ -30,15 +30,15 @@ class FrontendWorker:
         self.worker_address = self.get_worker_address_from_master(model)
         self.worker_socket.connect(self.worker_address)
 
-    def recognize_chunk(self, data):
+    def recognize_chunk(self, data, frame_rate):
         chunk = self.decoder.decode(data)
-        self.send_request_to_worker(chunk, "ONLINE", has_next = True)
+        self.send_request_to_worker(chunk, "ONLINE", frame_rate, has_next = True)
         response = self.read_response_from_worker()
 
         return self.format_interim_response(response)
 
     def end_recognition(self):
-        self.send_request_to_worker(b"", "ONLINE", has_next = False)
+        self.send_request_to_worker(b"", "ONLINE", frame_rate = 44100, has_next = False)
         response = self.read_response_from_worker()
 
         return self.format_final_response(response)
@@ -71,12 +71,12 @@ class FrontendWorker:
 
         return self.format_final_response(response)
 
-    def send_request_to_worker(self, data, type, has_next = False):
-        request = self.make_request_message(data, type, has_next)
+    def send_request_to_worker(self, data, type, frame_rate = None, has_next = False):
+        request = self.make_request_message(data, type, frame_rate, has_next)
         self.worker_socket.send(request.SerializeToString())
 
 
-    def make_request_message(self, data, type, has_next):
+    def make_request_message(self, data, type, frame_rate, has_next):
         types = {
             "BATCH": RecognitionRequestMessage.BATCH,
             "ONLINE": RecognitionRequestMessage.ONLINE,
@@ -86,6 +86,9 @@ class FrontendWorker:
         message.body = data
         message.type = types[type]
         message.has_next = has_next
+
+        if frame_rate is not None:
+            message.frame_rate = frame_rate
 
         return message
 

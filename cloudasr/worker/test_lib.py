@@ -64,14 +64,14 @@ class TestWorker(unittest.TestCase):
 
         self.assertEquals([expected_message1, expected_message2], received_messages)
 
-    def test_worker_forwards_pcm_chunks_without_modyfying_from_every_message_to_asr(self):
+    def test_worker_forwards_resampled_pcm_chunks_from_every_message_to_asr(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
             {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = True)}
         ]
 
         self.run_worker(messages)
-        self.assertEquals(["message 1", "message 2"], self.asr.processed_chunks)
+        self.assertEquals(["resampled message 1", "resampled message 2"], self.asr.processed_chunks)
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
         messages = [{}]
@@ -157,6 +157,7 @@ class TestWorker(unittest.TestCase):
         request.type = RecognitionRequestMessage.BATCH if type == "BATCH" else RecognitionRequestMessage.ONLINE
         request.has_next = has_next
         request.body = message
+        request.frame_rate = 44100
 
         return request.SerializeToString()
 
@@ -267,3 +268,6 @@ class DummyAudio:
 
     def load_wav_from_string_as_pcm(self, string):
         return "pcm " + string
+
+    def resample_to_default_sample_rate(self, pcm, sample_rate):
+        return "resampled " + pcm

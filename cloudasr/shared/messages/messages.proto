@@ -30,6 +30,7 @@ message RecognitionRequestMessage {
 	required Type type = 1;
 	required bytes body = 2;
 	optional bool has_next = 3;
+	optional int32 frame_rate = 4;
 
 	enum Type {
 		BATCH = 0;

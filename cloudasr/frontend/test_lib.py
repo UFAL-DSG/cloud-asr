@@ -121,11 +121,12 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_chunk_sends_data_to_worker(self):
         self.worker.connect_to_worker("en-GB")
-        self.worker.recognize_chunk(b"some binary chunk encoded in base64")
+        self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
         expected_message = RecognitionRequestMessage()
         expected_message.body = b"some binary chunk decoded from base64"
         expected_message.type = RecognitionRequestMessage.ONLINE
+        expected_message.frame_rate = 44100
         expected_message.has_next = True
 
         received_message = RecognitionRequestMessage()
@@ -135,7 +136,7 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_chunk_reads_response_from_worker(self):
         self.worker.connect_to_worker("en-GB")
-        received_response = self.worker.recognize_chunk(b"some binary chunk encoded in base64")
+        received_response = self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
         expected_response = {
             'status': 0,
@@ -156,6 +157,7 @@ class TestFrontendWorker(unittest.TestCase):
         expected_message = RecognitionRequestMessage()
         expected_message.body = b""
         expected_message.type = RecognitionRequestMessage.ONLINE
+        expected_message.frame_rate = 44100
         expected_message.has_next = False
 
         received_message = RecognitionRequestMessage()

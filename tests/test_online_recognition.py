@@ -25,7 +25,7 @@ class TestOnlineRecognition(unittest.TestCase):
         self.socketIO.emit('begin', {'model': 'en-GB'})
 
         for chunk in self.chunks():
-            self.socketIO.emit('chunk', {'chunk': chunk})
+            self.socketIO.emit('chunk', {'chunk': chunk, 'frame_rate': 44100})
             self.socketIO.wait_for_callbacks()
 
         self.socketIO.emit('end', {})
