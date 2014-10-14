@@ -38,8 +38,8 @@ def recognize_chunk(message):
 
 @socketio.on('end')
 def end_recognition(message):
-    pass
-
+    response = session["worker"].end_recognition()
+    emit('final_result', response)
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=8000)

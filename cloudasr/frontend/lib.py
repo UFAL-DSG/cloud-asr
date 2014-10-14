@@ -32,10 +32,17 @@ class FrontendWorker:
 
     def recognize_chunk(self, data):
         chunk = self.decoder.decode(data)
-        message = self.send_request_to_worker(chunk, "ONLINE", has_next = True)
+        self.send_request_to_worker(chunk, "ONLINE", has_next = True)
         response = self.read_response_from_worker()
 
         return self.format_interim_response(response)
+
+    def end_recognition(self):
+        self.send_request_to_worker(b"", "ONLINE", has_next = False)
+        response = self.read_response_from_worker()
+
+        return self.format_final_response(response)
+
 
     def validate_headers(self, headers):
         if "Content-Type" not in headers:

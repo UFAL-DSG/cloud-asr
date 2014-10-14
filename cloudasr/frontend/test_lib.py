@@ -149,6 +149,41 @@ class TestFrontendWorker(unittest.TestCase):
 
         self.assertEquals(expected_response, received_response)
 
+    def test_end_recognition_sends_data_to_worker(self):
+        self.worker.connect_to_worker("en-GB")
+        self.worker.end_recognition()
+
+        expected_message = RecognitionRequestMessage()
+        expected_message.body = b""
+        expected_message.type = RecognitionRequestMessage.ONLINE
+        expected_message.has_next = False
+
+        received_message = RecognitionRequestMessage()
+        received_message.ParseFromString(self.worker_socket.sent_message)
+
+        self.assertEquals(expected_message, received_message)
+
+    def test_end_recognition_reads_response_from_worker(self):
+        self.worker.connect_to_worker("en-GB")
+        received_response = self.worker.end_recognition()
+
+        expected_response = {
+            "result": [
+                {
+                    "alternative": [
+                        {
+                            "confidence": 1.0,
+                            "transcript": "Hello World!"
+                        },
+                    ],
+                    "final": True,
+                },
+            ],
+            "result_index": 0,
+        }
+
+        self.assertEquals(expected_response, received_response)
+
 
 class SocketSpy:
 
