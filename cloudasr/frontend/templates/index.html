@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="http://getbootstrap.com/2.3.2/assets/css/bootstrap.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/Recorder.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/SpeechRecognition.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <title>Speech API</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Speech API - Dictate demo</h1>
+        <a id="record" class="btn"><i class="icon-bullhorn"></i>Start recording</a>
+
+        <h2>Recorded text:</h2>
+        <blockquote id="result"></blockquote>
+    </div>
+</body>
+</html>

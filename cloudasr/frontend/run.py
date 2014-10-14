@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask.ext.socketio import SocketIO, emit, session
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError
 import os
@@ -8,6 +8,10 @@ app.config['DEBUG'] = True
 socketio = SocketIO(app)
 worker = create_frontend_worker(os.environ['MASTER_ADDR'])
 
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route("/recognize", methods=['POST'])
 def recognize_batch():
