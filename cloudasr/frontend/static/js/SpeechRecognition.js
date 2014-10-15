@@ -7,6 +7,7 @@
         this.onresult = function(event) {};
         this.onerror = function(event) {};
         this.onend = function() {};
+        this.isRecording = false;
 
         var recognizer = this;
         var recorder = createRecorder();
@@ -15,12 +16,14 @@
         this.start = function() {
             socket.emit('begin', {'model':'en-GB'});
             recorder.record();
+            this.isRecording = true;
             this.onstart();
         };
 
         this.stop = function() {
             socket.emit('end', {});
             recorder.stop();
+            this.isRecording = false;
             this.onend();
         };
 
@@ -30,6 +33,7 @@
 
         var handleError = function(error) {
             recognizer.onerror(error);
+            recognizer.stop();
         };
 
         var handleEnd = function() {
@@ -39,8 +43,12 @@
         function createSocket() {
             socket = io.connect();
 
-            socket.on("connection", function() {
+            socket.on("connect", function() {
                 console.log("Socket connected");
+            });
+
+            socket.on("connect_failed", function() {
+                handleError("Unable to connect to the server.");
             });
 
             socket.on("result", function(results) {

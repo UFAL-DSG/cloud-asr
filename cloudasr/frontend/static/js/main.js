@@ -6,7 +6,7 @@ $(document).ready(function() {
         if (results.length > 0 && results[0].final == true) {
             var transcript = results[0].alternative[0].transcript;
 
-            $('#result').prepend(transcript + '<br>');
+            $('#result').prepend('<div class="well well-sm">' + transcript + '</div>');
         };
     }
 
@@ -18,14 +18,16 @@ $(document).ready(function() {
         $('#record').html('<i class="icon-bullhorn"></i>Start recording');
     }
 
-    var recording = false;
+    speechRecognition.onerror = function(e) {
+        $('#result').prepend('<div class="alert alert-danger" role="alert">' + e + '</div>');
+    }
+
     $('#record').click(function() {
-        if(!recording) {
+        if(!speechRecognition.isRecording) {
             speechRecognition.start();
         } else {
             speechRecognition.stop();
         }
-
-        recording = !recording;
     });
+
 });
