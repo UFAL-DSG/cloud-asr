@@ -46,15 +46,13 @@
         }
 
         function startUserMedia(stream) {
-            var input = audio_context.createMediaStreamSource(stream);
+            var source = audio_context.createMediaStreamSource(stream);
             console.log('Media stream created.');
 
-            input.connect(audio_context.destination);
-            console.log('Input connected to audio context destination.');
+            source.context.createScriptProcessor = source.context.createScriptProcessor || source.context.createJavaScriptNode;
+            var sourceProcessor = source.context.createScriptProcessor(bufferLen, numChannels, numChannels);
 
-            var node = (input.context.createScriptProcessor || input.context.createJavaScriptNode).call(input.context, bufferLen, numChannels, numChannels);
-
-            node.onaudioprocess = function(e){
+            sourceProcessor.onaudioprocess = function(e){
                 if (!recording) return;
                 var buffer = [];
                 for (var channel = 0; channel < numChannels; channel++){
@@ -64,8 +62,9 @@
                 bufferCallback(buffer);
             }
 
-            input.connect(node);
-            node.connect(input.context.destination);
+            source.connect(sourceProcessor);
+            sourceProcessor.connect(source.context.destination);
+            console.log('Input connected to audio context destination.');
         }
 
     };
