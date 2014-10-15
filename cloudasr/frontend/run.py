@@ -30,18 +30,26 @@ def recognize_batch():
 @socketio.on('begin')
 def begin_online_recognition(message):
     try:
-        session["worker"] = create_frontend_worker(os.environ['MASTER_ADDR'])
-        session["worker"].connect_to_worker(message["model"])
+        worker = create_frontend_worker(os.environ['MASTER_ADDR'])
+        worker.connect_to_worker(message["model"])
+
+        session["worker"] = worker
     except NoWorkerAvailableError:
         emit('server_error', {"status": "error", "message": "No worker available"})
 
 @socketio.on('chunk')
 def recognize_chunk(message):
+    if "worker" not in session:
+        return
+
     response = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
     emit('result', response)
 
 @socketio.on('end')
 def end_recognition(message):
+    if "worker" not in session:
+        return
+
     response = session["worker"].end_recognition()
     emit('final_result', response)
 
