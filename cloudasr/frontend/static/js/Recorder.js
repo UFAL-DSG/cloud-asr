@@ -5,12 +5,13 @@
         var bufferLen = config.bufferLen || 16384;
         var numChannels = config.numChannels || 1;
         var bufferCallback = config.bufferCallback || function(buffer) { console.log(buffer); };
+        var errorCallback = config.errorCallback || function(error) { console.log(error); };
         var recording = false;
 
         this.init = function() {
             audio_context = createAudioContext();
             navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
-                console.log('No live audio input: ' + e);
+                errorCallback('No live audio input: ' + e);
             });
         }
 
@@ -41,7 +42,7 @@
 
                 return audio_context;
             } catch (e) {
-                alert('No web audio support in this browser!');
+                errorCallback('No web audio support in this browser!');
             }
         }
 

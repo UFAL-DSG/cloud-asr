@@ -64,7 +64,8 @@
 
         function createRecorder() {
             recorder = new Recorder({
-                bufferCallback: handleChunk
+                bufferCallback: handleChunk,
+                errorCallback: handleError
             });
             recorder.init();
 
