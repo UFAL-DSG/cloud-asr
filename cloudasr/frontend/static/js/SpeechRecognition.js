@@ -55,6 +55,10 @@
                 handleError(error);
             });
 
+            socket.on("server_error", function(error) {
+                handleError(error.message);
+            });
+
             socket.on("end", function(error) {
                 handleEnd();
             });

@@ -33,7 +33,7 @@ def begin_online_recognition(message):
         session["worker"] = create_frontend_worker(os.environ['MASTER_ADDR'])
         session["worker"].connect_to_worker(message["model"])
     except NoWorkerAvailableError:
-        emit('error', {"status": "error", "message": "No worker available"})
+        emit('server_error', {"status": "error", "message": "No worker available"})
 
 @socketio.on('chunk')
 def recognize_chunk(message):
