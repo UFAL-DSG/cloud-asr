@@ -1,5 +1,6 @@
 import unittest
 from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
+from cloudasr.test_doubles import SocketSpy
 from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage, Alternative
 
 
@@ -27,8 +28,10 @@ class TestFrontendWorker(unittest.TestCase):
         worker_response.final = True
         worker_response.alternatives.extend([alternative])
 
-        self.master_socket = SocketSpy(response.SerializeToString())
-        self.worker_socket = SocketSpy(worker_response.SerializeToString())
+        self.master_socket = SocketSpy()
+        self.master_socket.set_messages([response.SerializeToString()])
+        self.worker_socket = SocketSpy()
+        self.worker_socket.set_messages([worker_response.SerializeToString()])
         self.decoder = DummyDecoder()
         self.worker = FrontendWorker(self.master_socket, self.worker_socket, self.decoder)
 
@@ -94,7 +97,7 @@ class TestFrontendWorker(unittest.TestCase):
         response = MasterResponseMessage()
         response.status = MasterResponseMessage.ERROR
 
-        self.master_socket.set_response(response.SerializeToString())
+        self.master_socket.set_messages([response.SerializeToString()])
         self.assertRaises(NoWorkerAvailableError, lambda: self.worker.recognize_batch(self.request_data, self.request_headers))
 
     def test_connect_to_worker_asks_master_for_worker_address(self):
@@ -112,7 +115,7 @@ class TestFrontendWorker(unittest.TestCase):
         response = MasterResponseMessage()
         response.status = MasterResponseMessage.ERROR
 
-        self.master_socket.set_response(response.SerializeToString())
+        self.master_socket.set_messages([response.SerializeToString()])
         self.assertRaises(NoWorkerAvailableError, lambda: self.worker.connect_to_worker("en-GB"))
 
     def test_connect_to_worker_connects_to_worker(self):
@@ -192,36 +195,6 @@ class TestFrontendWorker(unittest.TestCase):
         self.assertTrue(self.worker_socket.is_disconnected)
 
 
-class SocketSpy:
-
-    def __init__(self, response):
-        self.response = response
-        self.sent_message = None
-        self.connected_to = None
-        self.is_disconnected = None
-
-    def set_response(self, response):
-        self.response = response
-
-    def connect(self, address):
-        self.connected_to = address
-        self.is_disconnected = False
-
-    def disconnect(self, address):
-        if address == self.connected_to:
-            self.is_disconnected = True
-
-    def send(self, message):
-        self.sent_message = message
-
-    def send_json(self, message):
-        self.sent_message = message
-
-    def recv(self):
-        return self.response
-
-    def recv_json(self):
-        return self.response
 
 class DummyDecoder:
 

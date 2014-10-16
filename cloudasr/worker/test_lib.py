@@ -3,7 +3,7 @@ import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
 from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, ResultsMessage, Alternative
-from cloudasr.test_doubles import PollerSpy
+from cloudasr.test_doubles import PollerSpy, SocketSpy
 
 
 class TestWorker(unittest.TestCase):
@@ -224,28 +224,6 @@ class TestASR(unittest.TestCase):
         audio = AudioUtils()
 
         return audio.load_wav_from_file_as_pcm("../resources/test.wav")
-
-
-class SocketSpy:
-
-    def __init__(self):
-        self.messages = []
-        self.sent_messages = []
-
-    def add_messages(self, messages):
-        self.messages.extend(messages)
-
-    def recv(self):
-        return self.messages.pop(0)
-
-    def send(self, message):
-        return self.sent_messages.append(message)
-
-    def send_json(self, message):
-        return self.sent_messages.append(message)
-
-    def has_next_message(self):
-        return len(self.messages) > 0
 
 
 class ASRSpy:
