@@ -1,0 +1,32 @@
+<!doctype html>
+<html ng-app="monitorApp">
+<head>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.24/angular.min.js"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    <title>CloudASR API Monitor</title>
+</head>
+<body ng-controller="ContainersListCtrl">
+    <div class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <h1>CloudASR API Monitor</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Running workers:</h2>
+
+        <table class="table table-bordered">
+            <tr ng-repeat="container in containers" ng-class="{danger: container.state == 'NOT RESPONDING'}">
+                <td class="col-md-1">[[container.model]]</td>
+                <td>[[container.address]]</td>
+                <td class="col-md-3">[[container.state]]</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

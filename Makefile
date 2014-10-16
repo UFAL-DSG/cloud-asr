@@ -1,6 +1,8 @@
 IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
 FRONTEND_HOST_PORT=8000
 FRONTEND_GUEST_PORT=8000
+MONITOR_HOST_PORT=8001
+MONITOR_GUEST_PORT=8001
 WORKER_PORT=5678
 WORKER_ADDR=tcp://${IP}:${WORKER_PORT}
 MASTER_TO_WORKER_PORT=5679
@@ -32,16 +34,24 @@ FRONTEND_OPTS=--name frontend \
 	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} \
 	${FRONTEND_VOLUMES}
 
+MONITOR_VOLUMES=-v ${CURDIR}/cloudasr/monitor:/opt/app -v ${SHARED_VOLUME}
+MONITOR_OPTS=--name monitor \
+	-p ${MONITOR_HOST_PORT}:${MONITOR_GUEST_PORT} \
+	${MONITOR_VOLUMES}
+
 build:
 	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
 	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
+	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	rm -rf cloudasr/frontend/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
+	rm -rf cloudasr/monitor/cloudasr
 
 pull:
 	docker pull ufaldsg/cloud-asr-frontend
@@ -52,6 +62,7 @@ run:
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
+	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 
 run_worker:
 	docker run ${WORKER_OPTS} -i -t --rm ufaldsg/cloud-asr-worker
@@ -62,9 +73,12 @@ run_frontend:
 run_master:
 	docker run ${MASTER_OPTS} -i -t --rm ufaldsg/cloud-asr-master
 
+run_monitor:
+	docker run ${MONITOR_OPTS} -i -t --rm ufaldsg/cloud-asr-monitor
+
 stop:
-	docker kill frontend worker master
-	docker rm frontend worker master
+	docker kill frontend worker master monitor
+	docker rm frontend worker master monitor
 
 unit-test:
 	nosetests cloudasr/shared
