@@ -35,25 +35,21 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_batch_asks_master_for_worker_address(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-
         expected_message = createWorkerRequestMessage("en-GB")
-        received_message = parseWorkerRequestMessage(self.master_socket.sent_message)
-        self.assertEquals(expected_message, received_message)
+        self.assertThatMessageWasSendToMaster(expected_message)
 
     def test_recognize_batch_connects_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-        self.assertEquals(self.background_worker_socket, self.worker_socket.connected_to)
+        self.assertThatFrontendConnectedToWorker()
 
     def test_recognize_batch_disconnects_from_worker_after_recognition_completion(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-        self.assertTrue(self.worker_socket.is_disconnected)
+        self.assertThatFrontendDisconnectedFromWorker()
 
     def test_recognize_batch_sends_data_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-
         expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False)
-        received_message = parseRecognitionRequestMessage(self.worker_socket.sent_message)
-        self.assertEquals(expected_message, received_message)
+        self.assertThatMessageWasSendToWorker(expected_message)
 
     def test_recognize_batch_reads_response_from_worker(self):
         expected_response = {
@@ -81,10 +77,8 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_connect_to_worker_asks_master_for_worker_address(self):
         self.worker.connect_to_worker("en-GB")
-
         expected_message = createWorkerRequestMessage("en-GB")
-        received_message = parseWorkerRequestMessage(self.master_socket.sent_message)
-        self.assertEquals(expected_message, received_message)
+        self.assertThatMessageWasSendToMaster(expected_message)
 
     def test_connect_to_worker_raises_exception_when_no_worker_is_available(self):
         response = createMasterResponseMessage("ERROR")
@@ -93,15 +87,14 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_connect_to_worker_connects_to_worker(self):
         self.worker.connect_to_worker("en-GB")
-        self.assertEquals(self.background_worker_socket, self.worker_socket.connected_to)
+        self.assertThatFrontendConnectedToWorker()
 
     def test_recognize_chunk_sends_data_to_worker(self):
         self.worker.connect_to_worker("en-GB")
         self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100)
-        received_message = parseRecognitionRequestMessage(self.worker_socket.sent_message)
-        self.assertEquals(expected_message, received_message)
+        self.assertThatMessageWasSendToWorker(expected_message)
 
     def test_recognize_chunk_reads_response_from_worker(self):
         self.worker.connect_to_worker("en-GB")
@@ -124,8 +117,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.end_recognition()
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"", False, frame_rate = 44100)
-        received_message = parseRecognitionRequestMessage(self.worker_socket.sent_message)
-        self.assertEquals(expected_message, received_message)
+        self.assertThatMessageWasSendToWorker(expected_message)
 
     def test_end_recognition_reads_response_from_worker(self):
         self.worker.connect_to_worker("en-GB")
@@ -151,7 +143,21 @@ class TestFrontendWorker(unittest.TestCase):
     def test_end_recognition_disconnects_from_worker(self):
         self.worker.connect_to_worker("en-GB")
         self.worker.end_recognition()
+        self.assertThatFrontendDisconnectedFromWorker()
+
+    def assertThatMessageWasSendToMaster(self, message):
+        sent_message = parseWorkerRequestMessage(self.master_socket.sent_message)
+        self.assertEquals(message, sent_message)
+
+    def assertThatFrontendConnectedToWorker(self):
+        self.assertEquals(self.background_worker_socket, self.worker_socket.connected_to)
+
+    def assertThatFrontendDisconnectedFromWorker(self):
         self.assertTrue(self.worker_socket.is_disconnected)
+
+    def assertThatMessageWasSendToWorker(self, message):
+        sent_message = parseRecognitionRequestMessage(self.worker_socket.sent_message)
+        self.assertEquals(message, sent_message)
 
 
 class DummyDecoder:

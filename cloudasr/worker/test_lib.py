@@ -26,7 +26,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertEquals(["pcm message 1", "pcm message 2"], self.asr.processed_chunks)
+        self.assertThatAsrProcessedChunks(["pcm message 1", "pcm message 2"])
 
     def test_worker_reads_final_hypothesis_from_asr(self):
         messages = [
@@ -35,34 +35,29 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-
         expected_message = createResultsMessage(True, [(1.0, "Hello World!")])
-        received_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
-        self.assertEquals([expected_message, expected_message], received_messages)
+        self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_interim_results_after_each_chunk(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE")},
             {"frontend": self.make_fronted_request("message 2", "ONLINE")}
         ]
-        self.run_worker(messages)
 
+        self.run_worker(messages)
         expected_message = createResultsMessage(False, [(1.0, "Interim result")])
-        received_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
-        self.assertEquals([expected_message, expected_message], received_messages)
+        self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_final_results_after_last_chunk(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
             {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
         ]
-        self.run_worker(messages)
 
+        self.run_worker(messages)
         expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
         expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
-        received_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
-
-        self.assertEquals([expected_message1, expected_message2], received_messages)
+        self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
     def test_worker_forwards_resampled_pcm_chunks_from_every_message_to_asr(self):
         messages = [
@@ -71,73 +66,60 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertEquals(["resampled message 1", "resampled message 2"], self.asr.processed_chunks)
+        self.assertThatAsrProcessedChunks(["resampled message 1", "resampled message 2"])
 
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
-        messages = [{}]
+        messages = []
         self.run_worker(messages)
-
-        ready_heartbeat = self.make_heartbeat("READY")
-        expected_messages = [ready_heartbeat]
-        received_messages = [parseHeartbeatMessage(self.master_socket.sent_messages[0])]
-
-        self.assertEquals(expected_messages, received_messages)
+        self.assertThatHeartbeatsWereSent(["READY"])
 
     def test_worker_sends_heartbeat_after_finishing_task(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1")}
         ]
+
         self.run_worker(messages)
-
-        ready_heartbeat = self.make_heartbeat("READY")
-        finished_heartbeat = self.make_heartbeat("FINISHED")
-        expected_messages = [ready_heartbeat, finished_heartbeat]
-        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
-
-        self.assertEquals(expected_messages, received_messages)
+        self.assertThatHeartbeatsWereSent(["READY", "FINISHED"])
 
     def test_worker_sends_working_heartbeats_during_online_recognition(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
             {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = True)}
         ]
+
         self.run_worker(messages)
-
-        ready_heartbeat = self.make_heartbeat("READY")
-        working_heartbeat = self.make_heartbeat("WORKING")
-        expected_messages = [ready_heartbeat, working_heartbeat, working_heartbeat]
-        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
-
-        self.assertEquals(expected_messages, received_messages)
+        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "WORKING"])
 
     def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
             {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
         ]
+
         self.run_worker(messages)
-
-        ready_heartbeat = self.make_heartbeat("READY")
-        working_heartbeat = self.make_heartbeat("WORKING")
-        finished_heartbeat = self.make_heartbeat("FINISHED")
-        expected_messages = [ready_heartbeat, working_heartbeat, finished_heartbeat]
-        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
-
-        self.assertEquals(expected_messages, received_messages)
+        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "FINISHED"])
 
     def test_worker_sends_ready_heartbeat_when_it_doesnt_receive_any_task(self):
         messages = [{}]
         self.run_worker(messages)
-
-        ready_heartbeat = self.make_heartbeat("READY")
-        expected_messages = [ready_heartbeat, ready_heartbeat]
-        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
-
-        self.assertEquals(expected_messages, received_messages)
+        self.assertThatHeartbeatsWereSent(["READY", "READY"])
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
         self.worker.run()
+
+    def assertThatAsrProcessedChunks(self, chunks):
+        self.assertEquals(chunks, self.asr.processed_chunks)
+
+    def assertThatMessagesWereSendToFrontend(self, messages):
+        sent_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
+        self.assertEquals(messages, sent_messages)
+
+    def assertThatHeartbeatsWereSent(self, heartbeats):
+        heartbeats = [self.make_heartbeat(state) for state in heartbeats]
+        sent_heartbeats = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
+
+        self.assertEquals(heartbeats, sent_heartbeats)
 
     def make_fronted_request(self, message, type = "BATCH", has_next = True):
         return createRecognitionRequestMessage(type, message, has_next, 44100).SerializeToString()
