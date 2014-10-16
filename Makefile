@@ -61,12 +61,15 @@ stop:
 	docker kill frontend worker master
 	docker rm frontend worker master
 
+unit-test:
+	nosetests cloudasr/shared
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/frontend
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/master
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_asr cloudasr/worker
+
 test:
 	nosetests tests/
-	nosetests cloudasr/shared
-	docker run ${MASTER_VOLUMES} --rm master nosetests
-	docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests
-	docker run ${FRONTEND_VOLUMES} --rm frontend nosetests
+	docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests /opt/app/test_asr.py
 
 compile-messages:
 	protoc --python_out=. ./cloudasr/shared/messages/messages.proto
