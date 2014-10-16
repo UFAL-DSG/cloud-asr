@@ -2,10 +2,8 @@ import audioop
 import wave
 import zmq
 import time
-import config
-from kaldi.utils import lattice_to_nbest, wst2dict
-from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
+from asr import create_asr
 from cloudasr.messages import RecognitionRequestMessage
 from cloudasr.messages.helpers import *
 
@@ -13,7 +11,7 @@ from cloudasr.messages.helpers import *
 def create_worker(model, frontend_address, public_address, master_address):
     poller = create_poller(frontend_address)
     heartbeat = create_heartbeat(model, public_address, master_address)
-    asr = ASR(config.kaldi_config, config.wst_path)
+    asr = create_asr()
     audio = AudioUtils()
     run_forever = lambda: True
 
@@ -106,34 +104,6 @@ class Heartbeat:
     def send(self, status):
         heartbeat = createHeartbeatMessage(self.address, self.model, status)
         self.socket.send(heartbeat.SerializeToString())
-
-
-class ASR:
-
-    def __init__(self, kaldi_config, wst_path):
-        self.recogniser = PyOnlineLatgenRecogniser()
-        self.recogniser.setup(kaldi_config)
-        self.wst = wst2dict(wst_path)
-
-    def recognize_chunk(self, chunk):
-        decoded_frames = 0
-        self.recogniser.frame_in(chunk)
-        dec_t = self.recogniser.decode(max_frames=10)
-        while dec_t > 0:
-            decoded_frames += dec_t
-            dec_t = self.recogniser.decode(max_frames=10)
-
-        return (0.0, u"Not Implemented Yet")
-
-    def get_final_hypothesis(self):
-        self.recogniser.prune_final()
-        utt_lik, lat = self.recogniser.get_lattice()
-        self.recogniser.reset()
-
-        return [(prob, self.path_to_text(path)) for (prob, path) in lattice_to_nbest(lat, n=10)]
-
-    def path_to_text(self, path):
-        return u' '.join([unicode(self.wst[w]) for w in path])
 
 
 class AudioUtils:
