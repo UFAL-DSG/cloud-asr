@@ -186,6 +186,11 @@ class TestFrontendWorker(unittest.TestCase):
 
         self.assertEquals(expected_response, received_response)
 
+    def test_end_recognition_disconnects_from_worker(self):
+        self.worker.connect_to_worker("en-GB")
+        self.worker.end_recognition()
+        self.assertTrue(self.worker_socket.is_disconnected)
+
 
 class SocketSpy:
 

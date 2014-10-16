@@ -51,6 +51,7 @@ def end_recognition(message):
         return
 
     response = session["worker"].end_recognition()
+    del session["worker"]
     emit('final_result', response)
 
 if __name__ == "__main__":

@@ -40,6 +40,7 @@ class FrontendWorker:
     def end_recognition(self):
         self.send_request_to_worker(b"", "ONLINE", frame_rate = 44100, has_next = False)
         response = self.read_response_from_worker()
+        self.worker_socket.disconnect(self.worker_address)
 
         return self.format_final_response(response)
 
