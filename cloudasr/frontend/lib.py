@@ -1,7 +1,8 @@
 import struct
 import zmq
 import re
-from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage
+from cloudasr.messages import MasterResponseMessage
+from cloudasr.messages.helpers import *
 
 def create_frontend_worker(master_address):
     context = zmq.Context()
@@ -53,12 +54,9 @@ class FrontendWorker:
             raise MissingHeaderError()
 
     def get_worker_address_from_master(self, model):
-        request = WorkerRequestMessage()
-        request.model = model
-
+        request = createWorkerRequestMessage(model)
         self.master_socket.send(request.SerializeToString())
-        response = MasterResponseMessage()
-        response.ParseFromString(self.master_socket.recv())
+        response = parseMasterResponseMessage(self.master_socket.recv())
 
         if response.status == MasterResponseMessage.SUCCESS:
             return response.address
@@ -73,29 +71,12 @@ class FrontendWorker:
         return self.format_final_response(response)
 
     def send_request_to_worker(self, data, type, frame_rate = None, has_next = False):
-        request = self.make_request_message(data, type, frame_rate, has_next)
+        request = createRecognitionRequestMessage(type, data, has_next, frame_rate)
         self.worker_socket.send(request.SerializeToString())
 
 
-    def make_request_message(self, data, type, frame_rate, has_next):
-        types = {
-            "BATCH": RecognitionRequestMessage.BATCH,
-            "ONLINE": RecognitionRequestMessage.ONLINE,
-        }
-
-        message = RecognitionRequestMessage()
-        message.body = data
-        message.type = types[type]
-        message.has_next = has_next
-
-        if frame_rate is not None:
-            message.frame_rate = frame_rate
-
-        return message
-
     def read_response_from_worker(self):
-        response = ResultsMessage()
-        response.ParseFromString(self.worker_socket.recv())
+        response = parseResultsMessage(self.worker_socket.recv())
 
         return response
 

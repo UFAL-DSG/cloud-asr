@@ -1,6 +1,7 @@
 import time
 from collections import defaultdict
-from cloudasr.messages import HeartbeatMessage, WorkerRequestMessage, MasterResponseMessage
+from cloudasr.messages import HeartbeatMessage
+from cloudasr.messages.helpers import *
 
 
 def create_master(worker_address, frontend_address):
@@ -48,27 +49,18 @@ class Master:
 
     def handle_fronted_request(self, message):
         try:
-            request = WorkerRequestMessage()
-            request.ParseFromString(message)
-
+            request = parseWorkerRequestMessage(message)
             model = request.model
             worker = self.workers.get_worker(model, self.time)
 
-            message = MasterResponseMessage()
-            message.status = MasterResponseMessage.SUCCESS
-            message.address = worker
-
+            message = createMasterResponseMessage("SUCCESS", worker)
             self.poller.send("frontend", message.SerializeToString())
         except NoWorkerAvailableException:
-            message = MasterResponseMessage()
-            message.status = MasterResponseMessage.ERROR
-
+            message = createMasterResponseMessage("ERROR")
             self.poller.send("frontend", message.SerializeToString())
 
     def handle_worker_request(self, message):
-        heartbeat = HeartbeatMessage()
-        heartbeat.ParseFromString(message)
-
+        heartbeat = parseHeartbeatMessage(message)
         address = heartbeat.address
         model = heartbeat.model
         status = "READY" if heartbeat.status == HeartbeatMessage.READY else "FINISHED"

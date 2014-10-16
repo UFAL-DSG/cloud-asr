@@ -6,7 +6,8 @@ import config
 from kaldi.utils import lattice_to_nbest, wst2dict
 from kaldi.decoders import PyOnlineLatgenRecogniser
 from StringIO import StringIO
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, ResultsMessage
+from cloudasr.messages import RecognitionRequestMessage
+from cloudasr.messages.helpers import *
 
 
 def create_worker(model, frontend_address, public_address, master_address):
@@ -60,14 +61,13 @@ class Worker:
                 self.heartbeat.send("READY")
 
     def handle_request(self, message):
-        request = RecognitionRequestMessage()
-        request.ParseFromString(message)
+        request = parseRecognitionRequestMessage(message)
 
         if request.type == RecognitionRequestMessage.BATCH:
             pcm = self.get_pcm_from_message(request.body)
             self.asr.recognize_chunk(pcm)
             final_hypothesis = self.asr.get_final_hypothesis()
-            response = self.create_response(final_hypothesis)
+            response = self.create_final_response(final_hypothesis)
 
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("FINISHED")
@@ -81,7 +81,7 @@ class Worker:
                 self.heartbeat.send("WORKING")
             else:
                 final_hypothesis = self.asr.get_final_hypothesis()
-                response = self.create_response(final_hypothesis)
+                response = self.create_final_response(final_hypothesis)
                 self.poller.send("frontend", response.SerializeToString())
                 self.heartbeat.send("FINISHED")
 
@@ -89,26 +89,11 @@ class Worker:
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)
 
-    def create_response(self, final_hypothesis):
-        response = ResultsMessage()
-        response.final = True
-
-        for (confidence, transcript) in final_hypothesis:
-            alternative = response.alternatives.add()
-            alternative.confidence = confidence
-            alternative.transcript = transcript
-
-        return response
+    def create_final_response(self, final_hypothesis):
+        return createResultsMessage(True, final_hypothesis)
 
     def create_interim_response(self, interim_hypothesis):
-        response = ResultsMessage()
-        response.final = False
-
-        alternative = response.alternatives.add()
-        alternative.confidence = interim_hypothesis[0]
-        alternative.transcript = interim_hypothesis[1]
-
-        return response
+        return createResultsMessage(False, [interim_hypothesis])
 
 
 class Heartbeat:
@@ -119,17 +104,7 @@ class Heartbeat:
         self.socket = socket
 
     def send(self, status):
-        statuses = {
-            "READY": HeartbeatMessage.READY,
-            "WORKING": HeartbeatMessage.WORKING,
-            "FINISHED": HeartbeatMessage.FINISHED
-        }
-
-        heartbeat = HeartbeatMessage()
-        heartbeat.address = self.address
-        heartbeat.model = self.model
-        heartbeat.status = statuses[status]
-
+        heartbeat = createHeartbeatMessage(self.address, self.model, status)
         self.socket.send(heartbeat.SerializeToString())
 
 

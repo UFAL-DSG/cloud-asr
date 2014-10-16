@@ -2,7 +2,7 @@ import unittest
 import config
 from types import *
 from lib import Worker, Heartbeat, ASR, AudioUtils
-from cloudasr.messages import HeartbeatMessage, RecognitionRequestMessage, ResultsMessage, Alternative
+from cloudasr.messages.helpers import *
 from cloudasr.test_doubles import PollerSpy, SocketSpy
 
 
@@ -36,8 +36,8 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message = self.make_final_results_response()
-        received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
+        expected_message = createResultsMessage(True, [(1.0, "Hello World!")])
+        received_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
 
     def test_worker_sends_interim_results_after_each_chunk(self):
@@ -47,8 +47,8 @@ class TestWorker(unittest.TestCase):
         ]
         self.run_worker(messages)
 
-        expected_message = self.make_interim_results_response()
-        received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
+        expected_message = createResultsMessage(False, [(1.0, "Interim result")])
+        received_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
         self.assertEquals([expected_message, expected_message], received_messages)
 
     def test_worker_sends_final_results_after_last_chunk(self):
@@ -58,9 +58,9 @@ class TestWorker(unittest.TestCase):
         ]
         self.run_worker(messages)
 
-        expected_message1 = self.make_interim_results_response()
-        expected_message2 = self.make_final_results_response()
-        received_messages = [self.parseResultsFromString(message) for message in self.poller.sent_messages["frontend"]]
+        expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
+        received_messages = [parseResultsMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message1, expected_message2], received_messages)
 
@@ -79,7 +79,7 @@ class TestWorker(unittest.TestCase):
 
         ready_heartbeat = self.make_heartbeat("READY")
         expected_messages = [ready_heartbeat]
-        received_messages = [self.parseHeartbeatFromString(self.master_socket.sent_messages[0])]
+        received_messages = [parseHeartbeatMessage(self.master_socket.sent_messages[0])]
 
         self.assertEquals(expected_messages, received_messages)
 
@@ -92,7 +92,7 @@ class TestWorker(unittest.TestCase):
         ready_heartbeat = self.make_heartbeat("READY")
         finished_heartbeat = self.make_heartbeat("FINISHED")
         expected_messages = [ready_heartbeat, finished_heartbeat]
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(expected_messages, received_messages)
 
@@ -106,7 +106,7 @@ class TestWorker(unittest.TestCase):
         ready_heartbeat = self.make_heartbeat("READY")
         working_heartbeat = self.make_heartbeat("WORKING")
         expected_messages = [ready_heartbeat, working_heartbeat, working_heartbeat]
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(expected_messages, received_messages)
 
@@ -121,7 +121,7 @@ class TestWorker(unittest.TestCase):
         working_heartbeat = self.make_heartbeat("WORKING")
         finished_heartbeat = self.make_heartbeat("FINISHED")
         expected_messages = [ready_heartbeat, working_heartbeat, finished_heartbeat]
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(expected_messages, received_messages)
 
@@ -131,71 +131,19 @@ class TestWorker(unittest.TestCase):
 
         ready_heartbeat = self.make_heartbeat("READY")
         expected_messages = [ready_heartbeat, ready_heartbeat]
-        received_messages = [self.parseHeartbeatFromString(message) for message in self.master_socket.sent_messages]
+        received_messages = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(expected_messages, received_messages)
-
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
         self.worker.run()
 
-    def parseHeartbeatFromString(self, message):
-        heartbeat = HeartbeatMessage()
-        heartbeat.ParseFromString(message)
-
-        return heartbeat
-
-    def parseResultsFromString(self, message):
-        result = ResultsMessage()
-        result.ParseFromString(message)
-
-        return result
-
     def make_fronted_request(self, message, type = "BATCH", has_next = True):
-        request = RecognitionRequestMessage()
-        request.type = RecognitionRequestMessage.BATCH if type == "BATCH" else RecognitionRequestMessage.ONLINE
-        request.has_next = has_next
-        request.body = message
-        request.frame_rate = 44100
-
-        return request.SerializeToString()
-
-    def make_interim_results_response(self):
-        alternative = Alternative()
-        alternative.confidence = 1.0
-        alternative.transcript = "Interim result"
-
-        interim_results = ResultsMessage()
-        interim_results.final = False
-        interim_results.alternatives.extend([alternative])
-
-        return interim_results
-
-    def make_final_results_response(self):
-        alternative = Alternative()
-        alternative.confidence = 1.0
-        alternative.transcript = "Hello World!"
-
-        final_results = ResultsMessage()
-        final_results.final = True
-        final_results.alternatives.extend([alternative])
-
-        return final_results
+        return createRecognitionRequestMessage(type, message, has_next, 44100).SerializeToString()
 
     def make_heartbeat(self, status):
-        statuses = {
-            "READY": HeartbeatMessage.READY,
-            "WORKING": HeartbeatMessage.WORKING,
-            "FINISHED": HeartbeatMessage.FINISHED
-        }
-
-        heartbeat = HeartbeatMessage()
-        heartbeat.address = self.worker_address
-        heartbeat.model = self.model
-        heartbeat.status = statuses[status]
-
-        return heartbeat
+        return createHeartbeatMessage(self.worker_address, self.model, status)
 
 class TestASR(unittest.TestCase):
 

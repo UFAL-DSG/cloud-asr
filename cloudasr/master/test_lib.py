@@ -1,7 +1,7 @@
 import unittest
 from lib import Master
 from cloudasr.test_doubles import PollerSpy
-from cloudasr.messages import HeartbeatMessage, WorkerRequestMessage, MasterResponseMessage
+from cloudasr.messages.helpers import *
 
 
 class TestMaster(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestMaster(unittest.TestCase):
         self.run_master(messages)
 
         expected_message = self.make_frontend_error_response("No worker available")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message], received_messages)
 
@@ -29,7 +29,7 @@ class TestMaster(unittest.TestCase):
         self.run_master(messages)
 
         expected_message = self.make_frontend_error_response("No worker available")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message], received_messages)
 
@@ -42,7 +42,7 @@ class TestMaster(unittest.TestCase):
         self.run_master(messages)
 
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message], received_messages)
 
@@ -58,7 +58,7 @@ class TestMaster(unittest.TestCase):
 
         expected_message1 = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
         expected_message2 = self.make_frontend_error_response("No worker available")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message1, expected_message2], received_messages)
 
@@ -73,7 +73,7 @@ class TestMaster(unittest.TestCase):
         self.run_master(messages)
 
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message, expected_message], received_messages)
 
@@ -89,7 +89,7 @@ class TestMaster(unittest.TestCase):
 
         expected_message1 = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
         expected_message2 = self.make_frontend_error_response("No worker available")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message1, expected_message2], received_messages)
 
@@ -102,7 +102,7 @@ class TestMaster(unittest.TestCase):
         self.run_master(messages)
 
         expected_message = self.make_frontend_error_response("No worker available")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message], received_messages)
 
@@ -116,7 +116,7 @@ class TestMaster(unittest.TestCase):
         self.run_master(messages)
 
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
-        received_messages = [self.parse_response(message) for message in self.poller.sent_messages["frontend"]]
+        received_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
 
         self.assertEquals([expected_message], received_messages)
 
@@ -125,39 +125,13 @@ class TestMaster(unittest.TestCase):
         self.master.run()
 
     def make_heartbeat_request(self, worker_address, model, status):
-        message = HeartbeatMessage()
-        message.address = worker_address
-        message.model = model
-
-        if status == "READY":
-            message.status = HeartbeatMessage.READY
-
-        if status == "FINISHED":
-            message.status = HeartbeatMessage.FINISHED
-
-        return message.SerializeToString()
+        return createHeartbeatMessage(worker_address, model, status).SerializeToString()
 
     def make_frontend_request(self, model="en-GB"):
-        message = WorkerRequestMessage()
-        message.model = model
-
-        return message.SerializeToString()
+        return createWorkerRequestMessage(model).SerializeToString()
 
     def make_frontend_successfull_response(self, address):
-        message = MasterResponseMessage()
-        message.status = MasterResponseMessage.SUCCESS
-        message.address = address
-
-        return message
+        return createMasterResponseMessage("SUCCESS", address)
 
     def make_frontend_error_response(self, message):
-        message = MasterResponseMessage()
-        message.status = MasterResponseMessage.ERROR
-
-        return message
-
-    def parse_response(self, message):
-        response = MasterResponseMessage()
-        response.ParseFromString(message)
-
-        return response
+        return createMasterResponseMessage("ERROR")
