@@ -8,7 +8,7 @@ MASTER_TO_WORKER_ADDR=tcp://${IP}:${MASTER_TO_WORKER_PORT}
 MASTER_TO_FRONTEND_PORT=5680
 MASTER_TO_FRONTEND_ADDR=tcp://${IP}:${MASTER_TO_FRONTEND_PORT}
 
-SHARED_VOLUME=${CURDIR}/cloudasr/shared:/usr/local/lib/python2.7/dist-packages/cloudasr
+SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-packages/cloudasr
 MASTER_VOLUMES=-v ${CURDIR}/cloudasr/master:/opt/app -v ${SHARED_VOLUME}
 MASTER_OPTS=--name master \
 	-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
@@ -33,9 +33,9 @@ FRONTEND_OPTS=--name frontend \
 	${FRONTEND_VOLUMES}
 
 build:
-	cp -r cloudasr/shared cloudasr/frontend/cloudasr
-	cp -r cloudasr/shared cloudasr/worker/cloudasr
-	cp -r cloudasr/shared cloudasr/master/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
 	docker build -t frontend cloudasr/frontend/
 	docker build -t worker cloudasr/worker/
 	docker build -t master cloudasr/master/
