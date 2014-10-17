@@ -1,6 +1,6 @@
 import unittest
 from lib import Master
-from cloudasr.test_doubles import PollerSpy
+from cloudasr.test_doubles import PollerSpy, SocketSpy
 from cloudasr.messages.helpers import *
 
 
@@ -8,7 +8,8 @@ class TestMaster(unittest.TestCase):
 
     def setUp(self):
         self.poller = PollerSpy()
-        self.master = Master(self.poller, self.poller.has_next_message)
+        self.monitor_socket = SocketSpy()
+        self.master = Master(self.poller, self.monitor_socket, self.poller.has_next_message)
 
     def test_when_no_worker_is_available_master_responds_with_error(self):
         messages = [
@@ -98,12 +99,49 @@ class TestMaster(unittest.TestCase):
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
         self.assertThatMessagesWereSendToFrontend([expected_message])
 
+    def test_when_worker_sent_ready_heartbeat_master_informs_monitor_that_the_worker_is_waiting(self):
+        messages = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},
+        ]
+
+        self.run_master(messages)
+        expected_message = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        self.assertThatMessagesWereSendToMonitor([expected_message])
+
+    def test_when_worker_is_assigned_to_frontend_master_informs_monitor_that_the_worker_is_working(self):
+        messages = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},
+            {"frontend": self.make_frontend_request()},
+        ]
+
+        self.run_master(messages)
+        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        expected_message2 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WORKING", 2)
+        self.assertThatMessagesWereSendToMonitor([expected_message1, expected_message2])
+
+    def test_when_worker_is_finished_master_informs_monitor_that_the_worker_is_waiting(self):
+        messages = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},
+            {"frontend": self.make_frontend_request()},
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "FINISHED")},
+        ]
+
+        self.run_master(messages)
+        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        expected_message2 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WORKING", 2)
+        expected_message3 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 3)
+        self.assertThatMessagesWereSendToMonitor([expected_message1, expected_message2, expected_message3])
+
     def run_master(self, messages):
         self.poller.add_messages(messages)
         self.master.run()
 
     def assertThatMessagesWereSendToFrontend(self, messages):
         sent_messages = [parseMasterResponseMessage(message) for message in self.poller.sent_messages["frontend"]]
+        self.assertEquals(messages, sent_messages)
+
+    def assertThatMessagesWereSendToMonitor(self, messages):
+        sent_messages = [parseWorkerStatusMessage(message) for message in self.monitor_socket.sent_messages]
         self.assertEquals(messages, sent_messages)
 
     def make_heartbeat_request(self, worker_address, model, status):
@@ -117,3 +155,6 @@ class TestMaster(unittest.TestCase):
 
     def make_frontend_error_response(self, message):
         return createMasterResponseMessage("ERROR")
+
+    def make_worker_status_message(self, address, model, status, time):
+        return createWorkerStatusMessage(address, model, status, time)

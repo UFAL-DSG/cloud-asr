@@ -1,19 +1,22 @@
+import zmq
 import time
 from collections import defaultdict
+from cloudasr import Poller
 from cloudasr.messages import HeartbeatMessage
 from cloudasr.messages.helpers import *
 
 
-def create_master(worker_address, frontend_address):
+def create_master(worker_address, frontend_address, monitor_address):
     poller = create_poller(worker_address, frontend_address)
+    context = zmq.Context()
+    monitor = context.socket(zmq.PUSH)
+    monitor.connect(monitor_address)
     run_forever = lambda: True
 
-    return Master(poller, run_forever)
+    return Master(poller, monitor, run_forever)
 
 
 def create_poller(worker_address, frontend_address):
-    import zmq
-    from cloudasr import Poller
     context = zmq.Context()
     worker_socket = context.socket(zmq.PULL)
     worker_socket.bind(worker_address)
@@ -31,10 +34,10 @@ def create_poller(worker_address, frontend_address):
 
 class Master:
 
-    def __init__(self, poller, should_continue):
+    def __init__(self, poller, monitor, should_continue):
         self.poller = poller
         self.should_continue = should_continue
-        self.workers = WorkerPool()
+        self.workers = WorkerPool(monitor)
         self.time = 0
 
     def run(self):
@@ -76,9 +79,10 @@ class Master:
 
 class WorkerPool:
 
-    def __init__(self):
+    def __init__(self, monitor):
         self.workers_status = defaultdict(lambda: {"status": "READY", "last_heartbeat": 0})
         self.available_workers = defaultdict(list)
+        self.monitor = monitor
 
     def get_worker(self, model, time):
         worker = self.find_available_worker(model, time)
@@ -86,7 +90,7 @@ class WorkerPool:
         if worker is None:
             raise NoWorkerAvailableException()
 
-        self.update_worker_status(worker, "WORKING", time)
+        self.update_worker_status(model, worker, "WORKING", time)
         return worker
 
     def find_available_worker(self, model, time):
@@ -106,21 +110,24 @@ class WorkerPool:
         if self.workers_status[address]["status"] == "WORKING":
             if status == "FINISHED":
                 self.available_workers[model].append(address)
-                self.update_worker_status(address, "WAITING", time)
+                self.update_worker_status(model, address, "WAITING", time)
 
             if status == "WORKING":
-                self.update_worker_status(address, "WORKING", time)
+                self.update_worker_status(model, address, "WORKING", time)
         elif self.workers_status[address]["status"] == "READY":
             self.available_workers[model].append(address)
-            self.update_worker_status(address, "WAITING", time)
+            self.update_worker_status(model, address, "WAITING", time)
         elif self.workers_status[address]["status"] == "WAITING":
-            self.update_worker_status(address, "WAITING", time)
+            self.update_worker_status(model, address, "WAITING", time)
 
-    def update_worker_status(self, worker, status, time):
+    def update_worker_status(self, model, worker, status, time):
         self.workers_status[worker] = {
             "status": status,
             "last_heartbeat": time
         }
+
+        worker_status = createWorkerStatusMessage(worker, model, status, time)
+        self.monitor.send(worker_status.SerializeToString())
 
 class NoWorkerAvailableException(Exception):
     pass

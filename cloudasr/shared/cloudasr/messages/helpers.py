@@ -99,3 +99,23 @@ def parseHeartbeatMessage(string):
     message.ParseFromString(string)
 
     return message
+
+def createWorkerStatusMessage(address, model, status, time):
+    statuses = {
+        "WAITING": WorkerStatusMessage.WAITING,
+        "WORKING": WorkerStatusMessage.WORKING,
+    }
+
+    message = WorkerStatusMessage()
+    message.address = address
+    message.model = model
+    message.status = statuses[status]
+    message.time = time
+
+    return message
+
+def parseWorkerStatusMessage(string):
+    message = WorkerStatusMessage()
+    message.ParseFromString(string)
+
+    return message

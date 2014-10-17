@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='cloudasr/shared/cloudasr/messages/messages.proto',
   package='cloudasr.messages',
-  serialized_pb=_b('\n0cloudasr/shared/cloudasr/messages/messages.proto\x12\x11\x63loudasr.messages\"\x9e\x01\n\x10HeartbeatMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12:\n\x06status\x18\x03 \x02(\x0e\x32*.cloudasr.messages.HeartbeatMessage.Status\".\n\x06Status\x12\t\n\x05READY\x10\x00\x12\x0b\n\x07WORKING\x10\x01\x12\x0c\n\x08\x46INISHED\x10\x02\"%\n\x14WorkerRequestMessage\x12\r\n\x05model\x18\x01 \x02(\t\"\x8b\x01\n\x15MasterResponseMessage\x12?\n\x06status\x18\x01 \x02(\x0e\x32/.cloudasr.messages.MasterResponseMessage.Status\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"\xd8\x01\n\x19RecognitionRequestMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12?\n\x04type\x18\x02 \x02(\x0e\x32\x31.cloudasr.messages.RecognitionRequestMessage.Type\x12\x0c\n\x04\x62ody\x18\x03 \x02(\x0c\x12\x10\n\x08has_next\x18\x04 \x01(\x08\x12\x12\n\nframe_rate\x18\x05 \x01(\x05\"\x1d\n\x04Type\x12\t\n\x05\x42\x41TCH\x10\x00\x12\n\n\x06ONLINE\x10\x01\"5\n\x0b\x41lternative\x12\x12\n\ntranscript\x18\x01 \x02(\t\x12\x12\n\nconfidence\x18\x02 \x02(\x02\"\xb1\x01\n\x0eResultsMessage\x12\x38\n\x06status\x18\x01 \x02(\x0e\x32(.cloudasr.messages.ResultsMessage.Status\x12\r\n\x05\x66inal\x18\x02 \x01(\x08\x12\x34\n\x0c\x61lternatives\x18\x03 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"(\n\x08UniqueID\x12\r\n\x05lower\x18\x01 \x02(\x04\x12\r\n\x05upper\x18\x02 \x02(\x04')
+  serialized_pb=_b('\n0cloudasr/shared/cloudasr/messages/messages.proto\x12\x11\x63loudasr.messages\"\x9e\x01\n\x10HeartbeatMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12:\n\x06status\x18\x03 \x02(\x0e\x32*.cloudasr.messages.HeartbeatMessage.Status\".\n\x06Status\x12\t\n\x05READY\x10\x00\x12\x0b\n\x07WORKING\x10\x01\x12\x0c\n\x08\x46INISHED\x10\x02\"\xa6\x01\n\x13WorkerStatusMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12=\n\x06status\x18\x03 \x02(\x0e\x32-.cloudasr.messages.WorkerStatusMessage.Status\x12\x0c\n\x04time\x18\x04 \x02(\x02\"\"\n\x06Status\x12\x0b\n\x07WAITING\x10\x00\x12\x0b\n\x07WORKING\x10\x01\"%\n\x14WorkerRequestMessage\x12\r\n\x05model\x18\x01 \x02(\t\"\x8b\x01\n\x15MasterResponseMessage\x12?\n\x06status\x18\x01 \x02(\x0e\x32/.cloudasr.messages.MasterResponseMessage.Status\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"\xd8\x01\n\x19RecognitionRequestMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12?\n\x04type\x18\x02 \x02(\x0e\x32\x31.cloudasr.messages.RecognitionRequestMessage.Type\x12\x0c\n\x04\x62ody\x18\x03 \x02(\x0c\x12\x10\n\x08has_next\x18\x04 \x01(\x08\x12\x12\n\nframe_rate\x18\x05 \x01(\x05\"\x1d\n\x04Type\x12\t\n\x05\x42\x41TCH\x10\x00\x12\n\n\x06ONLINE\x10\x01\"5\n\x0b\x41lternative\x12\x12\n\ntranscript\x18\x01 \x02(\t\x12\x12\n\nconfidence\x18\x02 \x02(\x02\"\xb1\x01\n\x0eResultsMessage\x12\x38\n\x06status\x18\x01 \x02(\x0e\x32(.cloudasr.messages.ResultsMessage.Status\x12\r\n\x05\x66inal\x18\x02 \x01(\x08\x12\x34\n\x0c\x61lternatives\x18\x03 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"(\n\x08UniqueID\x12\r\n\x05lower\x18\x01 \x02(\x04\x12\r\n\x05upper\x18\x02 \x02(\x04')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -50,6 +50,28 @@ _HEARTBEATMESSAGE_STATUS = _descriptor.EnumDescriptor(
 )
 _sym_db.RegisterEnumDescriptor(_HEARTBEATMESSAGE_STATUS)
 
+_WORKERSTATUSMESSAGE_STATUS = _descriptor.EnumDescriptor(
+  name='Status',
+  full_name='cloudasr.messages.WorkerStatusMessage.Status',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='WAITING', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='WORKING', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=365,
+  serialized_end=399,
+)
+_sym_db.RegisterEnumDescriptor(_WORKERSTATUSMESSAGE_STATUS)
+
 _MASTERRESPONSEMESSAGE_STATUS = _descriptor.EnumDescriptor(
   name='Status',
   full_name='cloudasr.messages.MasterResponseMessage.Status',
@@ -67,8 +89,8 @@ _MASTERRESPONSEMESSAGE_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=379,
-  serialized_end=411,
+  serialized_start=548,
+  serialized_end=580,
 )
 _sym_db.RegisterEnumDescriptor(_MASTERRESPONSEMESSAGE_STATUS)
 
@@ -89,8 +111,8 @@ _RECOGNITIONREQUESTMESSAGE_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=601,
-  serialized_end=630,
+  serialized_start=770,
+  serialized_end=799,
 )
 _sym_db.RegisterEnumDescriptor(_RECOGNITIONREQUESTMESSAGE_TYPE)
 
@@ -111,8 +133,8 @@ _RESULTSMESSAGE_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=379,
-  serialized_end=411,
+  serialized_start=548,
+  serialized_end=580,
 )
 _sym_db.RegisterEnumDescriptor(_RESULTSMESSAGE_STATUS)
 
@@ -162,6 +184,58 @@ _HEARTBEATMESSAGE = _descriptor.Descriptor(
 )
 
 
+_WORKERSTATUSMESSAGE = _descriptor.Descriptor(
+  name='WorkerStatusMessage',
+  full_name='cloudasr.messages.WorkerStatusMessage',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='address', full_name='cloudasr.messages.WorkerStatusMessage.address', index=0,
+      number=1, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='model', full_name='cloudasr.messages.WorkerStatusMessage.model', index=1,
+      number=2, type=9, cpp_type=9, label=2,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='status', full_name='cloudasr.messages.WorkerStatusMessage.status', index=2,
+      number=3, type=14, cpp_type=8, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='time', full_name='cloudasr.messages.WorkerStatusMessage.time', index=3,
+      number=4, type=2, cpp_type=6, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+    _WORKERSTATUSMESSAGE_STATUS,
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=233,
+  serialized_end=399,
+)
+
+
 _WORKERREQUESTMESSAGE = _descriptor.Descriptor(
   name='WorkerRequestMessage',
   full_name='cloudasr.messages.WorkerRequestMessage',
@@ -187,8 +261,8 @@ _WORKERREQUESTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=232,
-  serialized_end=269,
+  serialized_start=401,
+  serialized_end=438,
 )
 
 
@@ -225,8 +299,8 @@ _MASTERRESPONSEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=272,
-  serialized_end=411,
+  serialized_start=441,
+  serialized_end=580,
 )
 
 
@@ -284,8 +358,8 @@ _RECOGNITIONREQUESTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=414,
-  serialized_end=630,
+  serialized_start=583,
+  serialized_end=799,
 )
 
 
@@ -321,8 +395,8 @@ _ALTERNATIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=632,
-  serialized_end=685,
+  serialized_start=801,
+  serialized_end=854,
 )
 
 
@@ -366,8 +440,8 @@ _RESULTSMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=688,
-  serialized_end=865,
+  serialized_start=857,
+  serialized_end=1034,
 )
 
 
@@ -403,12 +477,14 @@ _UNIQUEID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=867,
-  serialized_end=907,
+  serialized_start=1036,
+  serialized_end=1076,
 )
 
 _HEARTBEATMESSAGE.fields_by_name['status'].enum_type = _HEARTBEATMESSAGE_STATUS
 _HEARTBEATMESSAGE_STATUS.containing_type = _HEARTBEATMESSAGE
+_WORKERSTATUSMESSAGE.fields_by_name['status'].enum_type = _WORKERSTATUSMESSAGE_STATUS
+_WORKERSTATUSMESSAGE_STATUS.containing_type = _WORKERSTATUSMESSAGE
 _MASTERRESPONSEMESSAGE.fields_by_name['status'].enum_type = _MASTERRESPONSEMESSAGE_STATUS
 _MASTERRESPONSEMESSAGE_STATUS.containing_type = _MASTERRESPONSEMESSAGE
 _RECOGNITIONREQUESTMESSAGE.fields_by_name['id'].message_type = _UNIQUEID
@@ -418,6 +494,7 @@ _RESULTSMESSAGE.fields_by_name['status'].enum_type = _RESULTSMESSAGE_STATUS
 _RESULTSMESSAGE.fields_by_name['alternatives'].message_type = _ALTERNATIVE
 _RESULTSMESSAGE_STATUS.containing_type = _RESULTSMESSAGE
 DESCRIPTOR.message_types_by_name['HeartbeatMessage'] = _HEARTBEATMESSAGE
+DESCRIPTOR.message_types_by_name['WorkerStatusMessage'] = _WORKERSTATUSMESSAGE
 DESCRIPTOR.message_types_by_name['WorkerRequestMessage'] = _WORKERREQUESTMESSAGE
 DESCRIPTOR.message_types_by_name['MasterResponseMessage'] = _MASTERRESPONSEMESSAGE
 DESCRIPTOR.message_types_by_name['RecognitionRequestMessage'] = _RECOGNITIONREQUESTMESSAGE
@@ -431,6 +508,13 @@ HeartbeatMessage = _reflection.GeneratedProtocolMessageType('HeartbeatMessage', 
   # @@protoc_insertion_point(class_scope:cloudasr.messages.HeartbeatMessage)
   ))
 _sym_db.RegisterMessage(HeartbeatMessage)
+
+WorkerStatusMessage = _reflection.GeneratedProtocolMessageType('WorkerStatusMessage', (_message.Message,), dict(
+  DESCRIPTOR = _WORKERSTATUSMESSAGE,
+  __module__ = 'cloudasr.shared.cloudasr.messages.messages_pb2'
+  # @@protoc_insertion_point(class_scope:cloudasr.messages.WorkerStatusMessage)
+  ))
+_sym_db.RegisterMessage(WorkerStatusMessage)
 
 WorkerRequestMessage = _reflection.GeneratedProtocolMessageType('WorkerRequestMessage', (_message.Message,), dict(
   DESCRIPTOR = _WORKERREQUESTMESSAGE,
