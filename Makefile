@@ -72,4 +72,4 @@ test:
 	docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests /opt/app/test_asr.py
 
 compile-messages:
-	protoc --python_out=. ./cloudasr/shared/messages/messages.proto
+	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
