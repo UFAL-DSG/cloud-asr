@@ -1,3 +1,5 @@
+import math
+
 def create_asr():
     import config
     from kaldi.utils import lattice_to_nbest, wst2dict
@@ -31,7 +33,7 @@ class ASR:
         utt_lik, lat = self.recogniser.get_lattice()
         self.recogniser.reset()
 
-        return [(prob, self.path_to_text(path)) for (prob, path) in self.lattice_to_nbest(lat, n=10)]
+        return [(math.exp(-prob), self.path_to_text(path)) for (prob, path) in self.lattice_to_nbest(lat, n=10)]
 
     def path_to_text(self, path):
         return u' '.join([unicode(self.dictionary[w]) for w in path])
