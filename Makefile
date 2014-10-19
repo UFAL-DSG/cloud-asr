@@ -90,6 +90,7 @@ unit-test:
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/frontend
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/monitor
 
 integration-test:
 	docker run ${FRONTEND_VOLUMES} --rm ufaldsg/cloud-asr-frontend nosetests /opt/app/test_factory.py
