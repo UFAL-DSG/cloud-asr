@@ -8,7 +8,8 @@ class TestMonitor(unittest.TestCase):
 
     def setUp(self):
         self.socket = SocketSpy()
-        self.monitor = Monitor(self.socket, self.emit, self.socket.has_next_message)
+        self.create_socket = lambda: self.socket
+        self.monitor = Monitor(self.create_socket, self.emit, self.socket.has_next_message)
         self.emmited_messages = []
 
     def test_monitor_forwards_messages_to_socketio(self):

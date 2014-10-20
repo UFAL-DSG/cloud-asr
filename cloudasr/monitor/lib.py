@@ -3,22 +3,27 @@ from cloudasr.messages.helpers import *
 
 
 def create_monitor(address, emit):
-    context = zmq.Context()
-    socket = context.socket(zmq.PULL)
-    socket.connect(address)
+    def create_socket():
+        context = zmq.Context()
+        socket = context.socket(zmq.PULL)
+        socket.bind(address)
+        return socket
+
     run_forever = lambda: True
 
-    return Monitor(socket, emit, run_forever)
+    return Monitor(create_socket, emit, run_forever)
 
 
 class Monitor:
 
-    def __init__(self, socket, emit, should_continue):
-        self.socket = socket
+    def __init__(self, create_socket, emit, should_continue):
+        self.create_socket = create_socket
         self.emit = emit
         self.should_continue = should_continue
 
     def run(self):
+        self.socket = self.create_socket()
+
         while self.should_continue():
             message = parseWorkerStatusMessage(self.socket.recv())
             self.emit({

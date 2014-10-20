@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template, copy_current_request_context
 from flask.ext.socketio import SocketIO, emit, session
-from gevent import Greenlet
+import gevent
 from lib import create_monitor
 import os
 app = Flask(__name__)
@@ -21,6 +21,6 @@ def start(message):
 
 if __name__ == "__main__":
     monitor = create_monitor(os.environ["MONITOR_ADDR"], callback)
-    Greenlet.spawn(monitor.run)
+    gevent.spawn(monitor.run)
 
     socketio.run(app, host="0.0.0.0", port=8001)
