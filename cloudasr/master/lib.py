@@ -126,7 +126,7 @@ class WorkerPool:
             "last_heartbeat": time
         }
 
-        worker_status = createWorkerStatusMessage(worker, model, status, time)
+        worker_status = createWorkerStatusMessage(worker, model, status, int(time))
         self.monitor.send(worker_status.SerializeToString())
 
 class NoWorkerAvailableException(Exception):

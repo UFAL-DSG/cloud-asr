@@ -16,7 +16,7 @@ message WorkerStatusMessage {
 	required string address = 1;
 	required string model = 2;
 	required Status status = 3;
-	required float time = 4;
+	required int32 time = 4;
 
 	enum Status {
 		WAITING = 0;
