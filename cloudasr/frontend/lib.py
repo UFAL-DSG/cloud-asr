@@ -1,5 +1,5 @@
 import struct
-import zmq
+import zmq.green as zmq
 import re
 from cloudasr.messages import MasterResponseMessage
 from cloudasr.messages.helpers import *

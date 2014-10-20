@@ -6,7 +6,6 @@ app = Flask(__name__)
 app.secret_key = 12345
 app.config['DEBUG'] = True
 socketio = SocketIO(app)
-worker = create_frontend_worker(os.environ['MASTER_ADDR'])
 
 
 @app.route('/')
@@ -21,6 +20,7 @@ def recognize_batch():
     }
 
     try:
+        worker = create_frontend_worker(os.environ['MASTER_ADDR'])
         return jsonify(worker.recognize_batch(data, request.headers))
     except MissingHeaderError:
         return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
