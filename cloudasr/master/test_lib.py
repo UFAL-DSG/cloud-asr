@@ -43,7 +43,7 @@ class TestMaster(unittest.TestCase):
         messages = [
             {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},
             {"frontend": self.make_frontend_request()},
-            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "WORKING")},
             {"frontend": self.make_frontend_request()}
         ]
 

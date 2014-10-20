@@ -60,10 +60,16 @@ class Master:
             self.poller.send("frontend", message.SerializeToString())
 
     def handle_worker_request(self, message):
+        statuses = {
+            HeartbeatMessage.READY: "READY",
+            HeartbeatMessage.WORKING: "WORKING",
+            HeartbeatMessage.FINISHED: "FINISHED"
+        }
+
         heartbeat = parseHeartbeatMessage(message)
         address = heartbeat.address
         model = heartbeat.model
-        status = "READY" if heartbeat.status == HeartbeatMessage.READY else "FINISHED"
+        status = statuses[heartbeat.status]
 
         self.workers.add_worker(model, address, status, self.time)
 
