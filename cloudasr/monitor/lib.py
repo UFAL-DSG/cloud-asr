@@ -1,4 +1,14 @@
+import zmq.green as zmq
 from cloudasr.messages.helpers import *
+
+
+def create_monitor(address, emit):
+    context = zmq.Context()
+    socket = context.socket(zmq.PULL)
+    socket.connect(address)
+    run_forever = lambda: True
+
+    return Monitor(socket, emit, run_forever)
 
 
 class Monitor:
