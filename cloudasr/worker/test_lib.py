@@ -83,16 +83,26 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_working_heartbeats_during_online_recognition(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = True)}
+            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = True)},
+            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "WORKING"])
+        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "WORKING", "FINISHED"])
 
     def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
         messages = [
             {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
             {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
+        ]
+
+        self.run_worker(messages)
+        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "FINISHED"])
+
+    def test_worker_sends_finished_heartbeat_when_it_doesnt_receive_any_chunk_for_10secs(self):
+        messages = [
+            {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
+            {"time": +10}
         ]
 
         self.run_worker(messages)

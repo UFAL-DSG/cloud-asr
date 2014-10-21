@@ -15,12 +15,23 @@ class PollerSpy:
         return len(self.messages) > 0
 
     def poll(self, timeout=1000):
+        if not self.has_next_message():
+            return {}, self.time
+
         timeout = float(timeout)/1000
-        messages = self.messages.pop(0)
-        if "time" in messages:
-            self.time += messages.pop("time")
+        next_messages = self.messages[0]
+
+        if "time" in next_messages:
+            if next_messages["time"] > timeout:
+                self.messages[0]["time"] = self.messages[0]["time"] - timeout
+                messages = {}
+                self.time += timeout
+            else:
+                messages = self.messages.pop(0)
+                self.time += messages.pop("time")
         else:
             self.time += 1
+            messages = self.messages.pop(0)
 
         return messages, self.time
 
