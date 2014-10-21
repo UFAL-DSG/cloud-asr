@@ -22,4 +22,4 @@ RUN pip install protobuf
 
 ADD . /opt/app
 WORKDIR /opt/app
-CMD gunicorn -b 0.0.0.0:8001 -k socketio.sgunicorn.GeventSocketIOWorker run:app
+CMD python run.py
