@@ -62,7 +62,7 @@ stop:
 	docker rm frontend worker master
 
 unit-test:
-	nosetests cloudasr/shared
+	nosetests cloudasr/shared/cloudasr
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/frontend
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/master
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_asr cloudasr/worker
