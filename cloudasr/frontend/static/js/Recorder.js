@@ -7,6 +7,7 @@
         var bufferCallback = config.bufferCallback || function(buffer) { console.log(buffer); };
         var errorCallback = config.errorCallback || function(error) { console.log(error); };
         var recording = false;
+        var sourceProcessor = null;
 
         this.init = function() {
             audio_context = createAudioContext();
@@ -51,7 +52,7 @@
             console.log('Media stream created.');
 
             source.context.createScriptProcessor = source.context.createScriptProcessor || source.context.createJavaScriptNode;
-            var sourceProcessor = source.context.createScriptProcessor(bufferLen, numChannels, numChannels);
+            sourceProcessor = source.context.createScriptProcessor(bufferLen, numChannels, numChannels);
 
             sourceProcessor.onaudioprocess = function(e){
                 if (!recording) return;
