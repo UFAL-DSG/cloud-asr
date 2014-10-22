@@ -49,15 +49,17 @@ def parseWorkerRequestMessage(string):
 
     return message
 
-def createRecognitionRequestMessage(type, body, has_next, frame_rate = 0):
+def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0):
     types = {
         "BATCH": RecognitionRequestMessage.BATCH,
         "ONLINE": RecognitionRequestMessage.ONLINE
     }
 
     message = RecognitionRequestMessage()
-    message.body = body
+    message.id.upper = id >> 64
+    message.id.lower = id & ((1<<64)-1)
     message.type = types[type]
+    message.body = body
     message.has_next = has_next
 
     if type == "ONLINE":

@@ -21,11 +21,12 @@ class TestFrontendWorker(unittest.TestCase):
         worker_response = createResultsMessage(True, [(1.0, "Hello World!")])
 
         self.master_socket = SocketSpy()
-        self.master_socket.set_messages([master_response.SerializeToString()])
+        self.master_socket.set_messages([master_response.SerializeToString()] * 2)
         self.worker_socket = SocketSpy()
-        self.worker_socket.set_messages([worker_response.SerializeToString()])
+        self.worker_socket.set_messages([worker_response.SerializeToString()] * 2)
         self.decoder = DummyDecoder()
-        self.worker = FrontendWorker(self.master_socket, self.worker_socket, self.decoder)
+        self.id_generator = DummyIDGenerator()
+        self.worker = FrontendWorker(self.master_socket, self.worker_socket, self.decoder, self.id_generator)
 
     def test_recognize_batch_requires_content_type_header_with_frame_rate(self):
         self.assertRaises(MissingHeaderError, lambda: self.worker.recognize_batch(self.request_data,{}))
@@ -49,7 +50,13 @@ class TestFrontendWorker(unittest.TestCase):
     def test_recognize_batch_sends_data_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
         expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False)
-        self.assertThatMessageWasSendToWorker(expected_message)
+        self.assertThatMessagesWasSendToWorker([expected_message])
+
+    def test_recognize_batch_sends_data_with_unique_id_to_worker(self):
+        self.id_generator.set_id([1])
+        self.worker.recognize_batch(self.request_data, self.request_headers)
+        expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, id = 1)
+        self.assertThatMessagesWasSendToWorker([expected_message])
 
     def test_recognize_batch_reads_response_from_worker(self):
         expected_response = {
@@ -94,7 +101,17 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100)
-        self.assertThatMessageWasSendToWorker(expected_message)
+        self.assertThatMessagesWasSendToWorker([expected_message])
+
+    def test_recognize_chunk_sends_data_with_unique_id_to_worker(self):
+        self.id_generator.set_id([1, 2])
+        self.worker.connect_to_worker("en-GB")
+        self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
+        self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
+
+        expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100, id=1)
+        self.assertThatMessagesWasSendToWorker([expected_message, expected_message])
+
 
     def test_recognize_chunk_reads_response_from_worker(self):
         self.worker.connect_to_worker("en-GB")
@@ -117,7 +134,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.end_recognition()
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"", False, frame_rate = 44100)
-        self.assertThatMessageWasSendToWorker(expected_message)
+        self.assertThatMessagesWasSendToWorker([expected_message])
 
     def test_end_recognition_reads_response_from_worker(self):
         self.worker.connect_to_worker("en-GB")
@@ -155,12 +172,23 @@ class TestFrontendWorker(unittest.TestCase):
     def assertThatFrontendDisconnectedFromWorker(self):
         self.assertTrue(self.worker_socket.is_disconnected)
 
-    def assertThatMessageWasSendToWorker(self, message):
-        sent_message = parseRecognitionRequestMessage(self.worker_socket.sent_message)
-        self.assertEquals(message, sent_message)
+    def assertThatMessagesWasSendToWorker(self, messages):
+        sent_messages = [parseRecognitionRequestMessage(message) for message in self.worker_socket.sent_messages]
+        self.assertEquals(messages, sent_messages)
 
 
 class DummyDecoder:
 
     def decode(self, data):
         return b"some binary chunk decoded from base64"
+
+class DummyIDGenerator:
+
+    def __init__(self):
+        self.ids = [0, 0, 0, 0, 0]
+
+    def set_id(self, ids):
+        self.ids = ids
+
+    def __call__(self):
+        return self.ids.pop(0)

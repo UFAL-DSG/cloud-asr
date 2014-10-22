@@ -1,6 +1,7 @@
 import struct
 import zmq.green as zmq
 import re
+import uuid
 from cloudasr.messages import MasterResponseMessage
 from cloudasr.messages.helpers import *
 
@@ -10,15 +11,18 @@ def create_frontend_worker(master_address):
     master_socket.connect(master_address)
     worker_socket = context.socket(zmq.REQ)
     decoder = Decoder()
+    id_generator = lambda: uuid.uuid4().int
 
-    return FrontendWorker(master_socket, worker_socket, decoder)
+    return FrontendWorker(master_socket, worker_socket, decoder, id_generator)
 
 
 class FrontendWorker:
-    def __init__(self, master_socket, worker_socket, decoder):
+    def __init__(self, master_socket, worker_socket, decoder, id_generator):
         self.master_socket = master_socket
         self.worker_socket = worker_socket
         self.decoder = decoder
+        self.id_generator = id_generator
+        self.id = None
 
     def recognize_batch(self, data, headers):
         self.validate_headers(headers)
@@ -28,6 +32,7 @@ class FrontendWorker:
         return response
 
     def connect_to_worker(self, model):
+        self.id = self.id_generator()
         self.worker_address = self.get_worker_address_from_master(model)
         self.worker_socket.connect(self.worker_address)
 
@@ -71,7 +76,7 @@ class FrontendWorker:
         return self.format_final_response(response)
 
     def send_request_to_worker(self, data, type, frame_rate = None, has_next = False):
-        request = createRecognitionRequestMessage(type, data, has_next, frame_rate)
+        request = createRecognitionRequestMessage(type, data, has_next, self.id, frame_rate)
         self.worker_socket.send(request.SerializeToString())
 
 

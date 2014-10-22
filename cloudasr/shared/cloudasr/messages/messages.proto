@@ -27,10 +27,11 @@ message MasterResponseMessage {
 }
 
 message RecognitionRequestMessage {
-	required Type type = 1;
-	required bytes body = 2;
-	optional bool has_next = 3;
-	optional int32 frame_rate = 4;
+	required UniqueID id = 1;
+	required Type type = 2;
+	required bytes body = 3;
+	optional bool has_next = 4;
+	optional int32 frame_rate = 5;
 
 	enum Type {
 		BATCH = 0;
@@ -43,8 +44,12 @@ message Alternative {
 	required float confidence = 2;
 }
 
-
 message ResultsMessage {
 	required bool final = 1;
 	repeated Alternative alternatives = 2;
+}
+
+message UniqueID {
+	required uint64 lower = 1;
+	required uint64 upper = 2;
 }
