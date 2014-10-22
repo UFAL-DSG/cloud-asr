@@ -34,7 +34,7 @@
         function createAudioContext() {
             try {
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
                 audio_context = new AudioContext;
                 console.log('Audio context set up.');
