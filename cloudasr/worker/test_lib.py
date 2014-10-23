@@ -20,8 +20,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1")},
-            {"frontend": self.make_fronted_request("message 2")}
+            {"frontend": self.make_frontend_request("message 1")},
+            {"frontend": self.make_frontend_request("message 2")}
         ]
 
         self.run_worker(messages)
@@ -29,8 +29,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_reads_final_hypothesis_from_asr(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1")},
-            {"frontend": self.make_fronted_request("message 2")}
+            {"frontend": self.make_frontend_request("message 1")},
+            {"frontend": self.make_frontend_request("message 2")}
         ]
 
         self.run_worker(messages)
@@ -39,8 +39,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_interim_results_after_each_chunk(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1", "ONLINE")},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE")}
+            {"frontend": self.make_frontend_request("message 1", "ONLINE")},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE")}
         ]
 
         self.run_worker(messages)
@@ -49,8 +49,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_final_results_after_last_chunk(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
@@ -60,8 +60,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_forwards_resampled_pcm_chunks_from_every_message_to_asr(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = True)}
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = True)}
         ]
 
         self.run_worker(messages)
@@ -74,7 +74,7 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_heartbeat_after_finishing_task(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1")}
+            {"frontend": self.make_frontend_request("message 1")}
         ]
 
         self.run_worker(messages)
@@ -82,9 +82,9 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_working_heartbeats_during_online_recognition(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = True)},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = True)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
@@ -92,8 +92,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_fronted_request("message 2", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
@@ -101,7 +101,7 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_finished_heartbeat_when_it_doesnt_receive_any_chunk_for_10secs(self):
         messages = [
-            {"frontend": self.make_fronted_request("message 1", "ONLINE", has_next = True)},
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
             {"time": +10}
         ]
 
@@ -130,7 +130,7 @@ class TestWorker(unittest.TestCase):
 
         self.assertEquals(heartbeats, sent_heartbeats)
 
-    def make_fronted_request(self, message, type = "BATCH", has_next = True):
+    def make_frontend_request(self, message, type = "BATCH", has_next = True):
         return createRecognitionRequestMessage(type, message, has_next, 44100).SerializeToString()
 
     def make_heartbeat(self, status):
