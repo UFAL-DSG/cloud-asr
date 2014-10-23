@@ -64,9 +64,19 @@ class Worker:
         if request.type == RecognitionRequestMessage.BATCH:
             self.handle_batch_request(request)
         else:
-            while self.handle_online_request(request):
-                messages, time = self.poller.poll(10000)
+            request_id = request.id
+            has_next = True
 
+            while True:
+                if request_id == request.id:
+                    has_next = self.handle_online_request(request)
+                else:
+                    self.handle_bad_chunk()
+
+                if not has_next:
+                    break
+
+                messages, time = self.poller.poll(10000)
                 if "frontend" in messages:
                     request = parseRecognitionRequestMessage(messages["frontend"])
                 else:
@@ -98,6 +108,9 @@ class Worker:
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("FINISHED")
             return False
+
+    def handle_bad_chunk(self):
+        self.poller.send("frontend", createErrorResultsMessage().SerializeToString())
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)

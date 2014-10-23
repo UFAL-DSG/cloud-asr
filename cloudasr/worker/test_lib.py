@@ -58,6 +58,19 @@ class TestWorker(unittest.TestCase):
         expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
+    def test_when_worker_receives_chunk_with_bad_id_it_should_return_error_message(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True, id = 1)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = True, id = 2)},
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = False, id = 1)},
+        ]
+
+        self.run_worker(messages)
+        expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message2 = createErrorResultsMessage()
+        expected_message3 = createResultsMessage(True, [(1.0, "Hello World!")])
+        self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2, expected_message3])
+
     def test_worker_forwards_resampled_pcm_chunks_from_every_message_to_asr(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
@@ -130,8 +143,8 @@ class TestWorker(unittest.TestCase):
 
         self.assertEquals(heartbeats, sent_heartbeats)
 
-    def make_frontend_request(self, message, type = "BATCH", has_next = True):
-        return createRecognitionRequestMessage(type, message, has_next, 44100).SerializeToString()
+    def make_frontend_request(self, message, type = "BATCH", has_next = True, id = 0):
+        return createRecognitionRequestMessage(type, message, has_next, id, 44100).SerializeToString()
 
     def make_heartbeat(self, status):
         return createHeartbeatMessage(self.worker_address, self.model, status)

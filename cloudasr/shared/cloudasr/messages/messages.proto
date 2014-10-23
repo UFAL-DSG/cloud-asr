@@ -45,8 +45,14 @@ message Alternative {
 }
 
 message ResultsMessage {
-	required bool final = 1;
-	repeated Alternative alternatives = 2;
+	required Status status = 1;
+	optional bool final = 2;
+	repeated Alternative alternatives = 3;
+
+	enum Status {
+		SUCCESS = 0;
+		ERROR = 1;
+	};
 }
 
 message UniqueID {
