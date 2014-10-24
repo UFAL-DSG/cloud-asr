@@ -41,6 +41,9 @@ class FrontendWorker:
         self.send_request_to_worker(chunk, "ONLINE", frame_rate, has_next = True)
         response = self.read_response_from_worker()
 
+        if response.status == ResultsMessage.ERROR:
+            raise WorkerInternalError
+
         return self.format_interim_response(response)
 
     def end_recognition(self):
@@ -116,4 +119,7 @@ class NoWorkerAvailableError(Exception):
     pass
 
 class MissingHeaderError(Exception):
+    pass
+
+class WorkerInternalError(Exception):
     pass

@@ -1,6 +1,6 @@
 import unittest
 from cloudasr.messages.helpers import *
-from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError
+from lib import FrontendWorker, NoWorkerAvailableError, MissingHeaderError, WorkerInternalError
 from cloudasr.test_doubles import SocketSpy
 from cloudasr.messages import WorkerRequestMessage, MasterResponseMessage, RecognitionRequestMessage, ResultsMessage, Alternative
 
@@ -112,7 +112,6 @@ class TestFrontendWorker(unittest.TestCase):
         expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100, id=1)
         self.assertThatMessagesWasSendToWorker([expected_message, expected_message])
 
-
     def test_recognize_chunk_reads_response_from_worker(self):
         self.worker.connect_to_worker("en-GB")
         received_response = self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
@@ -128,6 +127,13 @@ class TestFrontendWorker(unittest.TestCase):
         }
 
         self.assertEquals(expected_response, received_response)
+
+    def test_recognize_chunk_raises_exception_when_worker_sends_error_response(self):
+        response = createErrorResultsMessage()
+        self.worker_socket.set_messages([response.SerializeToString()])
+
+        self.worker.connect_to_worker("en-GB")
+        self.assertRaises(WorkerInternalError, lambda: self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100))
 
     def test_end_recognition_sends_data_to_worker(self):
         self.worker.connect_to_worker("en-GB")

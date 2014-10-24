@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask.ext.socketio import SocketIO, emit, session
-from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError
+from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 import os
 app = Flask(__name__)
 app.secret_key = 12345
@@ -39,11 +39,15 @@ def begin_online_recognition(message):
 
 @socketio.on('chunk')
 def recognize_chunk(message):
-    if "worker" not in session:
-        return
+    try:
+        if "worker" not in session:
+            return
 
-    response = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
-    emit('result', response)
+        response = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
+        emit('result', response)
+    except WorkerInternalError:
+        emit('server_error', {"status": "error", "message": "Internal error"})
+        del session["worker"]
 
 @socketio.on('end')
 def end_recognition(message):
