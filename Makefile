@@ -63,9 +63,14 @@ stop:
 
 unit-test:
 	nosetests cloudasr/shared
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/frontend
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests cloudasr/master
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_asr cloudasr/worker
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/frontend
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_asr -e test_factory cloudasr/worker
+
+integration-test:
+	docker run ${FRONTEND_VOLUMES} --rm frontend nosetests /opt/app/test_factory.py
+	docker run ${MASTER_VOLUMES} --rm master nosetests /opt/app/test_factory.py
+	docker run ${WORKER_VOLUMES} --rm worker nosetests /opt/app/test_factory.py
 
 test:
 	nosetests tests/
