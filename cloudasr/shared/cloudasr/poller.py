@@ -17,7 +17,6 @@ class Poller:
         messages = {}
         for name, socket in self.sockets.iteritems():
             if self.has_received_message(socket, sockets):
-                print "Received message on %s" % name
                 messages[name] = socket["receive"]()
 
         return messages, self.time()
