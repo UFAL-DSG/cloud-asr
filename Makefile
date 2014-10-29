@@ -65,7 +65,7 @@ unit-test:
 	nosetests cloudasr/shared
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/frontend
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_asr -e test_factory cloudasr/worker
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker
 
 integration-test:
 	docker run ${FRONTEND_VOLUMES} --rm frontend nosetests /opt/app/test_factory.py
@@ -74,7 +74,6 @@ integration-test:
 
 test:
 	nosetests tests/
-	docker run ${WORKER_VOLUMES} -v ${CURDIR}/resources:/opt/resources --rm worker nosetests /opt/app/test_asr.py
 
 compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
