@@ -19,12 +19,18 @@ class ASR:
         self.dictionary = dictionary
         self.lattice_to_nbest = lattice_to_nbest
         self.lattice_calibration = lattice_calibration
+        self.callbacks = []
+
+    def add_callback(self, callback):
+        self.callbacks.append(callback)
 
     def recognize_chunk(self, chunk):
         decoded_frames = 0
         self.recogniser.frame_in(chunk)
         dec_t = self.recogniser.decode(max_frames=10)
         while dec_t > 0:
+            self.call_callbacks()
+
             decoded_frames += dec_t
             dec_t = self.recogniser.decode(max_frames=10)
 
@@ -39,4 +45,8 @@ class ASR:
 
     def path_to_text(self, path):
         return u' '.join([unicode(self.dictionary[w]) for w in path])
+
+    def call_callbacks(self):
+        for callback in self.callbacks:
+            callback()
 

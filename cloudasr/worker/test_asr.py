@@ -25,10 +25,19 @@ class TestASR(unittest.TestCase):
         self.assertEquals(type(interim_hypothesis[0]), FloatType)
         self.assertEquals(type(interim_hypothesis[1]), UnicodeType)
 
+    def test_recognize_chunk_calls_callback(self):
+        self.callback_called = False
+        asr = create_asr()
+        asr.add_callback(self.callback)
+        asr.recognize_chunk(self.load_pcm_sample_data())
+
+        self.assertTrue(self.callback_called)
 
     def load_pcm_sample_data(self):
         audio = AudioUtils()
 
         return audio.load_wav_from_file_as_pcm("../resources/test.wav")
 
+    def callback(self):
+        self.callback_called = True
 
