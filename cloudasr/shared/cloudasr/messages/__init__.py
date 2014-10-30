@@ -1,0 +1,6 @@
+from messages_pb2 import HeartbeatMessage
+from messages_pb2 import WorkerRequestMessage
+from messages_pb2 import MasterResponseMessage
+from messages_pb2 import RecognitionRequestMessage
+from messages_pb2 import ResultsMessage
+from messages_pb2 import Alternative

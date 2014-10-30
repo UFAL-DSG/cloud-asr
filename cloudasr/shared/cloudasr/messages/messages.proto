@@ -1,0 +1,61 @@
+package cloudasr.messages;
+
+message HeartbeatMessage {
+	required string address = 1;
+	required string model = 2;
+	required Status status = 3;
+
+	enum Status {
+		READY = 0;
+		WORKING = 1;
+		FINISHED = 2;
+	};
+}
+
+message WorkerRequestMessage {
+	required string model = 1;
+}
+
+message MasterResponseMessage {
+	required Status status = 1;
+	optional string address = 2;
+
+	enum Status {
+		SUCCESS = 0;
+		ERROR = 1;
+	};
+}
+
+message RecognitionRequestMessage {
+	required UniqueID id = 1;
+	required Type type = 2;
+	required bytes body = 3;
+	optional bool has_next = 4;
+	optional int32 frame_rate = 5;
+
+	enum Type {
+		BATCH = 0;
+		ONLINE = 1;
+	}
+}
+
+message Alternative {
+	required string transcript = 1;
+	required float confidence = 2;
+}
+
+message ResultsMessage {
+	required Status status = 1;
+	optional bool final = 2;
+	repeated Alternative alternatives = 3;
+
+	enum Status {
+		SUCCESS = 0;
+		ERROR = 1;
+	};
+}
+
+message UniqueID {
+	required uint64 lower = 1;
+	required uint64 upper = 2;
+}
