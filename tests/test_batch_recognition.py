@@ -16,7 +16,7 @@ class TestBatchRecognition(unittest.TestCase):
     def get_response_for_wav(self):
         url = "http://127.0.0.1:8000/recognize"
         wav = self.load_wav()
-        headers = {"Content-Type": "audio/x-wav; rate=44100;"}
+        headers = {"Content-Type": "audio/x-wav; rate=16000;"}
         request = urllib2.Request(url, wav, headers)
 
         return urllib2.urlopen(request).read()
