@@ -22,4 +22,4 @@ RUN pip install protobuf
 
 ADD . /opt/app
 WORKDIR /opt/app
-CMD gunicorn -c gunicorn_config.py run:app
+CMD while true; do gunicorn -c gunicorn_config.py run:app; done

@@ -52,4 +52,4 @@ RUN pip install protobuf
 
 ADD . /opt/app
 WORKDIR /opt/app
-CMD python run.py
+CMD while true; do python run.py; done
