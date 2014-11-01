@@ -36,26 +36,31 @@ build:
 	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
-	docker build -t frontend cloudasr/frontend/
-	docker build -t worker cloudasr/worker/
-	docker build -t master cloudasr/master/
+	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
+	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
+	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	rm -rf cloudasr/frontend/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 
+pull:
+	docker pull ufaldsg/cloud-asr-frontend
+	docker pull ufaldsg/cloud-asr-worker
+	docker pull ufaldsg/cloud-asr-master
+
 run:
-	docker run ${FRONTEND_OPTS} -d frontend
-	docker run ${WORKER_OPTS} -d worker
-	docker run ${MASTER_OPTS} -d master
+	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
+	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
+	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 
 run_worker:
-	docker run ${WORKER_OPTS} -i -t --rm worker
+	docker run ${WORKER_OPTS} -i -t --rm ufaldsg/cloud-asr-worker
 
 run_frontend:
-	docker run ${FRONTEND_OPTS} -i -t --rm frontend
+	docker run ${FRONTEND_OPTS} -i -t --rm ufaldsg/cloud-asr-frontend
 
 run_master:
-	docker run ${MASTER_OPTS} -i -t --rm master
+	docker run ${MASTER_OPTS} -i -t --rm ufaldsg/cloud-asr-master
 
 stop:
 	docker kill frontend worker master
@@ -68,9 +73,9 @@ unit-test:
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker
 
 integration-test:
-	docker run ${FRONTEND_VOLUMES} --rm frontend nosetests /opt/app/test_factory.py
-	docker run ${MASTER_VOLUMES} --rm master nosetests /opt/app/test_factory.py
-	docker run ${WORKER_VOLUMES} --rm worker nosetests /opt/app/test_factory.py
+	docker run ${FRONTEND_VOLUMES} --rm ufaldsg/cloud-asr-frontend nosetests /opt/app/test_factory.py
+	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master nosetests /opt/app/test_factory.py
+	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker nosetests /opt/app/test_factory.py
 
 test:
 	nosetests tests/

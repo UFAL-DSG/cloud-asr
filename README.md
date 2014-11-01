@@ -11,7 +11,8 @@ Platform’s API supports both batch and incremental speech recognition. The bat
 
 Installation
 ------------
-In order to be able to run CloudASR Docker has to be installed on the host machine. You can follow the instructions for your distribution at [http://docs.docker.com/installation/](http://docs.docker.com/installation/)
+In order to be able to run CloudASR Docker has to be installed on the host machine. You can follow the instructions for your distribution at [http://docs.docker.com/installation/](http://docs.docker.com/installation/).
+Additionally it is necessary to download docker images. You can do that by typing `make pull`.
 
 Running CloudASR
 ----------------
