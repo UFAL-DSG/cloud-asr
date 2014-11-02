@@ -51,5 +51,9 @@ RUN rm -rf pykaldi
 RUN pip install protobuf
 
 ADD . /opt/app
+
+WORKDIR /opt/app/models
+RUN bash download_models.sh
+
 WORKDIR /opt/app
 CMD while true; do python run.py; done
