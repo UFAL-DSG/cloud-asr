@@ -99,6 +99,28 @@ class TestMaster(unittest.TestCase):
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
         self.assertThatMessagesWereSendToFrontend([expected_message])
 
+    def test_when_worker_crashed_and_then_it_sent_running_heartbeat_it_should_be_available_again(self):
+        messages = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "RUNNING")},
+            {"frontend": self.make_frontend_request()},
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "WORKING")},
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "RUNNING")},
+            {"frontend": self.make_frontend_request()}
+        ]
+
+        self.run_master(messages)
+        expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
+        self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
+
+    def test_when_worker_sent_running_heartbeat_master_informs_monitor_that_the_worker_is_waiting(self):
+        messages = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "RUNNING")},
+        ]
+
+        self.run_master(messages)
+        expected_message = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        self.assertThatMessagesWereSendToMonitor([expected_message])
+
     def test_when_worker_sent_ready_heartbeat_master_informs_monitor_that_the_worker_is_waiting(self):
         messages = [
             {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},

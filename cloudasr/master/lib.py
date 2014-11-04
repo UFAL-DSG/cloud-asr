@@ -108,8 +108,9 @@ class WorkerPool:
         return status["status"] == "WAITING" and status["last_heartbeat"] > time - 10
 
     def add_worker(self, model, address, status, time):
+
         if self.workers_status[address]["status"] == "WORKING":
-            if status == "FINISHED":
+            if status == "FINISHED" or status == "RUNNING":
                 self.available_workers[model].append(address)
                 self.update_worker_status(model, address, "WAITING", time)
 
