@@ -64,6 +64,7 @@ class Master:
 
     def handle_worker_request(self, message):
         statuses = {
+            HeartbeatMessage.RUNNING: "RUNNING",
             HeartbeatMessage.READY: "READY",
             HeartbeatMessage.WORKING: "WORKING",
             HeartbeatMessage.FINISHED: "FINISHED"

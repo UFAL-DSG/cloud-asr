@@ -83,7 +83,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
         messages = []
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY"])
+        self.assertThatHeartbeatsWereSent(["RUNNING"])
 
     def test_worker_sends_heartbeat_after_finishing_task(self):
         messages = [
@@ -91,7 +91,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["RUNNING", "FINISHED"])
 
     def test_worker_sends_working_heartbeats_during_online_recognition(self):
         messages = [
@@ -101,7 +101,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "WORKING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "WORKING", "FINISHED"])
 
     def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
         messages = [
@@ -110,7 +110,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
 
     def test_worker_sends_finished_heartbeat_when_it_doesnt_receive_any_chunk_for_10secs(self):
         messages = [
@@ -119,12 +119,12 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY", "WORKING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
 
     def test_worker_sends_ready_heartbeat_when_it_doesnt_receive_any_task(self):
         messages = [{}]
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["READY", "READY"])
+        self.assertThatHeartbeatsWereSent(["RUNNING", "READY"])
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)

@@ -48,7 +48,7 @@ class Worker:
         self.should_continue = should_continue
 
     def run(self):
-        self.heartbeat.send("READY")
+        self.heartbeat.send("RUNNING")
 
         while self.should_continue():
             messages, time = self.poller.poll(1000)

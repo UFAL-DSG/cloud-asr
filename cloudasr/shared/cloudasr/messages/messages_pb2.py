@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='cloudasr/shared/cloudasr/messages/messages.proto',
   package='cloudasr.messages',
-  serialized_pb=_b('\n0cloudasr/shared/cloudasr/messages/messages.proto\x12\x11\x63loudasr.messages\"\x9e\x01\n\x10HeartbeatMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12:\n\x06status\x18\x03 \x02(\x0e\x32*.cloudasr.messages.HeartbeatMessage.Status\".\n\x06Status\x12\t\n\x05READY\x10\x00\x12\x0b\n\x07WORKING\x10\x01\x12\x0c\n\x08\x46INISHED\x10\x02\"\xa6\x01\n\x13WorkerStatusMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12=\n\x06status\x18\x03 \x02(\x0e\x32-.cloudasr.messages.WorkerStatusMessage.Status\x12\x0c\n\x04time\x18\x04 \x02(\x05\"\"\n\x06Status\x12\x0b\n\x07WAITING\x10\x00\x12\x0b\n\x07WORKING\x10\x01\"%\n\x14WorkerRequestMessage\x12\r\n\x05model\x18\x01 \x02(\t\"\x8b\x01\n\x15MasterResponseMessage\x12?\n\x06status\x18\x01 \x02(\x0e\x32/.cloudasr.messages.MasterResponseMessage.Status\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"\xd8\x01\n\x19RecognitionRequestMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12?\n\x04type\x18\x02 \x02(\x0e\x32\x31.cloudasr.messages.RecognitionRequestMessage.Type\x12\x0c\n\x04\x62ody\x18\x03 \x02(\x0c\x12\x10\n\x08has_next\x18\x04 \x01(\x08\x12\x12\n\nframe_rate\x18\x05 \x01(\x05\"\x1d\n\x04Type\x12\t\n\x05\x42\x41TCH\x10\x00\x12\n\n\x06ONLINE\x10\x01\"5\n\x0b\x41lternative\x12\x12\n\ntranscript\x18\x01 \x02(\t\x12\x12\n\nconfidence\x18\x02 \x02(\x02\"\xb1\x01\n\x0eResultsMessage\x12\x38\n\x06status\x18\x01 \x02(\x0e\x32(.cloudasr.messages.ResultsMessage.Status\x12\r\n\x05\x66inal\x18\x02 \x01(\x08\x12\x34\n\x0c\x61lternatives\x18\x03 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"(\n\x08UniqueID\x12\r\n\x05lower\x18\x01 \x02(\x04\x12\r\n\x05upper\x18\x02 \x02(\x04')
+  serialized_pb=_b('\n0cloudasr/shared/cloudasr/messages/messages.proto\x12\x11\x63loudasr.messages\"\xab\x01\n\x10HeartbeatMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12:\n\x06status\x18\x03 \x02(\x0e\x32*.cloudasr.messages.HeartbeatMessage.Status\";\n\x06Status\x12\x0b\n\x07RUNNING\x10\x00\x12\t\n\x05READY\x10\x01\x12\x0b\n\x07WORKING\x10\x02\x12\x0c\n\x08\x46INISHED\x10\x03\"\xa6\x01\n\x13WorkerStatusMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12=\n\x06status\x18\x03 \x02(\x0e\x32-.cloudasr.messages.WorkerStatusMessage.Status\x12\x0c\n\x04time\x18\x04 \x02(\x05\"\"\n\x06Status\x12\x0b\n\x07WAITING\x10\x00\x12\x0b\n\x07WORKING\x10\x01\"%\n\x14WorkerRequestMessage\x12\r\n\x05model\x18\x01 \x02(\t\"\x8b\x01\n\x15MasterResponseMessage\x12?\n\x06status\x18\x01 \x02(\x0e\x32/.cloudasr.messages.MasterResponseMessage.Status\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"\xd8\x01\n\x19RecognitionRequestMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12?\n\x04type\x18\x02 \x02(\x0e\x32\x31.cloudasr.messages.RecognitionRequestMessage.Type\x12\x0c\n\x04\x62ody\x18\x03 \x02(\x0c\x12\x10\n\x08has_next\x18\x04 \x01(\x08\x12\x12\n\nframe_rate\x18\x05 \x01(\x05\"\x1d\n\x04Type\x12\t\n\x05\x42\x41TCH\x10\x00\x12\n\n\x06ONLINE\x10\x01\"5\n\x0b\x41lternative\x12\x12\n\ntranscript\x18\x01 \x02(\t\x12\x12\n\nconfidence\x18\x02 \x02(\x02\"\xb1\x01\n\x0eResultsMessage\x12\x38\n\x06status\x18\x01 \x02(\x0e\x32(.cloudasr.messages.ResultsMessage.Status\x12\r\n\x05\x66inal\x18\x02 \x01(\x08\x12\x34\n\x0c\x61lternatives\x18\x03 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"(\n\x08UniqueID\x12\r\n\x05lower\x18\x01 \x02(\x04\x12\r\n\x05upper\x18\x02 \x02(\x04')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -31,22 +31,26 @@ _HEARTBEATMESSAGE_STATUS = _descriptor.EnumDescriptor(
   file=DESCRIPTOR,
   values=[
     _descriptor.EnumValueDescriptor(
-      name='READY', index=0, number=0,
+      name='RUNNING', index=0, number=0,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='WORKING', index=1, number=1,
+      name='READY', index=1, number=1,
       options=None,
       type=None),
     _descriptor.EnumValueDescriptor(
-      name='FINISHED', index=2, number=2,
+      name='WORKING', index=2, number=2,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='FINISHED', index=3, number=3,
       options=None,
       type=None),
   ],
   containing_type=None,
   options=None,
   serialized_start=184,
-  serialized_end=230,
+  serialized_end=243,
 )
 _sym_db.RegisterEnumDescriptor(_HEARTBEATMESSAGE_STATUS)
 
@@ -67,8 +71,8 @@ _WORKERSTATUSMESSAGE_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=365,
-  serialized_end=399,
+  serialized_start=378,
+  serialized_end=412,
 )
 _sym_db.RegisterEnumDescriptor(_WORKERSTATUSMESSAGE_STATUS)
 
@@ -89,8 +93,8 @@ _MASTERRESPONSEMESSAGE_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=548,
-  serialized_end=580,
+  serialized_start=561,
+  serialized_end=593,
 )
 _sym_db.RegisterEnumDescriptor(_MASTERRESPONSEMESSAGE_STATUS)
 
@@ -111,8 +115,8 @@ _RECOGNITIONREQUESTMESSAGE_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=770,
-  serialized_end=799,
+  serialized_start=783,
+  serialized_end=812,
 )
 _sym_db.RegisterEnumDescriptor(_RECOGNITIONREQUESTMESSAGE_TYPE)
 
@@ -133,8 +137,8 @@ _RESULTSMESSAGE_STATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=548,
-  serialized_end=580,
+  serialized_start=561,
+  serialized_end=593,
 )
 _sym_db.RegisterEnumDescriptor(_RESULTSMESSAGE_STATUS)
 
@@ -180,7 +184,7 @@ _HEARTBEATMESSAGE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=72,
-  serialized_end=230,
+  serialized_end=243,
 )
 
 
@@ -231,8 +235,8 @@ _WORKERSTATUSMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=233,
-  serialized_end=399,
+  serialized_start=246,
+  serialized_end=412,
 )
 
 
@@ -261,8 +265,8 @@ _WORKERREQUESTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=401,
-  serialized_end=438,
+  serialized_start=414,
+  serialized_end=451,
 )
 
 
@@ -299,8 +303,8 @@ _MASTERRESPONSEMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=441,
-  serialized_end=580,
+  serialized_start=454,
+  serialized_end=593,
 )
 
 
@@ -358,8 +362,8 @@ _RECOGNITIONREQUESTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=583,
-  serialized_end=799,
+  serialized_start=596,
+  serialized_end=812,
 )
 
 
@@ -395,8 +399,8 @@ _ALTERNATIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=801,
-  serialized_end=854,
+  serialized_start=814,
+  serialized_end=867,
 )
 
 
@@ -440,8 +444,8 @@ _RESULTSMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=857,
-  serialized_end=1034,
+  serialized_start=870,
+  serialized_end=1047,
 )
 
 
@@ -477,8 +481,8 @@ _UNIQUEID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1036,
-  serialized_end=1076,
+  serialized_start=1049,
+  serialized_end=1089,
 )
 
 _HEARTBEATMESSAGE.fields_by_name['status'].enum_type = _HEARTBEATMESSAGE_STATUS

@@ -82,6 +82,7 @@ def parseRecognitionRequestMessage(string):
 
 def createHeartbeatMessage(address, model, status):
     statuses = {
+        "RUNNING": HeartbeatMessage.RUNNING,
         "READY": HeartbeatMessage.READY,
         "WORKING": HeartbeatMessage.WORKING,
         "FINISHED": HeartbeatMessage.FINISHED,
