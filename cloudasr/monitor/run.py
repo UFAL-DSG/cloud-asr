@@ -20,6 +20,9 @@ def start(message):
     pass
 
 if __name__ == "__main__":
+    from gevent import monkey
+    monkey.patch_all()
+
     monitor = create_monitor(os.environ["MONITOR_ADDR"], callback)
     gevent.spawn(monitor.run)
 
