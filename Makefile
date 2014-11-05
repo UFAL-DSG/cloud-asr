@@ -45,18 +45,11 @@ MONITOR_OPTS=--name monitor \
 	${MONITOR_VOLUMES}
 
 build:
-	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
-	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
-	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
-	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
+	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
 	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
-	rm -rf cloudasr/frontend/cloudasr
-	rm -rf cloudasr/worker/cloudasr
-	rm -rf cloudasr/master/cloudasr
-	rm -rf cloudasr/monitor/cloudasr
 
 pull:
 	docker pull ufaldsg/cloud-asr-frontend
