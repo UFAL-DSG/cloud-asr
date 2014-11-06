@@ -34,11 +34,7 @@ RUN python -c 'import fst; import kaldi.decoders'
 WORKDIR /app
 RUN rm -rf pykaldi
 
-
 ADD . /opt/app
-
-WORKDIR /opt/app/models
-RUN bash download_models.sh
-
 WORKDIR /opt/app
+RUN bash download_models.sh
 CMD while true; do python run.py; done
