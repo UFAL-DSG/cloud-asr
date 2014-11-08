@@ -63,6 +63,9 @@ run:
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 
+run_on_local_mesos:
+	python run_on_mesos.py http://localhost:8080 ${IP}
+
 run_worker:
 	docker run ${WORKER_OPTS} -i -t --rm ufaldsg/cloud-asr-worker
 
