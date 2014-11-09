@@ -2,13 +2,13 @@ import sys
 import json
 import requests
 
-def master_spec(ip):
+def master_spec(ip, registry):
     return {
         "id": "master",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "ufaldsg/cloud-asr-master",
+                "image": "%s/ufaldsg/cloud-asr-master" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5679, "hostPort": 31000},
@@ -28,13 +28,13 @@ def master_spec(ip):
         "dependencies": ["/cloudasr/monitor"]
     }
 
-def monitor_spec(ip):
+def monitor_spec(ip, registry):
     return {
         "id": "monitor",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "ufaldsg/cloud-asr-monitor",
+                "image": "%s/ufaldsg/cloud-asr-monitor" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5681, "hostPort": 31002},
@@ -51,13 +51,13 @@ def monitor_spec(ip):
         "uris": []
     }
 
-def frontend_spec(ip):
+def frontend_spec(ip, registry):
     return {
         "id": "frontend",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "ufaldsg/cloud-asr-frontend",
+                "image": "%s/ufaldsg/cloud-asr-frontend" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 8000, "hostPort": 31004}
@@ -74,13 +74,13 @@ def frontend_spec(ip):
         "dependencies": ["/cloudasr/master"]
     }
 
-def worker_spec(ip):
+def worker_spec(ip, registry):
     return {
         "id": "worker",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "ufaldsg/cloud-asr-worker",
+                "image": "%s/ufaldsg/cloud-asr-worker" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5678, "hostPort": 31005}
@@ -100,19 +100,20 @@ def worker_spec(ip):
         "dependencies": ["/cloudasr/master"]
     }
 
-def app_spec(ip):
+def app_spec(ip, registry):
     return {
         "id": "cloudasr",
-        "apps": [master_spec(ip), monitor_spec(ip), frontend_spec(ip), worker_spec(ip)]
+        "apps": [master_spec(ip, registry), monitor_spec(ip, registry), frontend_spec(ip, registry), worker_spec(ip, registry)]
     }
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print "Usage python run_on_mesos.py marathon_url server_ip"
+    if len(sys.argv) != 4:
+        print "Usage python run_on_mesos.py marathon_url server_ip registry_url"
         sys.exit(1)
 
     marathon_url = sys.argv[1] + "/v2/groups"
     ip = sys.argv[2]
+    registry = sys.argv[3]
     headers = {'Content-Type': 'application/json'}
-    r = requests.put(marathon_url, data=json.dumps(app_spec(ip)), headers=headers)
+    r = requests.put(marathon_url, data=json.dumps(app_spec(ip, registry)), headers=headers)
     print r.json()
