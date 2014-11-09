@@ -1,4 +1,5 @@
 IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
+MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 FRONTEND_HOST_PORT=8000
 FRONTEND_GUEST_PORT=8000
 MONITOR_HOST_PORT=8001
@@ -64,7 +65,7 @@ run:
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 
 run_on_local_mesos: push_images_to_local_registry
-	python run_on_mesos.py http://localhost:8080 ${IP} registry:5000
+	python run_on_mesos.py http://localhost:8080 ${MESOS_SLAVE_IP} registry:5000
 
 push_images_to_local_registry: build
 	docker tag ufaldsg/cloud-asr-monitor localhost:5000/ufaldsg/cloud-asr-monitor
