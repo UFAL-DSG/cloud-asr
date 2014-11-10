@@ -92,8 +92,8 @@ def worker_spec(ip, registry):
         "mem": "512",
         "env": {
             "MASTER_ADDR": "tcp://%s:31000" % ip,
-            "PUBLIC_ADDR": "tcp://%s:31005" % ip,
-            "MY_ADDR": "tcp://0.0.0.0:5678",
+            "HOSTNAME": ip,
+            "PORT": 31005,
             "MODEL": "en-GB"
         },
         "uris": [],

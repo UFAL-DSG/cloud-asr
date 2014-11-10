@@ -8,9 +8,9 @@ from cloudasr.messages import RecognitionRequestMessage
 from cloudasr.messages.helpers import *
 
 
-def create_worker(model, frontend_address, public_address, master_address):
-    poller = create_poller(frontend_address)
-    heartbeat = create_heartbeat(model, public_address, master_address)
+def create_worker(model, hostname, port, master_address):
+    poller = create_poller("tcp://0.0.0.0:5678")
+    heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
     audio = AudioUtils()
     run_forever = lambda: True
