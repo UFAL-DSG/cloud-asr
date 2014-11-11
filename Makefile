@@ -52,6 +52,20 @@ build:
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 
+build_local:
+	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
+	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
+	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
+	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
+	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
+	rm -rf cloudasr/frontend/cloudasr
+	rm -rf cloudasr/worker/cloudasr
+	rm -rf cloudasr/master/cloudasr
+	rm -rf cloudasr/monitor/cloudasr
+
 pull:
 	docker pull ufaldsg/cloud-asr-frontend
 	docker pull ufaldsg/cloud-asr-worker
@@ -67,7 +81,7 @@ run:
 run_on_local_mesos: push_images_to_local_registry
 	python run_on_mesos.py http://localhost:8080 ${MESOS_SLAVE_IP} registry:5000
 
-push_images_to_local_registry: build
+push_images_to_local_registry: build_local
 	docker tag ufaldsg/cloud-asr-monitor localhost:5000/ufaldsg/cloud-asr-monitor
 	docker tag ufaldsg/cloud-asr-master localhost:5000/ufaldsg/cloud-asr-master
 	docker tag ufaldsg/cloud-asr-frontend localhost:5000/ufaldsg/cloud-asr-frontend
