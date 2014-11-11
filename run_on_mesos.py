@@ -17,8 +17,8 @@ def master_spec(ip, registry):
             }
         },
         "instances": "1",
-        "cpus": "0.5",
-        "mem": "512",
+        "cpus": "0.25",
+        "mem": "256",
         "env": {
             "WORKER_ADDR": "tcp://0.0.0.0:5679",
             "FRONTEND_ADDR": "tcp://0.0.0.0:5680",
@@ -43,8 +43,8 @@ def monitor_spec(ip, registry):
             }
         },
         "instances": "1",
-        "cpus": "0.5",
-        "mem": "512",
+        "cpus": "0.25",
+        "mem": "256",
         "env": {
             "MONITOR_ADDR": "tcp://0.0.0.0:5681"
         },
@@ -65,8 +65,8 @@ def frontend_spec(ip, registry):
             }
         },
         "instances": "1",
-        "cpus": "0.5",
-        "mem": "512",
+        "cpus": "0.25",
+        "mem": "256",
         "env": {
             "MASTER_ADDR": "tcp://%s:31001" % ip
         },
@@ -83,17 +83,16 @@ def worker_spec(ip, registry):
                 "image": "%s/ufaldsg/cloud-asr-worker" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 5678, "hostPort": 31005}
+                    {"containerPort": 5678, "hostPort": 0}
                 ]
             }
         },
-        "instances": "1",
-        "cpus": "0.5",
-        "mem": "512",
+        "instances": "2",
+        "cpus": "0.25",
+        "mem": "256",
         "env": {
             "MASTER_ADDR": "tcp://%s:31000" % ip,
             "HOSTNAME": ip,
-            "PORT": 31005,
             "MODEL": "en-GB"
         },
         "uris": [],
