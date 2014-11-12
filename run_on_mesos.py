@@ -60,11 +60,11 @@ def frontend_spec(ip, registry):
                 "image": "%s/ufaldsg/cloud-asr-frontend" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 80, "hostPort": 31004}
+                    {"containerPort": 80, "hostPort": 0}
                 ]
             }
         },
-        "instances": "1",
+        "instances": "2",
         "cpus": "0.25",
         "mem": "256",
         "env": {
