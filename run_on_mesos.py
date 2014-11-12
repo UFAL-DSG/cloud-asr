@@ -37,8 +37,8 @@ def monitor_spec(ip, registry):
                 "image": "%s/ufaldsg/cloud-asr-monitor" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 5681, "hostPort": 31002},
-                    {"containerPort": 8001, "hostPort": 31003}
+                    {"containerPort": 80, "hostPort": 31003},
+                    {"containerPort": 5681, "hostPort": 31002}
                 ]
             }
         },
@@ -60,7 +60,7 @@ def frontend_spec(ip, registry):
                 "image": "%s/ufaldsg/cloud-asr-frontend" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 8000, "hostPort": 31004}
+                    {"containerPort": 80, "hostPort": 31004}
                 ]
             }
         },

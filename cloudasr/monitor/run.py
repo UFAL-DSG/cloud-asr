@@ -26,4 +26,4 @@ if __name__ == "__main__":
     monitor = create_monitor(os.environ["MONITOR_ADDR"], callback)
     gevent.spawn(monitor.run)
 
-    socketio.run(app, host="0.0.0.0", port=8001)
+    socketio.run(app, host="0.0.0.0", port=80)
