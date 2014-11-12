@@ -1,4 +1,3 @@
 nose
 jsonschema
-socketio
-socketio-client
+socketIO-client
