@@ -22,7 +22,7 @@ Just type `make run` and CloudASR will be running in a moment.
 Examples
 --------
 Open [localhost:8000](http://localhost:8000) and try out our interactive demo.
-Or you can run `curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' 'http:/localhost:8000/recognize'` and you should see a response like this:
+Or you can run `curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' 'http://localhost:8000/recognize'` and you should see a response like this:
 
 ```json
 {
