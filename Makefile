@@ -79,7 +79,7 @@ run:
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 
 run_on_local_mesos: push_images_to_local_registry
-	python run_on_mesos.py http://localhost:8080 ${MESOS_SLAVE_IP} registry:5000
+	python run_on_mesos.py http://localhost:8080 cloudasr.dev ${MESOS_SLAVE_IP} registry:5000
 
 push_images_to_local_registry: build_local
 	docker tag ufaldsg/cloud-asr-monitor localhost:5000/ufaldsg/cloud-asr-monitor

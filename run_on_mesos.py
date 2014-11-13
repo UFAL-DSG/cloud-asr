@@ -2,7 +2,7 @@ import sys
 import json
 import requests
 
-def master_spec(ip, registry):
+def master_spec(domain, slave_ip, registry):
     return {
         "id": "master",
         "container": {
@@ -22,13 +22,13 @@ def master_spec(ip, registry):
         "env": {
             "WORKER_ADDR": "tcp://0.0.0.0:5679",
             "FRONTEND_ADDR": "tcp://0.0.0.0:5680",
-            "MONITOR_ADDR": "tcp://%s:31002" % ip
+            "MONITOR_ADDR": "tcp://%s:31002" % slave_ip
         },
         "uris": [],
-        "dependencies": ["/cloudasr/monitor"]
+        "dependencies": ["/%s/monitor" % domain]
     }
 
-def monitor_spec(ip, registry):
+def monitor_spec(domain, slave_ip, registry):
     return {
         "id": "monitor",
         "container": {
@@ -51,7 +51,7 @@ def monitor_spec(ip, registry):
         "uris": []
     }
 
-def frontend_spec(ip, registry):
+def frontend_spec(domain, slave_ip, registry):
     return {
         "id": "frontend",
         "container": {
@@ -68,13 +68,13 @@ def frontend_spec(ip, registry):
         "cpus": "0.25",
         "mem": "256",
         "env": {
-            "MASTER_ADDR": "tcp://%s:31001" % ip
+            "MASTER_ADDR": "tcp://%s:31001" % slave_ip
         },
         "uris": [],
-        "dependencies": ["/cloudasr/master"]
+        "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(ip, registry):
+def worker_spec(domain, slave_ip, registry):
     return {
         "id": "worker",
         "container": {
@@ -91,28 +91,29 @@ def worker_spec(ip, registry):
         "cpus": "0.25",
         "mem": "256",
         "env": {
-            "MASTER_ADDR": "tcp://%s:31000" % ip,
-            "HOSTNAME": ip,
+            "MASTER_ADDR": "tcp://%s:31000" % slave_ip,
+            "HOSTNAME": slave_ip,
             "MODEL": "en-GB"
         },
         "uris": [],
-        "dependencies": ["/cloudasr/master"]
+        "dependencies": ["/%s/master" % domain]
     }
 
-def app_spec(ip, registry):
+def app_spec(domain, slave_ip, registry):
     return {
-        "id": "cloudasr",
-        "apps": [master_spec(ip, registry), monitor_spec(ip, registry), frontend_spec(ip, registry), worker_spec(ip, registry)]
+        "id": domain,
+        "apps": [master_spec(domain, slave_ip, registry), monitor_spec(domain, slave_ip, registry), frontend_spec(domain, slave_ip, registry), worker_spec(domain, slave_ip, registry)]
     }
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
-        print "Usage python run_on_mesos.py marathon_url server_ip registry_url"
+    if len(sys.argv) != 5:
+        print "Usage python run_on_mesos.py marathon_url domain slave_ip registry_url"
         sys.exit(1)
 
     marathon_url = sys.argv[1] + "/v2/groups"
-    ip = sys.argv[2]
-    registry = sys.argv[3]
+    domain = sys.argv[2]
+    slave_ip = sys.argv[3]
+    registry = sys.argv[4]
     headers = {'Content-Type': 'application/json'}
-    r = requests.put(marathon_url, data=json.dumps(app_spec(ip, registry)), headers=headers)
+    r = requests.put(marathon_url, data=json.dumps(app_spec(domain, slave_ip, registry)), headers=headers)
     print r.json()
