@@ -1,3 +1,5 @@
 nose
 jsonschema
 socketIO-client
+pyzmq
+protobuf
