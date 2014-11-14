@@ -26,7 +26,7 @@ MASTER_OPTS=--name master \
 WORKER_VOLUMES=-v ${CURDIR}/cloudasr/worker:/opt/app -v ${SHARED_VOLUME}
 WORKER_OPTS=--name worker \
 	-p ${WORKER_PORT}:${WORKER_PORT} \
-	-e HOSTNAME=${IP} \
+	-e HOST=${IP} \
 	-e PORT0=${WORKER_PORT} \
 	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
 	-e MODEL=en-GB \

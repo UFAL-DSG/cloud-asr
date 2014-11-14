@@ -92,7 +92,6 @@ def worker_spec(domain, slave_ip, registry):
         "mem": "256",
         "env": {
             "MASTER_ADDR": "tcp://%s:31000" % slave_ip,
-            "HOSTNAME": slave_ip,
             "MODEL": "en-GB"
         },
         "uris": [],
