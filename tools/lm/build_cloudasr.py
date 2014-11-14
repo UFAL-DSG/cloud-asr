@@ -229,16 +229,13 @@ class LMBuilderCzech(LMBuilder):
     allowed_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZÁČĎĚÍŇÓŘŠŤÚŮÝŽ"
     phon_transcr_class = phonetic_transcription.PTranscriptionCS
 
+
 class LMBuilderEnglish(LMBuilder):
     allowed_letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     phon_transcr_class = phonetic_transcription.PTranscriptionEN
 
 
 if __name__ == '__main__':
-    download_general_LM_data('en')
-
-    exit(0)
-
-    lmb = LMBuilder(1)
+    lmb = LMBuilder(0)
     lmb.run(download_general_LM_data('cs'), "vocab50k.filtered.txt")
     lmb.run(download_general_LM_data('en'), "en_vocab50k.filtered.txt")
