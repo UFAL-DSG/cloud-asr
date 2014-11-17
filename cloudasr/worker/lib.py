@@ -13,9 +13,10 @@ def create_worker(model, hostname, port, master_address):
     heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
     audio = AudioUtils()
+    saver = Saver()
     run_forever = lambda: True
 
-    return Worker(poller, heartbeat, asr, audio, run_forever)
+    return Worker(poller, heartbeat, asr, audio, saver, run_forever)
 
 def create_poller(frontend_address):
     from cloudasr import Poller
@@ -40,11 +41,12 @@ def create_heartbeat(model, address, master_address):
 
 class Worker:
 
-    def __init__(self, poller, heartbeat, asr, audio, should_continue):
+    def __init__(self, poller, heartbeat, asr, audio, saver, should_continue):
         self.poller = poller
         self.heartbeat = heartbeat
         self.asr = asr
         self.audio = audio
+        self.saver = saver
         self.should_continue = should_continue
 
     def run(self):
@@ -66,6 +68,7 @@ class Worker:
         else:
             request_id = request.id
             has_next = True
+            self.saver.new_recognition(request_id)
 
             while True:
                 if request_id == request.id:
@@ -90,12 +93,17 @@ class Worker:
         final_hypothesis = self.asr.get_final_hypothesis()
         response = self.create_final_response(final_hypothesis)
 
+        self.saver.new_recognition(request.id)
+        self.saver.add_pcm(pcm)
+        self.saver.final_hypothesis(final_hypothesis)
+
         self.poller.send("frontend", response.SerializeToString())
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
         pcm = self.audio.resample_to_default_sample_rate(request.body, request.frame_rate)
         interim_hypothesis = self.asr.recognize_chunk(pcm)
+        self.saver.add_pcm(pcm)
 
         if request.has_next == True:
             response = self.create_interim_response(interim_hypothesis)
@@ -107,6 +115,7 @@ class Worker:
             response = self.create_final_response(final_hypothesis)
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("FINISHED")
+            self.saver.final_hypothesis(final_hypothesis)
             return False
 
     def handle_bad_chunk(self):
@@ -173,3 +182,14 @@ class AudioUtils:
             pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, self.default_sample_rate, None)
 
         return pcm
+
+class Saver:
+
+    def new_recognition(self, id):
+        pass
+
+    def add_pcm(self, pcm):
+        pass
+
+    def final_hypothesis(self, final_hypothesis):
+        pass

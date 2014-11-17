@@ -11,12 +11,13 @@ class TestWorker(unittest.TestCase):
         self.model = "en-GB"
         self.worker_address = "tcp://127.0.0.1:5678"
         self.master_socket = SocketSpy()
+        self.saver = SaverSpy()
 
         self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
         self.poller = PollerSpy()
         self.asr = ASRSpy([(1.0, "Hello World!")], (1.0, "Interim result"))
         self.audio = DummyAudio()
-        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.poller.has_next_message)
+        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.saver, self.poller.has_next_message)
 
     def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
         messages = [
@@ -126,6 +127,28 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         self.assertThatHeartbeatsWereSent(["RUNNING", "READY"])
 
+    def test_worker_saves_pcm_data_from_batch_request(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message", "BATCH", id = 1, has_next = False)},
+        ]
+
+        self.run_worker(messages)
+        self.assertThatDataWasStored({
+            1: {"pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}
+        })
+
+    def test_worker_saves_pcm_data_from_online_request(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("message 2", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("message 3", "ONLINE", id = 1, has_next = False)},
+        ]
+
+        self.run_worker(messages)
+        self.assertThatDataWasStored({
+            1: {"pcm": "resampled message 1resampled message 2resampled message 3", "hypothesis": [(1.0, "Hello World!")]}
+        })
+
     def run_worker(self, messages):
         self.poller.add_messages(messages)
         self.worker.run()
@@ -142,6 +165,9 @@ class TestWorker(unittest.TestCase):
         sent_heartbeats = [parseHeartbeatMessage(message) for message in self.master_socket.sent_messages]
 
         self.assertEquals(heartbeats, sent_heartbeats)
+
+    def assertThatDataWasStored(self, data):
+        self.assertEquals(data, self.saver.saved_data)
 
     def make_frontend_request(self, message, type = "BATCH", has_next = True, id = 0):
         return createRecognitionRequestMessage(type, message, has_next, id, 44100).SerializeToString()
@@ -172,3 +198,21 @@ class DummyAudio:
 
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         return "resampled " + pcm
+
+class SaverSpy:
+
+    def __init__(self):
+        self.saved_data = {}
+
+    def new_recognition(self, id):
+        self.id = self.parse_id(id)
+        self.saved_data[self.id] = {"pcm": "", "hypothesis": ""}
+
+    def add_pcm(self, pcm):
+        self.saved_data[self.id]["pcm"] += pcm
+
+    def final_hypothesis(self, final_hypothesis):
+        self.saved_data[self.id]["hypothesis"] = final_hypothesis
+
+    def parse_id(self, id):
+        return int(id.upper << 64 | id.lower)
