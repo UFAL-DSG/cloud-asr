@@ -28,7 +28,7 @@ monitorApp.config(function($interpolateProvider){
     $interpolateProvider.startSymbol('[[').endSymbol(']]');
 });
 
-monitorApp.controller('ContainersListCtrl', function($scope, $timeout, socket) {
+monitorApp.controller('ContainersListCtrl', function($scope, $timeout, $http, socket) {
     $scope.containers ={};
 
     socket.on("connect", function() {
@@ -46,4 +46,21 @@ monitorApp.controller('ContainersListCtrl', function($scope, $timeout, socket) {
             $scope.containers[status.address]["status"] = "NOT RESPONDING";
         }, 10000);
     });
+
+    $http.get('statuses').success(function(data) {
+        var time = new Date().getTime() / 1000;
+
+        angular.forEach(data.statuses, function(status) {
+            $scope.containers[status.address] = status;
+
+            if(time - status.time > 10) {
+                $scope.containers[status.address]["status"] = "NOT RESPONDING";
+            } else {
+                $scope.containers[status.address]["timeout"] = $timeout(function() {
+                    $scope.containers[status.address]["status"] = "NOT RESPONDING";
+                }, 10000);
+            }
+        });
+    });
+
 });

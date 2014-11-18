@@ -26,6 +26,20 @@ class TestMonitor(unittest.TestCase):
 
         self.assertThatMonitorForwardedMessages(expected_messages)
 
+    def test_monitor_saves_worker_statuses(self):
+        messages = [
+            createWorkerStatusMessage("tcp://127.0.0.1:1", "en-GB", "WAITING", 1).SerializeToString(),
+            createWorkerStatusMessage("tcp://127.0.0.1:2", "en-GB", "WORKING", 2).SerializeToString(),
+        ]
+        self.run_monitor(messages)
+
+        expected_messages = [
+            {"address": "tcp://127.0.0.1:1", "model": "en-GB", "status": "WAITING", "time": 1},
+            {"address": "tcp://127.0.0.1:2", "model": "en-GB", "status": "WORKING", "time": 2},
+        ]
+
+        self.assertEqual(expected_messages, self.monitor.get_statuses())
+
     def run_monitor(self, messages):
         self.socket.set_messages(messages)
         self.monitor.run()
