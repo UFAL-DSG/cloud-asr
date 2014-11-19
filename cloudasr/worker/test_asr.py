@@ -53,7 +53,7 @@ class DummyRecogniser:
         self.frames = max(self.frames - max_frames, 0)
         return self.frames
 
-    def prune_final(self):
+    def finalize_decoding(self):
         pass
 
     def get_lattice(self):

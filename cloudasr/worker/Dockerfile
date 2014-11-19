@@ -9,11 +9,11 @@ RUN apt-get update
 RUN apt-get install -y build-essential libatlas-base-dev python-dev python-pip git wget
 # Add pykaldi source files
 WORKDIR /app
-RUN git clone https://github.com/UFAL-DSG/pykaldi.git
+RUN git clone -b fix-kaldi-changes https://github.com/UFAL-DSG/pykaldi.git
 WORKDIR /app/pykaldi
 # PyKaldi tools.
 WORKDIR tools
-RUN make atlas openfst_tgt
+RUN make atlas openfst
 # Compile the Kaldi src.
 WORKDIR ../src
 RUN ./configure --shared && make && echo 'KALDI LIBRARY INSTALLED OK'

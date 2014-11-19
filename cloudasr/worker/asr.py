@@ -36,7 +36,7 @@ class ASR:
         return (0.0, u"Not Implemented Yet")
 
     def get_final_hypothesis(self):
-        self.recogniser.prune_final()
+        self.recogniser.finalize_decoding()
         utt_lik, lat = self.recogniser.get_lattice()
         self.recogniser.reset()
 

@@ -5,7 +5,7 @@ basedir = '/opt/models'
 wst_path = '%s/words.txt' % basedir
 kaldi_config = [
     '--config=%s/mfcc.conf' % basedir,
-    '--verbose=0', '--max-mem=10000000000', '--lat-lm-scale=15', '--beam=12.0',
+    '--verbose=0', '--max-mem=10000000000', '--beam=12.0',
     '--lattice-beam=6.0', '--max-active=5000',
     '%s/tri2b_bmmi.mdl' % basedir,
     '%s/HCLG_tri2b_bmmi.fst' % basedir,
