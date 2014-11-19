@@ -33,12 +33,13 @@ class ASR:
             decoded_frames += dec_t
             dec_t = self.recogniser.decode(max_frames=10)
 
-        return (0.0, u"Not Implemented Yet")
+        interim_result = self.recogniser.get_best_path()
+        return self.lattice.to_best_path(interim_result)
 
     def get_final_hypothesis(self):
         self.recogniser.finalize_decoding()
         utt_lik, lat = self.recogniser.get_lattice()
-        self.recogniser.reset()
+        self.recogniser.reset(reset_pipeline=True)
 
         return self.lattice.to_nbest(lat, 10)
 
@@ -56,6 +57,10 @@ class Lattice:
 
     def to_nbest(self, lattice, n):
         return [(exp(-prob), self.path_to_text(path)) for (prob, path) in self.lattice_to_nbest(self.lattice_calibration(lattice), n=n)]
+
+    def to_best_path(self, best_path):
+        (prob, path) = best_path
+        return (exp(-prob), self.path_to_text(path))
 
     def path_to_text(self, path):
         return u' '.join([unicode(self.dictionary[w]) for w in path])
