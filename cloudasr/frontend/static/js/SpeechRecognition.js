@@ -28,7 +28,7 @@
         };
 
         var handleResult = function(results) {
-            recognizer.onresult(results.result);
+            recognizer.onresult(results);
         };
 
         var handleError = function(error) {
@@ -51,12 +51,12 @@
                 handleError("Unable to connect to the server.");
             });
 
-            socket.on("result", function(results) {
-                console.log(results);
+            socket.on("result", function(result) {
+                handleResult([result]);
             });
 
             socket.on("final_result", function(results) {
-                handleResult(results);
+                handleResult(results.result);
             });
 
             socket.on("error", function(error) {
