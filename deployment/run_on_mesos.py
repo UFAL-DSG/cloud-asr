@@ -8,7 +8,7 @@ def master_spec(domain, slave_ip, registry):
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%s/ufaldsg/cloud-asr-master" % registry,
+                "image": "%sufaldsg/cloud-asr-master" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5679, "hostPort": 31000},
@@ -25,7 +25,8 @@ def master_spec(domain, slave_ip, registry):
             "MONITOR_ADDR": "tcp://%s:31002" % slave_ip
         },
         "uris": [],
-        "dependencies": ["/%s/monitor" % domain]
+        "dependencies": ["/%s/monitor" % domain],
+        "constraints": [["hostname", "LIKE", slave_ip]]
     }
 
 def monitor_spec(domain, slave_ip, registry):
@@ -34,7 +35,7 @@ def monitor_spec(domain, slave_ip, registry):
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%s/ufaldsg/cloud-asr-monitor" % registry,
+                "image": "%sufaldsg/cloud-asr-monitor" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 31003},
@@ -48,7 +49,8 @@ def monitor_spec(domain, slave_ip, registry):
         "env": {
             "MONITOR_ADDR": "tcp://0.0.0.0:5681"
         },
-        "uris": []
+        "uris": [],
+        "constraints": [["hostname", "LIKE", slave_ip]]
     }
 
 def frontend_spec(domain, slave_ip, registry):
@@ -57,7 +59,7 @@ def frontend_spec(domain, slave_ip, registry):
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%s/ufaldsg/cloud-asr-frontend" % registry,
+                "image": "%sufaldsg/cloud-asr-frontend" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 0}
@@ -80,7 +82,7 @@ def worker_spec(domain, slave_ip, registry):
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%s/ufaldsg/cloud-asr-worker" % registry,
+                "image": "%sufaldsg/cloud-asr-worker" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5678, "hostPort": 0}
@@ -113,6 +115,10 @@ if __name__ == "__main__":
     domain = sys.argv[2]
     slave_ip = sys.argv[3]
     registry = sys.argv[4]
+
+    if registry != "":
+        registry += "/"
+
     headers = {'Content-Type': 'application/json'}
     r = requests.put(marathon_url, data=json.dumps(app_spec(domain, slave_ip, registry)), headers=headers)
     print r.json()
