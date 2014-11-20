@@ -6,7 +6,8 @@ from lib import AudioUtils
 class TestASR(unittest.TestCase):
 
     def setUp(self):
-        self.asr = ASR(DummyRecogniser(), DummyLattice())
+        self.recogniser = DummyRecogniser()
+        self.asr = ASR(self.recogniser, DummyLattice())
 
     def test_asr_returns_dummy_final_hypothesis(self):
         interim_hypothesis = self.asr.recognize_chunk(self.load_pcm_sample_data())
@@ -33,6 +34,10 @@ class TestASR(unittest.TestCase):
 
         self.assertTrue(self.callback_called)
 
+    def test_reset_resets_pipeline(self):
+        self.asr.reset()
+        self.assertTrue(self.recogniser.resetted)
+
     def load_pcm_sample_data(self):
         audio = AudioUtils()
 
@@ -45,6 +50,7 @@ class DummyRecogniser:
 
     def __init__(self):
         self.frames = 100
+        self.resetted = False
 
     def frame_in(self, frame):
         pass
@@ -62,8 +68,8 @@ class DummyRecogniser:
     def get_best_path(self):
         return (None, None)
 
-    def reset(self):
-        pass
+    def reset(self, reset_pipeline):
+        self.resetted = True
 
 class DummyLattice:
 

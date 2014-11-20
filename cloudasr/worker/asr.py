@@ -39,9 +39,12 @@ class ASR:
     def get_final_hypothesis(self):
         self.recogniser.finalize_decoding()
         utt_lik, lat = self.recogniser.get_lattice()
-        self.recogniser.reset(reset_pipeline=True)
+        self.reset()
 
         return self.lattice.to_nbest(lat, 10)
+
+    def reset(self):
+        self.recogniser.reset(reset_pipeline=True)
 
     def call_callbacks(self):
         for callback in self.callbacks:

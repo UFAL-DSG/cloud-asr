@@ -122,6 +122,15 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
 
+    def test_worker_sends_resets_asr_engine_when_it_doesnt_receive_any_chunk_for_10secs(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
+            {"time": +10}
+        ]
+
+        self.run_worker(messages)
+        self.assertTrue(self.asr.resetted)
+
     def test_worker_sends_ready_heartbeat_when_it_doesnt_receive_any_task(self):
         messages = [{}]
         self.run_worker(messages)
@@ -181,6 +190,7 @@ class ASRSpy:
         self.processed_chunks = []
         self.final_hypothesis = final_hypothesis
         self.interim_hypothesis = interim_hypothesis
+        self.resetted = False
 
     def recognize_chunk(self, chunk):
         self.processed_chunks.append(chunk)
@@ -189,6 +199,9 @@ class ASRSpy:
 
     def get_final_hypothesis(self):
         return self.final_hypothesis
+
+    def reset(self):
+        self.resetted = True
 
 
 class DummyAudio:

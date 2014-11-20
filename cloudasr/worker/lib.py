@@ -83,6 +83,7 @@ class Worker:
                 if "frontend" in messages:
                     request = parseRecognitionRequestMessage(messages["frontend"])
                 else:
+                    self.asr.reset()
                     self.heartbeat.send("FINISHED")
                     break
 
