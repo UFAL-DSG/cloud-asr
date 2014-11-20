@@ -9,7 +9,7 @@ RUN apt-get update
 RUN apt-get install -y build-essential libatlas-base-dev python-dev python-pip git wget
 # Add pykaldi source files
 WORKDIR /app
-RUN git clone -b fix-kaldi-changes https://github.com/UFAL-DSG/pykaldi.git
+RUN git clone https://github.com/UFAL-DSG/pykaldi.git
 WORKDIR /app/pykaldi
 # PyKaldi tools.
 WORKDIR tools
