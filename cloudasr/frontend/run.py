@@ -41,6 +41,7 @@ def begin_online_recognition(message):
 def recognize_chunk(message):
     try:
         if "worker" not in session:
+            emit('server_error', {"status": "error", "message": "No worker available"})
             return
 
         response = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
@@ -52,6 +53,7 @@ def recognize_chunk(message):
 @socketio.on('end')
 def end_recognition(message):
     if "worker" not in session:
+        emit('server_error', {"status": "error", "message": "No worker available"})
         return
 
     response = session["worker"].end_recognition()
