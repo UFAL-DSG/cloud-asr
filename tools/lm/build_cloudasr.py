@@ -81,7 +81,7 @@ class LMBuilder(object):
     def __init__(self, begin_step):
         self.begin_step = begin_step
         self.curr_step = 0
-        self.phon_transcr = self.phon_transcr_class
+        self.phon_transcr = self.phon_transcr_class()
 
         # Test if SRILM is available.
         require_srilm()
@@ -118,7 +118,7 @@ class LMBuilder(object):
         # Build the dict.
         lm_dict = self.build_dict(lm_vocab)
 
-        print lm, lm_vocab, lm_dict
+        return lm, lm_vocab, lm_dict
 
     def should_skip_this(self):
         return self.curr_step < self.begin_step

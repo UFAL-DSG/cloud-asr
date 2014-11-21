@@ -95,13 +95,16 @@ class PTranscriptionCS(PTranscription):
         for expr, p_to in self.rules_2:
             output_text = expr.sub(p_to, output_text)
 
-
+        newln = ''
         for i_word, o_word in zip(input_text.split('\n'),
                                   output_text.split('\n')):
-            f_out.write(i_word.encode('utf8')
+            if not i_word or not o_word:
+                continue
+
+            f_out.write(newln + i_word.encode('utf8')
                         + '       '
-                        + o_word.encode('utf8')
-                        + '\n')
+                        + o_word.encode('utf8'))
+            newln = '\n'
 
 
 class PTranscriptionEN(PTranscription):
@@ -113,12 +116,14 @@ class PTranscriptionEN(PTranscription):
                 self.dict[word].append(p_word)
 
     def process(self, f_in, f_out):
-        for ln in f_in:
+        newln = ''
+        for ln in enumerate(f_in):
             word_orig = ln.strip()
             word = word_orig.upper()
 
             for form in self.dict[word]:
-                f_out.write(u"%s       %s\n" % (word_orig, form, ))
+                f_out.write(u"%s%s       %s" % (newln, word_orig, form, ))
+                newln = '\n'
 
 
 if __name__ == '__main__':
