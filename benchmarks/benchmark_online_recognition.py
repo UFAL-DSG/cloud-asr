@@ -1,6 +1,7 @@
 import os
 import sys
 import wave
+import random
 import struct
 import datetime
 from socketIO_client import SocketIO
@@ -37,22 +38,24 @@ def print_server_error(i):
 
     return print_server_error_for_socket
 
-def run_requests(sockets):
-    for socket_id, socket in enumerate(sockets):
-        log("Beginning communication via socket %d" % socket_id)
-        socket.emit('begin', {'model': 'en-GB'})
+def generate_schedule(sockets):
+    wave_chunks = list(chunks())
 
-    for chunk_id, chunk in enumerate(chunks()):
-        for socket_id, socket in enumerate(sockets):
-            log("Sending chunk %d via socket %d" % (chunk_id, socket_id))
-            socket.emit('chunk', {'chunk': chunk, 'frame_rate': 16000})
-            socket.wait_for_callbacks()
-
+    schedules = []
     for socket_id, socket in enumerate(sockets):
-        log("Ending communication via socket %d" % socket_id)
-        socket.emit('end', {})
-        socket.wait_for_callbacks()
-        socket.wait_for_callbacks()
+        schedule = []
+        schedule.append(begin(socket_id, socket))
+        for chunk_id, chunk in enumerate(wave_chunks):
+                schedule.append(send_chunk(socket_id, socket, chunk_id, chunk))
+                schedule.append(wait_for_reply(socket_id, socket))
+
+        schedule.append(end(socket_id, socket))
+        schedule.append(wait_for_reply(socket_id, socket))
+        schedule.append(wait_for_reply(socket_id, socket))
+
+        schedules.append(schedule)
+
+    return schedules
 
 def chunks():
     basedir = os.path.dirname(os.path.realpath(__file__))
@@ -67,6 +70,48 @@ def chunks():
 
 def frames_to_pcm_array(frames):
     return [struct.unpack('h', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
+
+def begin(socket_id, socket):
+    def callback():
+        log("Beginning communication via socket %d" % socket_id)
+        socket.emit('begin', {'model': 'en-GB'})
+
+    return callback
+
+def send_chunk(socket_id, socket, chunk_id, chunk):
+    def callback():
+        log("Sending chunk %d via socket %d" % (chunk_id, socket_id))
+        socket.emit('chunk', {'chunk': chunk, 'frame_rate': 16000})
+
+    return callback
+
+def wait_for_reply(socket_id, socket):
+    def callback():
+        log("Waiting for reply via socket %d" % socket_id)
+        socket.wait_for_callbacks()
+
+    return callback
+
+def end(socket_id, socket):
+    def callback():
+        log("Ending communication via socket %d" % socket_id)
+        socket.emit('end', {})
+
+    return callback
+
+def run_random_schedule(schedules):
+    for action in random_schedule(schedules):
+        action()
+
+def random_schedule(schedules):
+    order = []
+    for i, schedule in enumerate(schedules):
+        order.extend([i] * len(schedule))
+
+    random.shuffle(order)
+
+    for item in order:
+        yield schedules[item].pop(0)
 
 def log(message):
     time = datetime.datetime.now().time()
@@ -83,4 +128,5 @@ if __name__ == "__main__":
     number_of_sockets = int(sys.argv[3])
 
     sockets = create_sockets(server, port, number_of_sockets)
-    run_requests(sockets)
+    schedules = generate_schedule(sockets)
+    run_random_schedule(schedules)
