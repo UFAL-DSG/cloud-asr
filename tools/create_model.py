@@ -62,10 +62,27 @@ def main(input_text, vocab_size, hclg_out_dir, am_model, am_tree, am_mfcc,
                lm_vocab, lm_file, hclg_out_dir, am_oov)
 
 
+def main_hclg(lm_file, lm_vocab, lm_dict, hclg_out_dir, am_model, am_tree,
+              am_mfcc,
+         am_mat, am_sil, am_oov):
+    require_kaldi()
+
+    if not os.path.exists(hclg_out_dir):
+        os.mkdir(hclg_out_dir)
+
+    kaldi_path = os.environ['KALDI_PATH']
+    build_hclg(kaldi_path, am_model, am_tree, am_mfcc, am_mat, am_sil, lm_dict,
+               lm_vocab, lm_file, hclg_out_dir, am_oov)
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('input_text')
-    parser.add_argument('vocab_size', type=int)
+    parser.add_argument('--input_text')
+    parser.add_argument('--vocab_size', type=int)
+    parser.add_argument('--lm_arpa')
+    parser.add_argument('--lm_vocab')
+    parser.add_argument('--lm_dict')
     parser.add_argument('hclg_out_dir')
     parser.add_argument('am_model')
     parser.add_argument('am_tree')
@@ -75,14 +92,28 @@ if __name__ == '__main__':
     parser.add_argument('am_oov')
     args = parser.parse_args()
 
-    main(
-        args.input_text,
-        args.vocab_size,
-        args.hclg_out_dir,
-        args.am_model,
-        args.am_tree,
-        args.am_mfcc,
-        args.am_mat,
-        args.am_sil,
-        args.am_oov
-    )
+    if 'input_text' in args:
+        main(
+            args.input_text,
+            args.vocab_size,
+            args.hclg_out_dir,
+            args.am_model,
+            args.am_tree,
+            args.am_mfcc,
+            args.am_mat,
+            args.am_sil,
+            args.am_oov
+        )
+    else:
+        main_hclg(
+            args.lm_arpa,
+            args.lm_vocab,
+            args.lm_dict,
+            args.hclg_out_dir,
+            args.am_model,
+            args.am_tree,
+            args.am_mfcc,
+            args.am_mat,
+            args.am_sil,
+            args.am_oov
+        )
