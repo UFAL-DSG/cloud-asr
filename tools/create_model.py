@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 import sys
 import tempfile
 
@@ -22,29 +23,32 @@ def build_hclg(kaldi_path, am_model, am_tree, am_mfcc, am_mat, am_sil, lm_dict,
     temp_dir = tempfile.mkdtemp()
     temp_dir2 = tempfile.mkdtemp()
 
-    params = {
-        'kaldi_path': kaldi_path,
-        'am_model': os.path.abspath(am_model),
-        'am_tree': os.path.abspath(am_tree),
-        'am_mfcc': os.path.abspath(am_mfcc),
-        'am_mat': os.path.abspath(am_mat),
-        'am_sil': os.path.abspath(am_sil),
-        'am_oov': am_oov,
-        'lm_dict': os.path.abspath(lm_dict),
-        'lm_vocab': os.path.abspath(lm_vocab),
-        'lm_arpa': os.path.abspath(lm_arpa),
-        'tmp_dir': temp_dir,
-        'tmp_dir2': temp_dir2,
-        'out_dir': os.path.abspath(hclg_out_dir),
+    try:
+        params = {
+            'kaldi_path': kaldi_path,
+            'am_model': os.path.abspath(am_model),
+            'am_tree': os.path.abspath(am_tree),
+            'am_mfcc': os.path.abspath(am_mfcc),
+            'am_mat': os.path.abspath(am_mat),
+            'am_sil': os.path.abspath(am_sil),
+            'am_oov': am_oov,
+            'lm_dict': os.path.abspath(lm_dict),
+            'lm_vocab': os.path.abspath(lm_vocab),
+            'lm_arpa': os.path.abspath(lm_arpa),
+            'tmp_dir': temp_dir,
+            'tmp_dir2': temp_dir2,
+            'out_dir': os.path.abspath(hclg_out_dir),
+        }
 
-    }
-
-    os.system('cd hclg; KALDI_ROOT="{kaldi_path}" bash build_hclg.sh "{'
-              'am_model}" "{'
-              'am_tree}" '
-              '"{am_mfcc}" "{am_mat}" "{am_sil}" '
-              '"{lm_dict}" "{lm_vocab}" "{lm_arpa}" "{tmp_dir}" '
-              '"{tmp_dir2}" "{out_dir}" "{am_oov}"'.format(**params))
+        os.system('cd hclg; KALDI_ROOT="{kaldi_path}" bash build_hclg.sh "{'
+                  'am_model}" "{'
+                  'am_tree}" '
+                  '"{am_mfcc}" "{am_mat}" "{am_sil}" '
+                  '"{lm_dict}" "{lm_vocab}" "{lm_arpa}" "{tmp_dir}" '
+                  '"{tmp_dir2}" "{out_dir}" "{am_oov}"'.format(**params))
+    finally:
+        shutil.rmtree(temp_dir)
+        shutil.rmtree(temp_dir2)
 
 
 def main(input_text, vocab_size, hclg_out_dir, am_model, am_tree, am_mfcc,

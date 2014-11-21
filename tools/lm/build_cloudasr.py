@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf8
 
+# TODO: Input text format detection (plain, xz, zcat, ...).
+
 import os
 import wget
 
