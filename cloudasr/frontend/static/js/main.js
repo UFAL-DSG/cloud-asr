@@ -2,7 +2,7 @@ var lastResult;
 
 $(document).ready(function() {
     var speechRecognition = new SpeechRecognition();
-    var result;
+    var result = $('#result');
 
     speechRecognition.onresult = function(results) {
         if (results.length == 0) {
@@ -21,25 +21,31 @@ $(document).ready(function() {
     }
 
     speechRecognition.onstart = function(e) {
-       $('#record').html('<i class="icon-stop"></i>Stop recording');
+        $('#start_recording').hide()
+        $('#stop_recording').show()
+        $('#start_recording_text').hide()
+        $('#stop_recording_text').show()
+        $('#error').hide()
     }
 
     speechRecognition.onend = function(e) {
-        $('#record').html('<i class="icon-bullhorn"></i>Start recording');
+        $('#start_recording').show()
+        $('#stop_recording').hide()
+        $('#start_recording_text').show()
+        $('#stop_recording_text').hide()
     }
 
     speechRecognition.onerror = function(e) {
-        $('#result').prepend('<div class="alert alert-danger" role="alert">' + e + '</div>');
+        speechRecognition.stop()
+        $('#error').html("<strong>" + e + "</strong>Please try again later.").show()
     }
 
-    $('#record').click(function() {
-        if(!speechRecognition.isRecording) {
-            speechRecognition.start();
-            result = $('<div class="well well-sm"></div>');
-            $('#result').prepend(result);
-        } else {
-            speechRecognition.stop();
-        }
+    $('#start_recording').click(function() {
+        speechRecognition.start();
+    });
+
+    $('#stop_recording').click(function() {
+        speechRecognition.stop();
     });
 
 });

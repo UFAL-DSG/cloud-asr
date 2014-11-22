@@ -13,11 +13,26 @@
 </head>
 <body>
     <div class="container">
-        <h1>CloudASR API - Dictate demo</h1>
-        <a id="record" class="btn"><i class="icon-bullhorn"></i>Start recording</a>
+        <div class="page-header">
+            <h1>CloudASR <small>Dictate demo</small></h1>
+        </div>
 
-        <h2>Recorded text:</h2>
-        <div id="result"></div>
+        <p class="text-center">
+            <a id="start_recording" class="btn"><img src="{{ url_for('static', filename='img/microphone.png') }}" /></a>
+            <a id="stop_recording" class="btn" style="display: none"><img src="{{ url_for('static', filename='img/microphone_speech.png') }}" /></a>
+        </p>
+
+        <p id="start_recording_text" class="text-center lead">
+            Click on the microphone to <strong>record your speech</strong>.
+        </p>
+
+        <p id="stop_recording_text" class="text-center lead" style="display: none">
+            Click on the microphone to <strong>stop recording</strong>.
+        </p>
+
+        <div id="error" class="alert alert-danger text-center" role="alert" style="display: none"></div>
+
+        <div id="result" class="well"></div>
     </div>
 </body>
 </html>
