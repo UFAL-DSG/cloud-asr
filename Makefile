@@ -30,6 +30,7 @@ WORKER_OPTS=--name worker \
 	-e PORT0=${WORKER_PORT} \
 	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
 	-e MODEL=en-GB \
+	-v ${CURDIR}/data:/tmp/data \
 	${WORKER_VOLUMES}
 
 FRONTEND_VOLUMES=-v ${CURDIR}/cloudasr/frontend:/opt/app -v ${SHARED_VOLUME}

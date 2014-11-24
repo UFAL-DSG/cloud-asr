@@ -228,4 +228,4 @@ class SaverSpy:
         self.saved_data[self.id]["hypothesis"] = final_hypothesis
 
     def parse_id(self, id):
-        return int(id.upper << 64 | id.lower)
+        return uniqId2Int(id)

@@ -74,6 +74,9 @@ def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0
 
     return message
 
+def uniqId2Int(id):
+    return (id.upper << 64 | id.lower)
+
 def parseRecognitionRequestMessage(string):
     message = RecognitionRequestMessage()
     message.ParseFromString(string)

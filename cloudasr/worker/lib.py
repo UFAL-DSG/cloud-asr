@@ -1,5 +1,6 @@
 import audioop
 import wave
+import json
 import zmq
 import time
 from StringIO import StringIO
@@ -186,11 +187,21 @@ class AudioUtils:
 
 class Saver:
 
+    id = None
+    wav = None
+
     def new_recognition(self, id):
-        pass
+        self.id = uniqId2Int(id)
+        self.wav = wave.open('/tmp/data/%d.wav' % self.id, 'w')
+        self.wav.setnchannels(1)
+        self.wav.setsampwidth(2)
+        self.wav.setframerate(16000)
 
     def add_pcm(self, pcm):
-        pass
+        self.wav.writeframes(pcm)
 
     def final_hypothesis(self, final_hypothesis):
-        pass
+        json.dump(final_hypothesis, open('/tmp/data/%d.json' % self.id, 'w'))
+
+        self.wav.close()
+        self.wav = None
