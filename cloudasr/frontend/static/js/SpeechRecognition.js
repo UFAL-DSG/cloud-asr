@@ -13,8 +13,8 @@
         var recorder = createRecorder();
         var socket = createSocket();
 
-        this.start = function() {
-            socket.emit('begin', {'model':'en-GB'});
+        this.start = function(model) {
+            socket.emit('begin', {'model':model});
             recorder.record();
             this.isRecording = true;
             this.onstart();

@@ -41,11 +41,17 @@ $(document).ready(function() {
     }
 
     $('#start_recording').click(function() {
-        speechRecognition.start();
+        model = $('#language-model').val()
+        speechRecognition.start(model);
     });
 
     $('#stop_recording').click(function() {
         speechRecognition.stop();
     });
+
+    var modelSelect = $('#language-model');
+    $.each(models, function(id, label) {
+        modelSelect.append($("<option></option>").attr("value", id).text(label))
+    })
 
 });

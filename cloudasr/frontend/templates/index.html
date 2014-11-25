@@ -7,6 +7,7 @@
     <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
     <script src="{{ url_for('static', filename='js/Recorder.js') }}"></script>
     <script src="{{ url_for('static', filename='js/SpeechRecognition.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/models.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
     <title>CloudASR API</title>
@@ -33,6 +34,10 @@
         <div id="error" class="alert alert-danger text-center" role="alert" style="display: none"></div>
 
         <div id="result" class="well"></div>
+
+        <div class="text-center">
+            <select id="language-model" class="form-control"></select>
+        </div>
     </div>
 </body>
 </html>
