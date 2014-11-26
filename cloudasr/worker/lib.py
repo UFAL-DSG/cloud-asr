@@ -14,7 +14,7 @@ def create_worker(model, hostname, port, master_address):
     heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
     audio = AudioUtils()
-    saver = Saver()
+    saver = Saver(model)
     run_forever = lambda: True
 
     return Worker(poller, heartbeat, asr, audio, saver, run_forever)
@@ -187,12 +187,14 @@ class AudioUtils:
 
 class Saver:
 
-    id = None
-    wav = None
+    def __init__(self, model):
+        self.model = model
+        self.id = None
+        self.wav = None
 
     def new_recognition(self, id):
         self.id = uniqId2Int(id)
-        self.wav = wave.open('/tmp/data/%d.wav' % self.id, 'w')
+        self.wav = wave.open('/tmp/data/%s-%d.wav' % (self.model, self.id), 'w')
         self.wav.setnchannels(1)
         self.wav.setsampwidth(2)
         self.wav.setframerate(16000)
@@ -201,7 +203,8 @@ class Saver:
         self.wav.writeframes(pcm)
 
     def final_hypothesis(self, final_hypothesis):
-        json.dump(final_hypothesis, open('/tmp/data/%d.json' % self.id, 'w'))
+        json.dump(final_hypothesis, open('/tmp/data/%s-%d.json' % (self.model, self.id), 'w'))
+
 
         self.wav.close()
         self.wav = None
