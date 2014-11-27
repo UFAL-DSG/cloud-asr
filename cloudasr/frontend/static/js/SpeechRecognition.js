@@ -52,11 +52,7 @@
             });
 
             socket.on("result", function(result) {
-                handleResult([result]);
-            });
-
-            socket.on("final_result", function(results) {
-                handleResult(results.result);
+                handleResult(result);
             });
 
             socket.on("error", function(error) {

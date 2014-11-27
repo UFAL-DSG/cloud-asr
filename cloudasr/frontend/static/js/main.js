@@ -2,22 +2,11 @@ var lastResult;
 
 $(document).ready(function() {
     var speechRecognition = new SpeechRecognition();
-    var result = $('#result');
+    var $result = $('#result');
 
-    speechRecognition.onresult = function(results) {
-        if (results.length == 0) {
-            return;
-        }
-
-        if (results[0].final == true) {
-            var transcript = results[0].alternative[0].transcript;
-            result.text(transcript);
-        };
-
-        if (results[0].final == false) {
-            var transcript = results[0].result.hypotheses[0].transcript;
-            result.text(transcript);
-        };
+    speechRecognition.onresult = function(result) {
+        var transcript = result.result.hypotheses[0].transcript;
+        $result.text(transcript);
     }
 
     speechRecognition.onstart = function(e) {
