@@ -8,7 +8,7 @@ def master_spec(domain, slave_ip, registry):
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-master" % registry,
+                "image": "%sufaldsg/cloud-asr-master:latest" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5679, "hostPort": 31000},
@@ -35,7 +35,7 @@ def monitor_spec(domain, slave_ip, registry):
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-monitor" % registry,
+                "image": "%sufaldsg/cloud-asr-monitor:latest" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 31003},
@@ -55,11 +55,11 @@ def monitor_spec(domain, slave_ip, registry):
 
 def frontend_spec(domain, slave_ip, registry):
     return {
-        "id": "frontend",
+        "id": "demo",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-frontend" % registry,
+                "image": "%sufaldsg/cloud-asr-frontend:latest" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 0}
@@ -76,18 +76,21 @@ def frontend_spec(domain, slave_ip, registry):
         "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(domain, slave_ip, registry):
+def worker_en_spec(domain, slave_ip, registry):
     return {
-        "id": "worker",
+        "id": "workeren",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-worker" % registry,
+                "image": "%sufaldsg/cloud-asr-worker:latest" % registry,
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5678, "hostPort": 0}
                 ]
-            }
+            },
+            "volumes": [
+                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
+            ]
         },
         "instances": "2",
         "cpus": "0.25",
@@ -100,10 +103,71 @@ def worker_spec(domain, slave_ip, registry):
         "dependencies": ["/%s/master" % domain]
     }
 
+def worker_cs_spec(domain, slave_ip, registry):
+    return {
+        "id": "workercs",
+        "container": {
+            "type": "DOCKER",
+            "docker": {
+                "image": "%sufaldsg/cloud-asr-worker-cs:latest" % registry,
+                "network": "BRIDGE",
+                "portMappings": [
+                    {"containerPort": 5678, "hostPort": 0}
+                ]
+            },
+            "volumes": [
+                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
+            ]
+        },
+        "instances": "2",
+        "cpus": "0.25",
+        "mem": "256",
+        "env": {
+            "MASTER_ADDR": "tcp://%s:31000" % slave_ip,
+            "MODEL": "cs"
+        },
+        "uris": [],
+        "dependencies": ["/%s/master" % domain]
+    }
+
+def worker_cs_alex_spec(domain, slave_ip, registry):
+    return {
+        "id": "workercsalex",
+        "container": {
+            "type": "DOCKER",
+            "docker": {
+                "image": "%sufaldsg/cloud-asr-worker-cs-alex:latest" % registry,
+                "network": "BRIDGE",
+                "portMappings": [
+                    {"containerPort": 5678, "hostPort": 0}
+                ]
+            },
+            "volumes": [
+                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
+            ]
+        },
+        "instances": "2",
+        "cpus": "0.25",
+        "mem": "256",
+        "env": {
+            "MASTER_ADDR": "tcp://%s:31000" % slave_ip,
+            "MODEL": "cs-alex"
+        },
+        "uris": [],
+        "dependencies": ["/%s/master" % domain]
+    }
+
 def app_spec(domain, slave_ip, registry):
     return {
         "id": domain,
-        "apps": [master_spec(domain, slave_ip, registry), monitor_spec(domain, slave_ip, registry), frontend_spec(domain, slave_ip, registry), worker_spec(domain, slave_ip, registry)]
+        "apps": [
+            master_spec(domain, slave_ip, registry),
+            monitor_spec(domain, slave_ip, registry),
+            frontend_spec(domain, slave_ip, registry),
+            worker_en_spec(domain, slave_ip, registry),
+            worker_cs_spec(domain, slave_ip, registry),
+            worker_cs_alex_spec(domain, slave_ip, registry)
+        ]
     }
 
 if __name__ == "__main__":
