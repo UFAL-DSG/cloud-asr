@@ -1,4 +1,4 @@
-import zmq
+import zmq.green as zmq
 
 class Poller:
 
