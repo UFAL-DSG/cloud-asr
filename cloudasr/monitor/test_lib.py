@@ -1,15 +1,15 @@
 import unittest
 from lib import Monitor
-from cloudasr.test_doubles import PollerSpy, SocketSpy
+from cloudasr.test_doubles import PollerSpy
 from cloudasr.messages.helpers import *
 
 
 class TestMonitor(unittest.TestCase):
 
     def setUp(self):
-        self.socket = SocketSpy()
-        self.create_socket = lambda: self.socket
-        self.monitor = Monitor(self.create_socket, self.emit, self.socket.has_next_message)
+        self.poller = PollerSpy()
+        self.create_poller = lambda: self.poller
+        self.monitor = Monitor(self.create_poller, self.emit, self.poller.has_next_message)
         self.emmited_messages = []
 
     def test_monitor_forwards_messages_to_socketio(self):
@@ -41,7 +41,7 @@ class TestMonitor(unittest.TestCase):
         self.assertEqual(expected_messages, self.monitor.get_statuses())
 
     def run_monitor(self, messages):
-        self.socket.set_messages(messages)
+        self.poller.add_messages([{"master": message} for message in messages])
         self.monitor.run()
 
     def assertThatMonitorForwardedMessages(self, messages):
