@@ -2,6 +2,7 @@ import time
 import zmq.green as zmq
 from cloudasr import Poller
 from cloudasr.messages.helpers import *
+from collections import defaultdict
 
 
 def create_monitor(address, socketio):
@@ -20,18 +21,21 @@ def create_monitor(address, socketio):
     def emit(message):
         socketio.emit("status_update", message)
 
+    scale_workers = lambda command: True
     run_forever = lambda: True
 
-    return Monitor(create_poller, emit, run_forever)
+    return Monitor(create_poller, emit, scale_workers, run_forever)
 
 
 class Monitor:
 
-    def __init__(self, create_poller, emit, should_continue):
+    def __init__(self, create_poller, emit, scale_workers, should_continue):
         self.create_poller = create_poller
         self.emit = emit
-        self.statuses = {}
+        self.scale_workers_callback = scale_workers
         self.should_continue = should_continue
+        self.statuses = {}
+        self.scaling = {}
 
     def get_statuses(self):
         return self.statuses.values()
@@ -44,6 +48,24 @@ class Monitor:
 
             if "master" in messages:
                 self.handle_message(messages["master"])
+
+            self.scale_workers(time)
+
+    def scale_workers(self, time):
+        availableWorkersPerModel = defaultdict(int)
+        for worker in self.statuses.itervalues():
+            availableWorkersPerModel[worker["model"]] += 0 if worker["status"] == "WORKING" else 1
+
+        command = {}
+        for (model, availableWorkers) in availableWorkersPerModel.items():
+            if model not in self.scaling and availableWorkers == 0:
+                self.scaling[model] = True
+                command[model] = 1
+
+            if model in self.scaling and availableWorkers != 0:
+                del self.scaling[model]
+
+        self.scale_workers_callback(command)
 
     def handle_message(self, message):
         message = parseWorkerStatusMessage(message)
