@@ -112,23 +112,25 @@ class TestMaster(unittest.TestCase):
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
-    def test_when_worker_sent_running_heartbeat_master_informs_monitor_that_the_worker_is_waiting(self):
+    def test_when_worker_sent_running_heartbeat_master_informs_monitor_that_the_worker_has_been_started(self):
         messages = [
             {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "RUNNING")},
         ]
 
         self.run_master(messages)
-        expected_message = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        expected_message = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "STARTED", 1)
         self.assertThatMessagesWereSendToMonitor([expected_message])
 
     def test_when_worker_sent_ready_heartbeat_master_informs_monitor_that_the_worker_is_waiting(self):
         messages = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "RUNNING")},
             {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "READY")},
         ]
 
         self.run_master(messages)
-        expected_message = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
-        self.assertThatMessagesWereSendToMonitor([expected_message])
+        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "STARTED", 1)
+        expected_message2 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 2)
+        self.assertThatMessagesWereSendToMonitor([expected_message1, expected_message2])
 
     def test_when_worker_is_assigned_to_frontend_master_informs_monitor_that_the_worker_is_working(self):
         messages = [
@@ -137,7 +139,7 @@ class TestMaster(unittest.TestCase):
         ]
 
         self.run_master(messages)
-        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "STARTED", 1)
         expected_message2 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WORKING", 2)
         self.assertThatMessagesWereSendToMonitor([expected_message1, expected_message2])
 
@@ -149,7 +151,7 @@ class TestMaster(unittest.TestCase):
         ]
 
         self.run_master(messages)
-        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 1)
+        expected_message1 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "STARTED", 1)
         expected_message2 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WORKING", 2)
         expected_message3 = self.make_worker_status_message("tcp://127.0.0.1:1", "en-GB", "WAITING", 3)
         self.assertThatMessagesWereSendToMonitor([expected_message1, expected_message2, expected_message3])

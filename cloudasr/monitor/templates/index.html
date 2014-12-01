@@ -21,7 +21,7 @@
         <h2>Running workers:</h2>
 
         <table class="table table-bordered">
-            <tr ng-repeat="container in containers" ng-class="{danger: container.status == 'NOT RESPONDING', success: container.status == 'WAITING', warning: container.status == 'WORKING'}">
+            <tr ng-repeat="container in containers" ng-class="{danger: container.status == 'NOT RESPONDING', success: container.status == 'WAITING' || container.status == 'STARTED', warning: container.status == 'WORKING'}">
                 <td class="col-md-1">[[container.model]]</td>
                 <td>[[container.address]]</td>
                 <td class="col-md-3">[[container.status]]</td>

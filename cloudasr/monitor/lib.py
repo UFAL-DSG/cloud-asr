@@ -69,10 +69,16 @@ class Monitor:
 
     def handle_message(self, message):
         message = parseWorkerStatusMessage(message)
+        statuses = {
+            0: "STARTED",
+            1: "WAITING",
+            2: "WORKING"
+        }
+
         status = {
             "address": message.address,
             "model": message.model,
-            "status": "WAITING" if message.status == 0 else "WORKING",
+            "status": statuses[message.status],
             "time": message.time
         }
 

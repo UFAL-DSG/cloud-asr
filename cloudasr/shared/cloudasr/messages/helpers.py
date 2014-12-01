@@ -106,6 +106,7 @@ def parseHeartbeatMessage(string):
 
 def createWorkerStatusMessage(address, model, status, time):
     statuses = {
+        "STARTED": WorkerStatusMessage.STARTED,
         "WAITING": WorkerStatusMessage.WAITING,
         "WORKING": WorkerStatusMessage.WORKING,
     }

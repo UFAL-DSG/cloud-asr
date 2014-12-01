@@ -92,6 +92,7 @@ class WorkerPool:
             raise NoWorkerAvailableException()
 
         self.update_worker_status(model, worker, "WORKING", time)
+        self.send_worker_status_update(model, worker, "WORKING", time)
         return worker
 
     def find_available_worker(self, model, time):
@@ -108,19 +109,22 @@ class WorkerPool:
         return status["status"] == "WAITING" and status["last_heartbeat"] > time - 10
 
     def add_worker(self, model, address, status, time):
-
         if self.workers_status[address]["status"] == "WORKING":
             if status == "FINISHED" or status == "RUNNING":
                 self.available_workers[model].append(address)
                 self.update_worker_status(model, address, "WAITING", time)
+                self.send_worker_status_update(model, address, "WAITING", time)
 
             if status == "WORKING":
                 self.update_worker_status(model, address, "WORKING", time)
+                self.send_worker_status_update(model, address, "WORKING", time)
         elif self.workers_status[address]["status"] == "READY":
             self.available_workers[model].append(address)
             self.update_worker_status(model, address, "WAITING", time)
+            self.send_worker_status_update(model, address, "STARTED", time)
         elif self.workers_status[address]["status"] == "WAITING":
             self.update_worker_status(model, address, "WAITING", time)
+            self.send_worker_status_update(model, address, "WAITING", time)
 
     def update_worker_status(self, model, worker, status, time):
         self.workers_status[worker] = {
@@ -128,6 +132,7 @@ class WorkerPool:
             "last_heartbeat": time
         }
 
+    def send_worker_status_update(self, model, worker, status, time):
         worker_status = createWorkerStatusMessage(worker, model, status, int(time))
         self.monitor.send(worker_status.SerializeToString())
 

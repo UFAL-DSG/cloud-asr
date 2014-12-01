@@ -20,8 +20,9 @@ message WorkerStatusMessage {
 	required int32 time = 4;
 
 	enum Status {
-		WAITING = 0;
-		WORKING = 1;
+		STARTED = 0;
+		WAITING = 1;
+		WORKING = 2;
 	};
 }
 
