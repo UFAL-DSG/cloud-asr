@@ -53,16 +53,22 @@ class Monitor:
 
     def scale_workers(self, time):
         availableWorkersPerModel = defaultdict(int)
+        newWorkersPerModel = defaultdict(int)
+
         for worker in self.statuses.itervalues():
             availableWorkersPerModel[worker["model"]] += 0 if worker["status"] == "WORKING" else 1
+            newWorkersPerModel[worker["model"]] += 1 if worker["status"] == "STARTED" else 0
 
         command = {}
-        for (model, availableWorkers) in availableWorkersPerModel.items():
+        for model in availableWorkersPerModel:
+            availableWorkers = availableWorkersPerModel[model]
+            newWorkers = newWorkersPerModel[model]
+
             if model not in self.scaling and availableWorkers == 0:
                 self.scaling[model] = True
                 command[model] = 1
 
-            if model in self.scaling and availableWorkers != 0:
+            if model in self.scaling and newWorkers != 0:
                 del self.scaling[model]
 
         self.scale_workers_callback(command)

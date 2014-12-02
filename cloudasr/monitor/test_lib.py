@@ -66,7 +66,7 @@ class TestMonitor(unittest.TestCase):
         messages = [
             createWorkerStatusMessage("tcp://127.0.0.1:1", "en-GB", "WORKING", 1).SerializeToString(),
             createWorkerStatusMessage("tcp://127.0.0.1:1", "en-GB", "WORKING", 2).SerializeToString(),
-            createWorkerStatusMessage("tcp://127.0.0.1:2", "en-GB", "WAITING", 3).SerializeToString(),
+            createWorkerStatusMessage("tcp://127.0.0.1:2", "en-GB", "STARTED", 3).SerializeToString(),
             createWorkerStatusMessage("tcp://127.0.0.1:1", "en-GB", "WORKING", 4).SerializeToString(),
             createWorkerStatusMessage("tcp://127.0.0.1:2", "en-GB", "WORKING", 5).SerializeToString()
         ]
