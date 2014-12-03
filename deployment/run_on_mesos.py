@@ -103,6 +103,33 @@ def worker_en_spec(domain, slave_ip, registry):
         "dependencies": ["/%s/master" % domain]
     }
 
+def worker_en_wiki_spec(domain, slave_ip, registry):
+    return {
+        "id": "workerenwiki",
+        "container": {
+            "type": "DOCKER",
+            "docker": {
+                "image": "%sufaldsg/cloud-asr-worker-en-wiki:latest" % registry,
+                "network": "BRIDGE",
+                "portMappings": [
+                    {"containerPort": 5678, "hostPort": 0}
+                ]
+            },
+            "volumes": [
+                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
+            ]
+        },
+        "instances": "2",
+        "cpus": "0.25",
+        "mem": "256",
+        "env": {
+            "MASTER_ADDR": "tcp://%s:31000" % slave_ip,
+            "MODEL": "en-wiki"
+        },
+        "uris": [],
+        "dependencies": ["/%s/master" % domain]
+    }
+
 def worker_cs_spec(domain, slave_ip, registry):
     return {
         "id": "workercs",
@@ -165,6 +192,7 @@ def app_spec(domain, slave_ip, registry):
             monitor_spec(domain, slave_ip, registry),
             frontend_spec(domain, slave_ip, registry),
             worker_en_spec(domain, slave_ip, registry),
+            worker_en_wiki_spec(domain, slave_ip, registry),
             worker_cs_spec(domain, slave_ip, registry),
             worker_cs_alex_spec(domain, slave_ip, registry)
         ]
