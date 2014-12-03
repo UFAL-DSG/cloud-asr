@@ -1,6 +1,6 @@
 var models = {
-    "en-GB": "English",
+    "en-GB": "English (VYSTADIAL TownInfo AM+LM)",
     "en-wiki": "English (TED AM+Wikipedia LM)",
-    "cs": "Czech",
-    "cs-alex": "Czech - Public Transport"
+    "cs": "Czech (VYSTADIAL AM + Wikipedia LM)",
+    "cs-alex": "Czech (VYSTADIAL AM + PTIcs LM)"
 }
