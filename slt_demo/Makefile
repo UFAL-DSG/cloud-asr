@@ -66,6 +66,9 @@ run_locally:
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 
+run_mesos:
+	python ${CURDIR}/../deployment/run_on_mesos.py ${CURDIR}/mesos.json
+
 stop:
 	docker kill frontend master monitor worker_en worker_en_wiki worker_cs worker_cs_alex
 	docker rm frontend master monitor worker_en worker_en_wiki worker_cs worker_cs_alex

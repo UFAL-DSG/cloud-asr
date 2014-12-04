@@ -79,18 +79,8 @@ run:
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 
-run_on_local_mesos: push_images_to_local_registry
-	python ${CURDIR}/deployment/run_on_mesos.py http://localhost:8080 cloudasr.dev ${MESOS_SLAVE_IP} registry:5000
-
-push_images_to_local_registry: build_local
-	docker tag ufaldsg/cloud-asr-monitor localhost:5000/ufaldsg/cloud-asr-monitor
-	docker tag ufaldsg/cloud-asr-master localhost:5000/ufaldsg/cloud-asr-master
-	docker tag ufaldsg/cloud-asr-frontend localhost:5000/ufaldsg/cloud-asr-frontend
-	docker tag ufaldsg/cloud-asr-worker localhost:5000/ufaldsg/cloud-asr-worker
-	docker push localhost:5000/ufaldsg/cloud-asr-monitor
-	docker push localhost:5000/ufaldsg/cloud-asr-master
-	docker push localhost:5000/ufaldsg/cloud-asr-frontend
-	docker push localhost:5000/ufaldsg/cloud-asr-worker
+run_mesos:
+	python ${CURDIR}/deployment/run_on_mesos.py ${CURDIR}/deployment/mesos.json
 
 run_worker:
 	docker run ${WORKER_OPTS} -i -t --rm ufaldsg/cloud-asr-worker
