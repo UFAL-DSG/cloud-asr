@@ -32,6 +32,14 @@ WORKER_EN_WIKI_OPTS=--name worker_en_wiki \
 	-e MODEL=en-wiki \
 	-v ${CURDIR}/data:/tmp/data
 
+WORKER_EN_VOXFORGE_WIKI_OPTS=--name worker_en_voxforge_wiki \
+	-p 30004:5678 \
+	-e HOST=${IP} \
+	-e PORT0=30004 \
+	-e MASTER_ADDR=tcp://${IP}:5679 \
+	-e MODEL=en-voxforge-wiki \
+	-v ${CURDIR}/data:/tmp/data
+
 WORKER_CS_OPTS=--name worker_cs \
 	-p 30002:5678 \
 	-e HOST=${IP} \
@@ -52,6 +60,7 @@ pull:
 	docker pull ufaldsg/cloud-asr-frontend
 	docker pull ufaldsg/cloud-asr-worker-en-towninfo
 	docker pull ufaldsg/cloud-asr-worker-en-wiki
+	docker pull ufaldsg/cloud-asr-worker-en-voxforge-wiki
 	docker pull ufaldsg/cloud-asr-worker-cs
 	docker pull ufaldsg/cloud-asr-worker-cs-alex
 	docker pull ufaldsg/cloud-asr-master
@@ -61,6 +70,7 @@ run_locally:
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
 	docker run ${WORKER_EN_OPTS} -d ufaldsg/cloud-asr-worker-en-towninfo
 	docker run ${WORKER_EN_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-wiki
+	docker run ${WORKER_EN_VOXFORGE_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-voxforge-wiki
 	docker run ${WORKER_CS_OPTS} -d ufaldsg/cloud-asr-worker-cs
 	docker run ${WORKER_CS_ALEX_OPTS} -d ufaldsg/cloud-asr-worker-cs-alex
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
@@ -70,6 +80,6 @@ run_mesos:
 	python ${CURDIR}/../deployment/run_on_mesos.py ${CURDIR}/mesos.json
 
 stop:
-	docker kill frontend master monitor worker_en worker_en_wiki worker_cs worker_cs_alex
-	docker rm frontend master monitor worker_en worker_en_wiki worker_cs worker_cs_alex
+	docker kill frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex
+	docker rm frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex
 
