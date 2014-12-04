@@ -30,8 +30,8 @@ $(document).ready(function() {
     }
 
     $('#start_recording').click(function() {
-        model = $('#language-model').val()
-        speechRecognition.start(model);
+        lang = $('#language-model').val()
+        speechRecognition.start(lang);
     });
 
     $('#stop_recording').click(function() {
@@ -42,5 +42,10 @@ $(document).ready(function() {
     $.each(models, function(id, label) {
         modelSelect.append($("<option></option>").attr("value", id).text(label))
     })
+
+    modelSelect.change(function(elem) {
+        $('.lang-description').hide();
+        $('#' + modelSelect.val()).show();
+    });
 
 });
