@@ -1,1 +1,268 @@
-Comming soon ;)
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="CloudASR">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>CloudASR</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/UFAL-DSG/cloud-asr">View on GitHub</a>
+          <a id="demo_banner" href="http://demo.cloudasr.com">Try Demo</a>
+
+          <h1 id="project_title">CloudASR</h1>
+          <h2 id="project_tagline">software platform and a public ASR webservice</h2>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a id="cloudasr" class="anchor" href="#cloudasr" aria-hidden="true"><span class="octicon octicon-link"></span></a>CloudASR</h1>
+
+<p>CloudASR is a software platform and a public ASR webservice. Its three strong features are:</p>
+
+<ul>
+  <li>automatic scalability with increased workload</li>
+  <li>ease of deployment</li>
+  <li>state-of-the-art incremental speech recognition</li>
+</ul>
+
+<p>Platform’s API supports both batch and incremental speech recognition.
+The batch version is compatible with Google Speech API. New ASR engines can be added onto the platform and work simultaneously.</p>
+
+
+<h3>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Installation</h3>
+
+<p>In order to be able to run CloudASR Docker has to be installed on the host machine.
+You can follow the instructions for your distribution at <a href="http://docs.docker.com/installation/">http://docs.docker.com/installation/</a>.
+Additionally it is necessary to download docker images. You can do that by typing <code>make pull</code> - be aware that the images has several GBs.</p>
+
+<h3>
+<a id="running-the-demo-locally" class="anchor" href="#running-the-demo-locally" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running the demo locally</h3>
+
+<p>Just type <code>make run_locally</code> and everything will be running in a while.
+You can open <a href="http://localhost:8001">http://localhost:8001</a> to see which workers are running.
+Additionally, you can open <a href="http://localhost:8000">http://localhost:8000</a> and try out our interactive web demo.</p>
+
+<h3>
+<a id="running-the-demo-on-mesos-cluster" class="anchor" href="#running-the-demo-on-mesos-cluster" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running the demo on Mesos cluster</h3>
+
+<p>In order to be able to run the demo on Mesos cluster, you have to update <code>marathon_url</code> and <code>master_ip</code> in the <code>mesos.json</code> configuration:</p>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>domain<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>cloudasr.com<span class="pl-pds">"</span></span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>marathon_url<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>localhost:8080<span class="pl-pds">"</span></span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>master_ip<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>127.0.0.1 - IP of the mesos-slave where the CloudASR master should run<span class="pl-pds">"</span></span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>workers<span class="pl-pds">"</span></span>: [
+        {<span class="pl-s1"><span class="pl-pds">"</span>image<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>ufaldsg/cloud-asr-worker-en<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>instances<span class="pl-pds">"</span></span>: <span class="pl-c1">1</span>},
+        {<span class="pl-s1"><span class="pl-pds">"</span>image<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>ufaldsg/cloud-asr-worker-en-wiki<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>instances<span class="pl-pds">"</span></span>: <span class="pl-c1">1</span>},
+        {<span class="pl-s1"><span class="pl-pds">"</span>image<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>ufalgsg/cloud-asr-worker-cs<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>instances<span class="pl-pds">"</span></span>: <span class="pl-c1">1</span>},
+        {<span class="pl-s1"><span class="pl-pds">"</span>image<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>ufaldsg/cloud-asr-worker-cs-alex<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>instances<span class="pl-pds">"</span></span>: <span class="pl-c1">1</span>}
+    ]
+}</pre></div>
+
+<blockquote>
+<p>Note that the suffix of the worker image name corresponds to <code>lang</code> parameter used in Batch and Online APIs. For <code>example ufaldsg/cloud-asr-worker-en</code> will handle requests with parameter <code>lang=en</code>.</p>
+</blockquote>
+
+<p>After that you can type <code>make run_mesos</code> and you should see running instances in the Marathon console in a while. After that you should start a load-balancer on a server associated with the domain specified in the <code>mesos.json</code>. You can do that by typing:</p>
+
+<pre><code>docker run -p 80:80 -e MARATHON_URL=localhost:8080 -d choko/haproxy
+</code></pre>
+
+<p>After that you should be able to see the demo page on <a href="http://demo.cloudasr.com">http://demo.cloudasr.com</a> and the monitor page on <a href="http://monitor.cloudasr.com">http://monitor.cloudasr.com</a>. </p>
+
+<h2>
+<a id="how-to-use-cloudasr" class="anchor" href="#how-to-use-cloudasr" aria-hidden="true"><span class="octicon octicon-link"></span></a>How to use CloudASR</h2>
+
+<p>CloudASR provides two modes of speech recognition: online recognition and batch recognition.
+In the following text we will describe how you can use them.</p>
+
+<h3>
+<a id="batch-api" class="anchor" href="#batch-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>Batch API</h3>
+
+<p>Batch API is compatible with Google Speech API, but it supports only wav files and json output at this moment.
+Users can use parameter <code>lang</code> to specify which language they want to use for speech recognition. These language models are available now:</p>
+
+<ul>
+<li>
+<strong>en-towninfo</strong> - English (VYSTADIAL TownInfo AM+LM)</li>
+<li>
+<strong>en-wiki</strong> - English (TED AM+Wikipedia LM)</li>
+<li>
+<strong>cs</strong> - Czech (VYSTADIAL AM + Wikipedia LM)</li>
+<li>
+<strong>cs-alex</strong> - Czech (VYSTADIAL AM + PTIcs LM) </li>
+</ul>
+
+<p>If you want to transcribe english speech in a <code>recording.wav</code> file you can send following curl request:</p>
+
+<pre><code>curl -X POST --data-binary @recording.wav --header 'Content-Type: audio/x-wav; rate=16000;' 'http://localhost:8000/recognize?lang=en-towninfo'
+</code></pre>
+
+<p>and you should get a response similiar to this:</p>
+
+<div class="highlight highlight-json"><pre>{
+  <span class="pl-s1"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: [
+    {
+      <span class="pl-s1"><span class="pl-pds">"</span>alternative<span class="pl-pds">"</span></span>: [
+        {
+          <span class="pl-s1"><span class="pl-pds">"</span>confidence<span class="pl-pds">"</span></span>: <span class="pl-c1">0.5549500584602356</span>,
+          <span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I'M LOOKING FOR A BAR<span class="pl-pds">"</span></span>
+        },
+        {
+          <span class="pl-s1"><span class="pl-pds">"</span>confidence<span class="pl-pds">"</span></span>: <span class="pl-c1">0.14846260845661163</span>,
+          <span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I AM LOOKING FOR A BAR<span class="pl-pds">"</span></span>
+        },
+        {
+          <span class="pl-s1"><span class="pl-pds">"</span>confidence<span class="pl-pds">"</span></span>: <span class="pl-c1">0.08276544511318207</span>,
+          <span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I'M LOOKING FOR A RESTAURANT<span class="pl-pds">"</span></span>
+        },
+        {
+          <span class="pl-s1"><span class="pl-pds">"</span>confidence<span class="pl-pds">"</span></span>: <span class="pl-c1">0.06668572872877121</span>,
+          <span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I AM LOOKING FOR A RESTAURANT<span class="pl-pds">"</span></span>
+        }
+      ],
+      <span class="pl-s1"><span class="pl-pds">"</span>final<span class="pl-pds">"</span></span>: <span class="pl-c1">true</span>
+    }
+  ],
+  <span class="pl-s1"><span class="pl-pds">"</span>result_index<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>
+}</pre></div>
+
+<h3>
+<a id="online-api" class="anchor" href="#online-api" aria-hidden="true"><span class="octicon octicon-link"></span></a>Online API</h3>
+
+<p>Online API uses Sockets.io for transfering PCM chunks to the CloudASR server. Messages have following format:</p>
+
+<h4>
+<a id="from-client-to-server" class="anchor" href="#from-client-to-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>From Client to Server</h4>
+
+<ul>
+<li>First we have to start recognition by sending information about used language.
+<code>javascript
+socketio.emit('begin', {'lang': 'en-GB'})
+</code>
+</li>
+<li>
+<p>After that we can send PCM chunks to the server. Every chunk is a 16 bit PCM array.</p>
+
+<div class="highlight highlight-javascript"><pre>socketio.emit(<span class="pl-s1"><span class="pl-pds">'</span>chunk<span class="pl-pds">'</span></span>,  {<span class="pl-s1"><span class="pl-pds">'</span>chunk<span class="pl-pds">'</span></span><span class="pl-k">:</span> [<span class="pl-c1">128</span>, <span class="pl-c1">123</span>, <span class="pl-c1">15</span>,..., <span class="pl-c1">25</span>], <span class="pl-s1"><span class="pl-pds">'</span>frame_rate<span class="pl-pds">'</span></span><span class="pl-k">:</span> <span class="pl-c1">16000</span>})</pre></div>
+</li>
+<li>
+<p>Finally we end the recognition by sending following message</p>
+
+<div class="highlight highlight-javascript"><pre>socketio.emit(<span class="pl-s1"><span class="pl-pds">'</span>end<span class="pl-pds">'</span></span>, {})</pre></div>
+</li>
+</ul>
+
+<h4>
+<a id="from-server-to-client" class="anchor" href="#from-server-to-client" aria-hidden="true"><span class="octicon octicon-link"></span></a>From Server to Client</h4>
+
+<p>Server responds to every chunk with a message with interim results:</p>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>status<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>final<span class="pl-pds">"</span></span>: <span class="pl-c1">false</span>,
+    <span class="pl-s1"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: {
+        <span class="pl-s1"><span class="pl-pds">"</span>hypotheses<span class="pl-pds">"</span></span>: [
+            {<span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I AM LOOKING<span class="pl-pds">"</span></span>}
+        ]
+    }
+}</pre></div>
+
+<p>At the end of the recognition server sends final hypothesis in the following format:</p>
+
+<div class="highlight highlight-json"><pre>{
+    <span class="pl-s1"><span class="pl-pds">"</span>result<span class="pl-pds">"</span></span>: [
+        {
+            <span class="pl-s1"><span class="pl-pds">"</span>alternative<span class="pl-pds">"</span></span>: [
+                {<span class="pl-s1"><span class="pl-pds">"</span>confidence<span class="pl-pds">"</span></span>: <span class="pl-c1">0.5364137887954712</span>, <span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I AM LOOKING FOR A MY<span class="pl-pds">"</span></span>},
+                {<span class="pl-s1"><span class="pl-pds">"</span>confidence<span class="pl-pds">"</span></span>: <span class="pl-c1">0.46358612179756165</span>, <span class="pl-s1"><span class="pl-pds">"</span>transcript<span class="pl-pds">"</span></span>: <span class="pl-s1"><span class="pl-pds">"</span>I'M LOOKING FOR A MY<span class="pl-pds">"</span></span>}
+            ],
+            <span class="pl-s1"><span class="pl-pds">"</span>final<span class="pl-pds">"</span></span>: <span class="pl-c1">true</span>
+        }
+    ],
+    <span class="pl-s1"><span class="pl-pds">"</span>result_index<span class="pl-pds">"</span></span>: <span class="pl-c1">0</span>
+}</pre></div>
+
+<blockquote>
+<p>Note that the Online API will switch from SocketsIO to binary Websockets to decrease the traffic in the near future.</p>
+</blockquote>
+
+<h4>
+<a id="using-cloudasrs-speechrecognitionjs-library" class="anchor" href="#using-cloudasrs-speechrecognitionjs-library" aria-hidden="true"><span class="octicon octicon-link"></span></a>Using CloudASR's SpeechRecognition.js library</h4>
+
+<p>If you want to use speech recegnition on your website, you can use our javascript library. Please add these scripts to your html:</p>
+
+<div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s1"><span class="pl-pds">"</span>http://demo.cloudasr.com/js/socket.io.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
+&lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s1"><span class="pl-pds">"</span>http://demo.cloudasr.com/js/Recorder.js<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;
+&lt;<span class="pl-ent">script</span> <span class="pl-e">src</span>=<span class="pl-s1"><span class="pl-pds">"</span>http://demo.cloudasr.com/js/SpeechRecognition.js'<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">script</span>&gt;</pre></div>
+
+<p>Then you can use SpeechRecognition in following manner:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> speechRecognition <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-en">SpeechRecognition</span>();
+<span class="pl-s3">speechRecognition</span>.<span class="pl-en">onStart</span> <span class="pl-k">=</span> <span class="pl-st">function</span>() {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">"</span>Recognition started<span class="pl-pds">"</span></span>);
+}
+
+<span class="pl-s3">speechRecognition</span>.<span class="pl-en">onEnd</span> <span class="pl-k">=</span> <span class="pl-st">function</span>() {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">"</span>Recognition ended<span class="pl-pds">"</span></span>);
+}
+
+<span class="pl-s3">speechRecognition</span>.<span class="pl-en">onError</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(<span class="pl-vpf">error</span>) {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(<span class="pl-s1"><span class="pl-pds">"</span>Error occured: <span class="pl-pds">"</span></span> <span class="pl-k">+</span> error);
+}
+
+<span class="pl-s3">speechRecognition</span>.<span class="pl-en">onResult</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(<span class="pl-vpf">result</span>) {
+    <span class="pl-en">console</span><span class="pl-s3">.log</span>(result);
+}
+
+<span class="pl-s">var</span> lang <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">"</span>en-wiki<span class="pl-pds">"</span></span>;
+$(<span class="pl-s1"><span class="pl-pds">"</span>#button_start<span class="pl-pds">"</span></span>).<span class="pl-s3">click</span>(<span class="pl-st">function</span>() {
+    speechRecognition.<span class="pl-sc">start</span>(lang);
+});
+
+$(<span class="pl-s1"><span class="pl-pds">"</span>#button_stop<span class="pl-pds">"</span></span>).<span class="pl-s3">click</span>(<span class="pl-st">function</span>() {
+    speechRecognition.<span class="pl-s3">stop</span>()
+});</pre></div>
+
+<p>You can also take a look at source code of our demo page (<a href="https://github.com/UFAL-DSG/cloud-asr/blob/master/cloudasr/frontend/templates/index.html">index.html</a>, <a href="https://github.com/UFAL-DSG/cloud-asr/blob/master/cloudasr/frontend/static/js/main.js">main.js</a>).</p>
+
+<h2>
+<a id="privacy--terms" class="anchor" href="#privacy--terms" aria-hidden="true"><span class="octicon octicon-link"></span></a>Privacy &amp; Terms</h2>
+
+<p>All data, including audio recording, is stored for the purpose of ASR quality improvement.
+Note that the data can be shared with third parties for both research and commercial purposes.
+All collected data will be made available to the ASR community; therefore, do not say anything you do not want 
+anyone to know about.</p>
+
+<p>The service is available for free. As a result, no guarantees are given regarding the quality of 
+ASR results. As of now, it is a beta product; thus, things may break and the service may not be 
+available for large periods of time.</p>
+
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+	<p>The CloudASR platform is developed by the Dialogue Systems Group at <a href="http://ufal.mff.cuni.cz">UFAL</a> and the work is funded by the Ministry of Education, Youth and Sports of the Czech Republic under the grant agreement LK11221, by the core research funding of Charles University in Prague. The language resources presented in this work are stored and distributed by the LINDAT/CLARIN project of the Ministry of Education, Youth and Sports of the Czech Republic (project LM2010013).</p>
+
+	<p>If you have any questions regarding CloudASR you can reach us at our mailinglist: <a href="mailto:cloudasr@googlegroups.com">cloudasr@googlegroups.com</a>.</p>
+      </footer>
+    </div>
+
+  </body>
+</html>
