@@ -15,7 +15,7 @@ def index():
 @app.route("/recognize", methods=['POST'])
 def recognize_batch():
     data = {
-        "model": "en-GB",
+        "model": request.args.get("lang", "en-GB"),
         "wav": request.data
     }
 
