@@ -5,4 +5,4 @@ WORKDIR /opt/app
 ADD . /opt/app
 RUN bash download_models.sh
 
-ENV model en-voxforge-wiki
+ENV model en-voxforge

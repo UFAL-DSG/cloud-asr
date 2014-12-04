@@ -4,7 +4,7 @@
     "master_ip": "127.0.0.1",
     "workers": [
         {"image": "ufaldsg/cloud-asr-worker-en-wiki", "instances": 1},
-        {"image": "ufaldsg/cloud-asr-worker-en-voxforge-wiki", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-en-voxforge", "instances": 1},
         {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "instances": 1},
         {"image": "ufaldsg/cloud-asr-worker-cs", "instances": 1},
         {"image": "ufaldsg/cloud-asr-worker-cs-alex", "instances": 1}
