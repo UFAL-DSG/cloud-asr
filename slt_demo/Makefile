@@ -21,7 +21,7 @@ WORKER_EN_OPTS=--name worker_en \
 	-e HOST=${IP} \
 	-e PORT0=30000 \
 	-e MASTER_ADDR=tcp://${IP}:5679 \
-	-e MODEL=en-GB \
+	-e MODEL=en-towninfo \
 	-v ${CURDIR}/data:/tmp/data
 
 WORKER_EN_WIKI_OPTS=--name worker_en_wiki \
@@ -50,7 +50,7 @@ WORKER_CS_ALEX_OPTS=--name worker_cs_alex \
 
 pull:
 	docker pull ufaldsg/cloud-asr-frontend
-	docker pull ufaldsg/cloud-asr-worker
+	docker pull ufaldsg/cloud-asr-worker-en-towninfo
 	docker pull ufaldsg/cloud-asr-worker-en-wiki
 	docker pull ufaldsg/cloud-asr-worker-cs
 	docker pull ufaldsg/cloud-asr-worker-cs-alex
@@ -59,7 +59,7 @@ pull:
 
 run_locally:
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
-	docker run ${WORKER_EN_OPTS} -d ufaldsg/cloud-asr-worker
+	docker run ${WORKER_EN_OPTS} -d ufaldsg/cloud-asr-worker-en-towninfo
 	docker run ${WORKER_EN_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-wiki
 	docker run ${WORKER_CS_OPTS} -d ufaldsg/cloud-asr-worker-cs
 	docker run ${WORKER_CS_ALEX_OPTS} -d ufaldsg/cloud-asr-worker-cs-alex
