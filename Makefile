@@ -73,7 +73,7 @@ pull:
 	docker pull ufaldsg/cloud-asr-master
 	docker pull ufaldsg/cloud-asr-monitor
 
-run:
+run_locally:
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
