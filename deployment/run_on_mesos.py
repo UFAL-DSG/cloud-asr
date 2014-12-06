@@ -76,7 +76,7 @@ def frontend_spec(domain, master_ip, registry):
         "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(master_name, master_ip, image, instances):
+def worker_spec(master_name, master_ip, image, model, instances):
     return {
         "id": imageToWorkerName(image),
         "container": {
@@ -96,7 +96,8 @@ def worker_spec(master_name, master_ip, image, instances):
         "cpus": "0.25",
         "mem": "256",
         "env": {
-            "MASTER_ADDR": "tcp://%s:31000" % master_ip
+            "MASTER_ADDR": "tcp://%s:31000" % master_ip,
+            "MODEL": model
         },
         "uris": [],
         "dependencies": [master_name]
@@ -120,7 +121,7 @@ def app_spec(config):
             monitor_spec(domain, master_ip, registry),
             frontend_spec(domain, master_ip, registry),
         ] + [
-            worker_spec(master_name, master_ip, registry + worker["image"], worker["instances"]) for worker in config["workers"]
+            worker_spec(master_name, master_ip, registry + worker["image"], worker["model"], worker["instances"]) for worker in config["workers"]
         ]
     }
 
