@@ -26,7 +26,7 @@ $(document).ready(function() {
 
     speechRecognition.onerror = function(e) {
         speechRecognition.stop()
-        $('#error').html("<strong>" + e + "</strong>Please try again later.").show()
+        $('#error').html("<strong>" + e + "</strong> Please try again later.").show()
     }
 
     $('#start_recording').click(function() {
