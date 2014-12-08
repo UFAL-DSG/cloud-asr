@@ -113,19 +113,19 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
 
-    def test_worker_sends_finished_heartbeat_when_it_doesnt_receive_any_chunk_for_10secs(self):
+    def test_worker_sends_finished_heartbeat_when_it_doesnt_receive_any_chunk_for_1sec(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
-            {"time": +10}
+            {"time": +1}
         ]
 
         self.run_worker(messages)
         self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
 
-    def test_worker_sends_resets_asr_engine_when_it_doesnt_receive_any_chunk_for_10secs(self):
+    def test_worker_sends_resets_asr_engine_when_it_doesnt_receive_any_chunk_for_1sec(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
-            {"time": +10}
+            {"time": +1}
         ]
 
         self.run_worker(messages)

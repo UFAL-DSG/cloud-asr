@@ -80,7 +80,7 @@ class Worker:
                 if not has_next:
                     break
 
-                messages, time = self.poller.poll(10000)
+                messages, time = self.poller.poll(1000)
                 if "frontend" in messages:
                     request = parseRecognitionRequestMessage(messages["frontend"])
                 else:
