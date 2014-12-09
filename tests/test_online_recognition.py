@@ -61,7 +61,8 @@ class TestOnlineRecognition(unittest.TestCase):
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "transcript": {"type": "string"}
+                                    "transcript": {"type": "string"},
+                                    "confidence": {"type": "number"}
                                 },
                                 "required": ["transcript"],
                                 "additionalProperties": False,

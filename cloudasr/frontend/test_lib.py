@@ -120,7 +120,10 @@ class TestFrontendWorker(unittest.TestCase):
             'status': 0,
             'result': {
                 'hypotheses': [
-                    {'transcript': 'Hello World!'}
+                    {
+                        'transcript': 'Hello World!',
+                        'confidence': 1.0
+                    }
                 ]
             },
             'final': False

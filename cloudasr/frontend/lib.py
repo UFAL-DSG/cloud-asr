@@ -104,7 +104,10 @@ class FrontendWorker:
             'status': 0,
             'result': {
                 'hypotheses': [
-                    {'transcript': response.alternatives[0].transcript}
+                    {
+                        'transcript': response.alternatives[0].transcript,
+                        'confidence': response.alternatives[0].confidence
+                    }
                 ]
             },
             'final': False
