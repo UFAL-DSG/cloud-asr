@@ -16,7 +16,7 @@ Additionally it is necessary to download docker images. You can do that by typin
 
 Running CloudASR
 ----------------
-Just type `make run` and CloudASR will be running in a moment.
+Just type `make run_locally` and CloudASR will be running in a moment.
 
 
 Examples
