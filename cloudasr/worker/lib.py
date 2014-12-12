@@ -49,6 +49,7 @@ class Worker:
         self.audio = audio
         self.saver = saver
         self.should_continue = should_continue
+        self.current_request_id = None
 
     def run(self):
         self.heartbeat.send("RUNNING")
@@ -59,7 +60,11 @@ class Worker:
             if "frontend" in messages:
                 self.handle_request(messages["frontend"])
             else:
-                self.heartbeat.send("READY")
+                if not self.is_online_recognition_running():
+                    self.heartbeat.send("READY")
+                else:
+                    self.end_online_recognition()
+                    self.heartbeat.send("FINISHED")
 
     def handle_request(self, message):
         request = parseRecognitionRequestMessage(message)
@@ -67,27 +72,13 @@ class Worker:
         if request.type == RecognitionRequestMessage.BATCH:
             self.handle_batch_request(request)
         else:
-            request_id = request.id
-            has_next = True
-            self.saver.new_recognition(request_id)
+            if not self.is_online_recognition_running():
+                self.begin_online_recognition(request)
 
-            while True:
-                if request_id == request.id:
-                    has_next = self.handle_online_request(request)
-                else:
-                    self.handle_bad_chunk()
+            if self.is_bad_chunk(request):
+                return self.handle_bad_chunk()
 
-                if not has_next:
-                    break
-
-                messages, time = self.poller.poll(1000)
-                if "frontend" in messages:
-                    request = parseRecognitionRequestMessage(messages["frontend"])
-                else:
-                    self.asr.reset()
-                    self.heartbeat.send("FINISHED")
-                    break
-
+            self.handle_online_request(request)
 
     def handle_batch_request(self, request):
         pcm = self.get_pcm_from_message(request.body)
@@ -111,14 +102,27 @@ class Worker:
             response = self.create_interim_response(interim_hypothesis)
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("WORKING")
-            return True
         else:
             final_hypothesis = self.asr.get_final_hypothesis()
             response = self.create_final_response(final_hypothesis)
             self.poller.send("frontend", response.SerializeToString())
             self.heartbeat.send("FINISHED")
             self.saver.final_hypothesis(final_hypothesis)
-            return False
+            self.end_online_recognition()
+
+    def is_online_recognition_running(self):
+        return self.current_request_id is not None
+
+    def is_bad_chunk(self, request):
+        return self.current_request_id != request.id
+
+    def begin_online_recognition(self, request):
+        self.current_request_id = request.id
+        self.saver.new_recognition(self.current_request_id)
+
+    def end_online_recognition(self):
+        self.current_request_id = None
+        self.asr.reset()
 
     def handle_bad_chunk(self):
         self.poller.send("frontend", createErrorResultsMessage().SerializeToString())
