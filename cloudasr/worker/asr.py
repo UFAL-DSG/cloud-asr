@@ -63,7 +63,7 @@ class Lattice:
 
     def to_best_path(self, best_path):
         (prob, path) = best_path
-        return (exp(-prob), self.path_to_text(path))
+        return (prob, self.path_to_text(path))
 
     def path_to_text(self, path):
         return u' '.join([unicode(self.dictionary[w]) for w in path])
