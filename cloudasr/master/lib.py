@@ -81,7 +81,7 @@ class Master:
 class WorkerPool:
 
     def __init__(self, monitor):
-        self.workers_status = defaultdict(lambda: {"status": "READY", "last_heartbeat": 0})
+        self.workers_status = defaultdict(lambda: {"status": "STARTED", "last_heartbeat": 0})
         self.available_workers = defaultdict(list)
         self.monitor = monitor
 
@@ -92,7 +92,6 @@ class WorkerPool:
             raise NoWorkerAvailableException()
 
         self.update_worker_status(model, worker, "WORKING", time)
-        self.send_worker_status_update(model, worker, "WORKING", time)
         return worker
 
     def find_available_worker(self, model, time):
@@ -106,35 +105,32 @@ class WorkerPool:
 
     def is_worker_available(self, worker, time):
         status = self.workers_status[worker]
-        return status["status"] == "WAITING" and status["last_heartbeat"] > time - 10
+        return status["status"] and status["last_heartbeat"] > time - 10
 
     def add_worker(self, model, address, status, time):
-        if self.workers_status[address]["status"] == "WORKING":
+        worker_status = self.workers_status[address]["status"]
+        if worker_status == "WORKING":
             if status == "FINISHED" or status == "RUNNING":
                 self.available_workers[model].append(address)
                 self.update_worker_status(model, address, "WAITING", time)
-                self.send_worker_status_update(model, address, "WAITING", time)
 
             if status == "WORKING":
                 self.update_worker_status(model, address, "WORKING", time)
-                self.send_worker_status_update(model, address, "WORKING", time)
-        elif self.workers_status[address]["status"] == "READY":
+        elif worker_status == "STARTED":
             self.available_workers[model].append(address)
+            self.update_worker_status(model, address, "STARTED", time)
+        elif worker_status == "WAITING":
             self.update_worker_status(model, address, "WAITING", time)
-            self.send_worker_status_update(model, address, "STARTED", time)
-        elif self.workers_status[address]["status"] == "WAITING":
-            self.update_worker_status(model, address, "WAITING", time)
-            self.send_worker_status_update(model, address, "WAITING", time)
 
     def update_worker_status(self, model, worker, status, time):
         self.workers_status[worker] = {
-            "status": status,
+            "status": "WAITING" if status == "STARTED" else status,
             "last_heartbeat": time
         }
 
-    def send_worker_status_update(self, model, worker, status, time):
         worker_status = createWorkerStatusMessage(worker, model, status, int(time))
         self.monitor.send(worker_status.SerializeToString())
+
 
 class NoWorkerAvailableException(Exception):
     pass
