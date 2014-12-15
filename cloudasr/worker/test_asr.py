@@ -7,7 +7,7 @@ class TestASR(unittest.TestCase):
 
     def setUp(self):
         self.recogniser = DummyRecogniser()
-        self.asr = ASR(self.recogniser, DummyLattice())
+        self.asr = ASR(self.recogniser, dummy_to_nbest, dummy_to_best_path)
 
     def test_asr_returns_dummy_final_hypothesis(self):
         interim_hypothesis = self.asr.recognize_chunk(self.load_pcm_sample_data())
@@ -71,10 +71,9 @@ class DummyRecogniser:
     def reset(self, reset_pipeline):
         self.resetted = True
 
-class DummyLattice:
 
-    def to_nbest(self, lattice, n):
-        return [(1.0, u"Hello World!")]
+def dummy_to_nbest(lattice, n):
+    return [(1.0, u"Hello World!")]
 
-    def to_best_path(self, path):
-        return (0.0, u"Interim Result")
+def dummy_to_best_path(path):
+    return (0.0, u"Interim Result")

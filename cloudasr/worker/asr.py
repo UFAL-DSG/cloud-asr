@@ -9,15 +9,19 @@ def create_asr():
     recogniser = PyOnlineLatgenRecogniser()
     recogniser.setup(config.kaldi_config)
     dictionary = wst2dict(config.wst_path)
-    lattice = Lattice(dictionary, lattice_to_nbest, lattice_calibration)
 
-    return ASR(recogniser, lattice)
+    path_to_text = PathToText(dictionary)
+    to_nbest = ToNBest(path_to_text, lattice_to_nbest, lattice_calibration)
+    to_best_path = ToBestPath(path_to_text)
+
+    return ASR(recogniser, to_nbest, to_best_path)
 
 class ASR:
 
-    def __init__(self, recogniser, lattice):
+    def __init__(self, recogniser, to_nbest, to_best_path):
         self.recogniser = recogniser
-        self.lattice = lattice
+        self.to_nbest = to_nbest
+        self.to_best_path = to_best_path
         self.callbacks = []
 
     def add_callback(self, callback):
@@ -34,14 +38,14 @@ class ASR:
             dec_t = self.recogniser.decode(max_frames=10)
 
         interim_result = self.recogniser.get_best_path()
-        return self.lattice.to_best_path(interim_result)
+        return self.to_best_path(interim_result)
 
     def get_final_hypothesis(self):
         self.recogniser.finalize_decoding()
         utt_lik, lat = self.recogniser.get_lattice()
         self.reset()
 
-        return self.lattice.to_nbest(lat, 10)
+        return self.to_nbest(lat, 10)
 
     def reset(self):
         self.recogniser.reset(reset_pipeline=True)
@@ -51,19 +55,30 @@ class ASR:
             callback()
 
 
-class Lattice:
 
-    def __init__(self, dictionary, lattice_to_nbest, lattice_calibration):
-        self.dictionary = dictionary
+class ToNBest:
+
+    def __init__(self, path_to_text, lattice_to_nbest, lattice_calibration):
+        self.path_to_text = path_to_text
         self.lattice_to_nbest = lattice_to_nbest
         self.lattice_calibration = lattice_calibration
 
-    def to_nbest(self, lattice, n):
+    def __call__(self, lattice, n):
         return [(exp(-prob), self.path_to_text(path)) for (prob, path) in self.lattice_to_nbest(self.lattice_calibration(lattice), n=n)]
 
-    def to_best_path(self, best_path):
+class ToBestPath:
+
+    def __init__(self, path_to_text):
+        self.path_to_text = path_to_text
+
+    def __call__(self, best_path):
         (prob, path) = best_path
         return (prob, self.path_to_text(path))
 
-    def path_to_text(self, path):
+class PathToText:
+
+    def __init__(self, dictionary):
+        self.dictionary = dictionary
+
+    def __call__(self, path):
         return u' '.join([unicode(self.dictionary[w]) for w in path])
