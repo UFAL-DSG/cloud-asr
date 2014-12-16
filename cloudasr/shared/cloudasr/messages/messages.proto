@@ -6,8 +6,8 @@ message HeartbeatMessage {
 	required Status status = 3;
 
 	enum Status {
-		RUNNING = 0;
-		READY = 1;
+		STARTED = 0;
+		WAITING = 1;
 		WORKING = 2;
 		FINISHED = 3;
 	};

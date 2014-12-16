@@ -52,7 +52,7 @@ class Worker:
         self.current_request_id = None
 
     def run(self):
-        self.heartbeat.send("RUNNING")
+        self.heartbeat.send("STARTED")
 
         while self.should_continue():
             messages, time = self.poller.poll(1000)
@@ -61,7 +61,7 @@ class Worker:
                 self.handle_request(messages["frontend"])
             else:
                 if not self.is_online_recognition_running():
-                    self.heartbeat.send("READY")
+                    self.heartbeat.send("WAITING")
                 else:
                     self.end_online_recognition()
                     self.heartbeat.send("FINISHED")

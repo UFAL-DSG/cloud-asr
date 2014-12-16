@@ -84,7 +84,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_heartbeat_to_master_when_ready_to_work(self):
         messages = []
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["RUNNING"])
+        self.assertThatHeartbeatsWereSent(["STARTED"])
 
     def test_worker_sends_heartbeat_after_finishing_task(self):
         messages = [
@@ -92,7 +92,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["RUNNING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["STARTED", "FINISHED"])
 
     def test_worker_sends_working_heartbeats_during_online_recognition(self):
         messages = [
@@ -102,7 +102,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "WORKING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["STARTED", "WORKING", "WORKING", "FINISHED"])
 
     def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
         messages = [
@@ -111,7 +111,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["STARTED", "WORKING", "FINISHED"])
 
     def test_worker_sends_finished_heartbeat_when_it_doesnt_receive_any_chunk_for_1sec(self):
         messages = [
@@ -120,7 +120,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["RUNNING", "WORKING", "FINISHED"])
+        self.assertThatHeartbeatsWereSent(["STARTED", "WORKING", "FINISHED"])
 
     def test_worker_sends_resets_asr_engine_when_it_doesnt_receive_any_chunk_for_1sec(self):
         messages = [
@@ -134,7 +134,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_ready_heartbeat_when_it_doesnt_receive_any_task(self):
         messages = [{}]
         self.run_worker(messages)
-        self.assertThatHeartbeatsWereSent(["RUNNING", "READY"])
+        self.assertThatHeartbeatsWereSent(["STARTED", "WAITING"])
 
     def test_worker_saves_pcm_data_from_batch_request(self):
         messages = [

@@ -64,8 +64,8 @@ class Master:
 
     def handle_worker_request(self, message):
         statuses = {
-            HeartbeatMessage.RUNNING: "RUNNING",
-            HeartbeatMessage.READY: "READY",
+            HeartbeatMessage.STARTED: "STARTED",
+            HeartbeatMessage.WAITING: "WAITING",
             HeartbeatMessage.WORKING: "WORKING",
             HeartbeatMessage.FINISHED: "FINISHED"
         }
@@ -110,7 +110,7 @@ class WorkerPool:
     def add_worker(self, model, address, status, time):
         worker_status = self.workers_status[address]["status"]
         if worker_status == "WORKING":
-            if status == "FINISHED" or status == "RUNNING":
+            if status == "FINISHED" or status == "STARTED":
                 self.available_workers[model].append(address)
                 self.update_worker_status(model, address, "WAITING", time)
 
