@@ -52,6 +52,11 @@ class Monitor:
             self.scale_workers(time)
 
     def scale_workers(self, time):
+        (availableWorkersPerModel, newWorkersPerModel) = self.count_workers_per_model()
+        command = self.create_scaling_command(availableWorkersPerModel, newWorkersPerModel)
+        self.scale_workers_callback(command)
+
+    def count_workers_per_model(self):
         availableWorkersPerModel = defaultdict(int)
         newWorkersPerModel = defaultdict(int)
 
@@ -59,6 +64,9 @@ class Monitor:
             availableWorkersPerModel[worker["model"]] += 0 if worker["status"] == "WORKING" else 1
             newWorkersPerModel[worker["model"]] += 1 if worker["status"] == "STARTED" else 0
 
+        return (availableWorkersPerModel, newWorkersPerModel)
+
+    def create_scaling_command(self, availableWorkersPerModel, newWorkersPerModel):
         command = {}
         for model in availableWorkersPerModel:
             availableWorkers = availableWorkersPerModel[model]
@@ -71,7 +79,7 @@ class Monitor:
             if model in self.scaling and newWorkers != 0:
                 del self.scaling[model]
 
-        self.scale_workers_callback(command)
+        return command
 
     def handle_message(self, message):
         message = parseWorkerStatusMessage(message)
