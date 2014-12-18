@@ -59,6 +59,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.assertThatMessagesWasSendToWorker([expected_message])
 
     def test_recognize_batch_reads_response_from_worker(self):
+        self.id_generator.set_id([1])
         expected_response = {
             "result": [
                 {
@@ -72,6 +73,7 @@ class TestFrontendWorker(unittest.TestCase):
                 },
             ],
             "result_index": 0,
+            "request_id": 1
         }
         received_response = self.worker.recognize_batch(self.request_data, self.request_headers)
 
@@ -113,6 +115,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.assertThatMessagesWasSendToWorker([expected_message, expected_message])
 
     def test_recognize_chunk_reads_response_from_worker(self):
+        self.id_generator.set_id([1])
         self.worker.connect_to_worker("en-GB")
         received_response = self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
@@ -126,7 +129,8 @@ class TestFrontendWorker(unittest.TestCase):
                     }
                 ]
             },
-            'final': False
+            'final': False,
+            'request_id': 1
         }
 
         self.assertEquals(expected_response, received_response)
@@ -146,6 +150,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.assertThatMessagesWasSendToWorker([expected_message])
 
     def test_end_recognition_reads_response_from_worker(self):
+        self.id_generator.set_id([1])
         self.worker.connect_to_worker("en-GB")
         received_response = self.worker.end_recognition()
 
@@ -162,6 +167,7 @@ class TestFrontendWorker(unittest.TestCase):
                 },
             ],
             "result_index": 0,
+            "request_id": 1
         }
 
         self.assertEquals(expected_response, received_response)

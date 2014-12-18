@@ -55,8 +55,9 @@ class TestBatchRecognition(unittest.TestCase):
                     "minItems": 1,
                 },
                 "result_index": {"type": "number"},
+                "request_id": {"type": "number"},
             },
-            "required": ["result", "result_index"],
+            "required": ["result", "result_index", "request_id"],
             "additionalProperties": False,
         }
 

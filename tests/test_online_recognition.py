@@ -53,6 +53,7 @@ class TestOnlineRecognition(unittest.TestCase):
             "properties": {
                 "status": {"type": "number"},
                 "final": {"type": "boolean"},
+                "request_id": {"type": "number"},
                 "result": {
                     "type": "object",
                     "properties": {
@@ -74,7 +75,7 @@ class TestOnlineRecognition(unittest.TestCase):
                 },
 
             },
-            "required": ["status", "result", "final"],
+            "required": ["status", "result", "final", "request_id"],
             "additionalProperties": False,
         }
 
@@ -112,8 +113,9 @@ class TestOnlineRecognition(unittest.TestCase):
                     "minItems": 1,
                 },
                 "result_index": {"type": "number"},
+                "request_id": {"type": "number"},
             },
-            "required": ["result", "result_index"],
+            "required": ["result", "result_index", "request_id"],
             "additionalProperties": False,
         }
 
