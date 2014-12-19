@@ -97,7 +97,7 @@ class FrontendWorker:
                 },
             ],
             "result_index": 0,
-            "request_id": self.id
+            "request_id": str(self.id)
         }
 
     def format_interim_response(self, response):
@@ -112,7 +112,7 @@ class FrontendWorker:
                 ]
             },
             'final': False,
-            'request_id': self.id
+            'request_id': str(self.id)
         }
 
 class Decoder:

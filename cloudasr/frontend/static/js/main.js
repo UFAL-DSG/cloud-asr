@@ -7,6 +7,7 @@ $(document).ready(function() {
     speechRecognition.onresult = function(result) {
         var transcript = result.result.hypotheses[0].transcript;
         $result.text(transcript);
+        $('#request_id').text(result.request_id);
     }
 
     speechRecognition.onstart = function(e) {
@@ -15,6 +16,7 @@ $(document).ready(function() {
         $('#start_recording_text').hide()
         $('#stop_recording_text').show()
         $('#error').hide()
+        $('#request_id').parent().hide()
     }
 
     speechRecognition.onend = function(e) {
@@ -22,6 +24,7 @@ $(document).ready(function() {
         $('#stop_recording').hide()
         $('#start_recording_text').show()
         $('#stop_recording_text').hide()
+        $('#request_id').parent().show()
     }
 
     speechRecognition.onerror = function(e) {

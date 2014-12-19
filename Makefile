@@ -29,7 +29,7 @@ WORKER_OPTS=--name worker \
 	-e HOST=${IP} \
 	-e PORT0=${WORKER_PORT} \
 	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
-	-e MODEL=en-GB \
+	-e MODEL=en-voxforge \
 	-v ${CURDIR}/data:/tmp/data \
 	${WORKER_VOLUMES}
 
