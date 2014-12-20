@@ -212,3 +212,23 @@ class Saver:
 
         self.wav.close()
         self.wav = None
+
+class RemoteSaver:
+
+    def __init__(self, socket, model):
+        self.socket = socket
+        self.model = model
+        self.id = None
+        self.wav = b""
+
+    def new_recognition(self, id):
+        self.id = id
+
+    def add_pcm(self, pcm):
+        self.wav += pcm
+
+    def final_hypothesis(self, final_hypothesis):
+        self.socket.send(createSaverMessage(self.id, self.model, self.wav, final_hypothesis).SerializeToString())
+
+
+

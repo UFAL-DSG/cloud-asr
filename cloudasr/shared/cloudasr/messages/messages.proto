@@ -73,3 +73,10 @@ message UniqueID {
 	required uint64 lower = 1;
 	required uint64 upper = 2;
 }
+
+message SaverMessage {
+	required UniqueID id = 1;
+	required string model = 2;
+	required bytes body = 3;
+	repeated Alternative alternatives = 4;
+}

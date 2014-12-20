@@ -1,6 +1,6 @@
 import unittest
 import config
-from lib import Worker, Heartbeat
+from lib import Worker, Heartbeat, RemoteSaver
 from cloudasr.messages.helpers import *
 from cloudasr.test_doubles import PollerSpy, SocketSpy
 
@@ -183,6 +183,39 @@ class TestWorker(unittest.TestCase):
 
     def make_heartbeat(self, status):
         return createHeartbeatMessage(self.worker_address, self.model, status)
+
+
+class RemoteSaverTest(unittest.TestCase):
+
+    def setUp(self):
+        self.id = 0
+        self.final_hypothesis = [(1.0, "Hello World!")]
+        self.model = "en-GB"
+        self.chunk = b"chunk"
+        self.socket = SocketSpy()
+        self.saver = RemoteSaver(self.socket, self.model)
+
+    def test_saver_sends_all_information(self):
+        self.saver.new_recognition(self.id)
+        self.saver.add_pcm(self.chunk)
+        self.saver.add_pcm(self.chunk)
+        self.saver.final_hypothesis(self.final_hypothesis)
+
+        message = parseSaverMessage(self.socket.sent_message)
+        self.assertEquals(self.model, message.model)
+        self.assertEquals(self.chunk * 2, message.body)
+        self.assertEquals(self.id, uniqId2Int(message.id))
+        self.assertEquals(self.final_hypothesis, alternatives2List(message.alternatives))
+
+    def test_saver_resets_after_final_hypothesis(self):
+        self.saver.new_recognition(self.id)
+        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.new_recognition(self.id + 1)
+        self.saver.final_hypothesis(self.final_hypothesis)
+
+        message = parseSaverMessage(self.socket.sent_message)
+        self.assertEquals(self.id + 1, uniqId2Int(message.id))
+
 
 class ASRSpy:
 

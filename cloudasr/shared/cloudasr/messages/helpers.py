@@ -74,9 +74,6 @@ def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0
 
     return message
 
-def uniqId2Int(id):
-    return (id.upper << 64 | id.lower)
-
 def parseRecognitionRequestMessage(string):
     message = RecognitionRequestMessage()
     message.ParseFromString(string)
@@ -124,3 +121,29 @@ def parseWorkerStatusMessage(string):
     message.ParseFromString(string)
 
     return message
+
+def createSaverMessage(id, model, body, alternatives):
+    message = SaverMessage()
+    message.id.upper = id >> 64
+    message.id.lower = id & ((1<<64)-1)
+    message.model = model
+    message.body = body
+
+    for (confidence, transcript) in alternatives:
+        alternative = message.alternatives.add()
+        alternative.confidence = confidence
+        alternative.transcript = transcript
+
+    return message
+
+def parseSaverMessage(string):
+    message = SaverMessage()
+    message.ParseFromString(string)
+
+    return message
+
+def uniqId2Int(id):
+    return (id.upper << 64 | id.lower)
+
+def alternatives2List(alternatives):
+    return [(alternative.confidence, alternative.transcript) for alternative in alternatives]
