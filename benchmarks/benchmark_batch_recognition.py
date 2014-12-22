@@ -5,7 +5,7 @@ from collections import defaultdict
 
 
 def make_request(id, wav):
-    url = 'http://localhost:8000/recognize?id=' + str(id)
+    url = 'http://localhost:8000/recognize?lang=en-towninfo&id=' + str(id)
     headers = {'Content-Type': 'audio/x-wav; rate=44100;'}
 
     return grequests.post(url, data = wav, headers = headers)

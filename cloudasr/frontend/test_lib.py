@@ -73,7 +73,7 @@ class TestFrontendWorker(unittest.TestCase):
                 },
             ],
             "result_index": 0,
-            "request_id": 1
+            "request_id": '1'
         }
         received_response = self.worker.recognize_batch(self.request_data, self.request_headers)
 
@@ -130,7 +130,7 @@ class TestFrontendWorker(unittest.TestCase):
                 ]
             },
             'final': False,
-            'request_id': 1
+            'request_id': '1'
         }
 
         self.assertEquals(expected_response, received_response)
@@ -167,7 +167,7 @@ class TestFrontendWorker(unittest.TestCase):
                 },
             ],
             "result_index": 0,
-            "request_id": 1
+            "request_id": '1'
         }
 
         self.assertEquals(expected_response, received_response)

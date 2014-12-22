@@ -22,7 +22,7 @@ class TestOnlineRecognition(unittest.TestCase):
         self.assertEquals(self.expected_responses, self.received_responses)
 
     def send_chunks(self):
-        self.socketIO.emit('begin', {'model': 'en-GB'})
+        self.socketIO.emit('begin', {'model': 'en-towninfo'})
 
         for chunk in self.chunks():
             self.socketIO.emit('chunk', {'chunk': chunk, 'frame_rate': 16000})
@@ -53,7 +53,7 @@ class TestOnlineRecognition(unittest.TestCase):
             "properties": {
                 "status": {"type": "number"},
                 "final": {"type": "boolean"},
-                "request_id": {"type": "number"},
+                "request_id": {"type": "string"},
                 "result": {
                     "type": "object",
                     "properties": {
@@ -113,7 +113,7 @@ class TestOnlineRecognition(unittest.TestCase):
                     "minItems": 1,
                 },
                 "result_index": {"type": "number"},
-                "request_id": {"type": "number"},
+                "request_id": {"type": "string"},
             },
             "required": ["result", "result_index", "request_id"],
             "additionalProperties": False,

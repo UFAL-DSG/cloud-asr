@@ -74,7 +74,7 @@ def frames_to_pcm_array(frames):
 def begin(socket_id, socket):
     def callback():
         log("Beginning communication via socket %d" % socket_id)
-        socket.emit('begin', {'model': 'en-GB'})
+        socket.emit('begin', {'model': 'en-towninfo'})
 
     return callback
 
