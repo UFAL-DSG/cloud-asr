@@ -143,10 +143,10 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}
+            1: {"frame_rate": 16000, "pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}
         })
 
-    def test_worker_saves_pcm_data_from_online_request(self):
+    def test_worker_saves_pcm_data_from_online_request_in_original_frame_rate(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", id = 1, has_next = True)},
             {"frontend": self.make_frontend_request("message 2", "ONLINE", id = 1, has_next = True)},
@@ -155,7 +155,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"pcm": "resampled message 1resampled message 2resampled message 3", "hypothesis": [(1.0, "Hello World!")]}
+            1: {"frame_rate": 44100, "pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}
         })
 
     def run_worker(self, messages):
@@ -250,9 +250,9 @@ class SaverSpy:
     def __init__(self):
         self.saved_data = {}
 
-    def new_recognition(self, id):
+    def new_recognition(self, id, frame_rate=16000):
         self.id = self.parse_id(id)
-        self.saved_data[self.id] = {"pcm": "", "hypothesis": ""}
+        self.saved_data[self.id] = {"frame_rate": frame_rate, "pcm": "", "hypothesis": ""}
 
     def add_pcm(self, pcm):
         self.saved_data[self.id]["pcm"] += pcm

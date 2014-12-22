@@ -96,7 +96,7 @@ class Worker:
     def handle_online_request(self, request):
         pcm = self.audio.resample_to_default_sample_rate(request.body, request.frame_rate)
         interim_hypothesis = self.asr.recognize_chunk(pcm)
-        self.saver.add_pcm(pcm)
+        self.saver.add_pcm(request.body)
 
         if request.has_next == True:
             response = self.create_interim_response(interim_hypothesis)
@@ -118,7 +118,7 @@ class Worker:
 
     def begin_online_recognition(self, request):
         self.current_request_id = request.id
-        self.saver.new_recognition(self.current_request_id)
+        self.saver.new_recognition(self.current_request_id, request.frame_rate)
 
     def end_online_recognition(self):
         self.current_request_id = None
@@ -196,12 +196,12 @@ class Saver:
         self.id = None
         self.wav = None
 
-    def new_recognition(self, id):
+    def new_recognition(self, id, frame_rate=16000):
         self.id = uniqId2Int(id)
         self.wav = wave.open('/tmp/data/%s-%d.wav' % (self.model, self.id), 'w')
         self.wav.setnchannels(1)
         self.wav.setsampwidth(2)
-        self.wav.setframerate(16000)
+        self.wav.setframerate(frame_rate)
 
     def add_pcm(self, pcm):
         self.wav.writeframes(pcm)
