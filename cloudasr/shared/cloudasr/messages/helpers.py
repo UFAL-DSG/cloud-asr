@@ -68,9 +68,7 @@ def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0
     message.type = types[type]
     message.body = body
     message.has_next = has_next
-
-    if type == "ONLINE":
-        message.frame_rate = frame_rate
+    message.frame_rate = frame_rate
 
     return message
 
