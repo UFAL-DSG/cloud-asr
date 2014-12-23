@@ -19,14 +19,14 @@ class TestWorker(unittest.TestCase):
         self.audio = DummyAudio()
         self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.saver, self.poller.has_next_message)
 
-    def test_worker_forwards_wav_from_every_message_to_asr_as_pcm(self):
+    def test_worker_forwards_resampled_wav_from_every_message_to_asr_as_pcm(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1")},
             {"frontend": self.make_frontend_request("message 2")}
         ]
 
         self.run_worker(messages)
-        self.assertThatAsrProcessedChunks(["pcm message 1", "pcm message 2"])
+        self.assertThatAsrProcessedChunks(["resampled pcm message 1", "resampled pcm message 2"])
 
     def test_worker_reads_final_hypothesis_from_asr(self):
         messages = [

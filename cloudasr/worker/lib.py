@@ -82,7 +82,9 @@ class Worker:
 
     def handle_batch_request(self, request):
         pcm = self.get_pcm_from_message(request.body)
-        self.asr.recognize_chunk(pcm)
+        resampled_pcm = self.audio.resample_to_default_sample_rate(pcm, request.frame_rate)
+
+        self.asr.recognize_chunk(resampled_pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
         response = self.create_final_response(final_hypothesis)
 
