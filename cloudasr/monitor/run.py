@@ -16,6 +16,10 @@ def index():
 def statuses():
     return jsonify({"statuses": monitor.get_statuses()})
 
+@app.route('/available-workers')
+def available_workers():
+    return jsonify(monitor.get_available_workers_per_model())
+
 @socketio.on("stream_statuses")
 def start(message):
     pass

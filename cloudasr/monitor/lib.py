@@ -40,6 +40,10 @@ class Monitor:
     def get_statuses(self):
         return self.statuses.values()
 
+    def get_available_workers_per_model(self):
+        (availableWorkersPerModel, newWorkersPerModel) = self.count_workers_per_model()
+        return availableWorkersPerModel
+
     def run(self):
         self.poller = self.create_poller()
 
