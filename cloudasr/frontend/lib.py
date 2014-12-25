@@ -1,3 +1,4 @@
+import base64
 import struct
 import zmq.green as zmq
 import re
@@ -123,7 +124,7 @@ class FrontendWorker:
 class Decoder:
 
     def decode(self, data):
-        return b''.join([struct.pack('h', pcm) for pcm in data])
+        return base64.b64decode(data)
 
 class NoWorkerAvailableError(Exception):
     pass

@@ -42,10 +42,10 @@ class TestOnlineRecognition(unittest.TestCase):
                 break
 
             self.expected_responses += 1
-            yield self.frames_to_pcm_array(frames)
+            yield self.frames_to_base64(frames)
 
-    def frames_to_pcm_array(self, frames):
-        return [struct.unpack('h', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
+    def frames_to_base64(self, frames):
+        return base64.b64encode(frames)
 
     def assertMessageHasCorrectSchema(self, message):
         schema = {

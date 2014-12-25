@@ -1,6 +1,7 @@
 import os
 import sys
 import wave
+import base64
 import random
 import struct
 import datetime
@@ -66,10 +67,10 @@ def chunks():
         if len(frames) == 0:
             break
 
-        yield frames_to_pcm_array(frames)
+        yield frames_to_base64(frames)
 
-def frames_to_pcm_array(frames):
-    return [struct.unpack('h', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
+def frames_to_base64(frames):
+    return base64.b64encode(frames)
 
 def begin(socket_id, socket):
     def callback():
