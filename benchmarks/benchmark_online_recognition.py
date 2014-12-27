@@ -67,10 +67,16 @@ def chunks():
         if len(frames) == 0:
             break
 
-        yield frames_to_base64(frames)
+        yield serialize_frames(frames)
 
-def frames_to_base64(frames):
-    return base64.b64encode(frames)
+def serialize_frames(frames):
+    pcm = [struct.unpack('H', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
+    data = []
+    for p in pcm:
+        data.append(unichr(p & 255))
+        data.append(unichr(p >> 8))
+
+    return ''.join(data)
 
 def begin(socket_id, socket):
     def callback():
