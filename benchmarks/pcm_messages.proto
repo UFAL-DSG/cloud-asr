@@ -1,0 +1,9 @@
+message bytes_serialization {
+	required bytes body = 1;
+	required int32 frame_rate = 2;
+}
+
+message array_serialization {
+	repeated int32 body = 1;
+	required int32 frame_rate = 2;
+}
