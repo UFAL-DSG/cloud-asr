@@ -81,7 +81,7 @@
         }
 
         function handleChunk(chunk) {
-            socket.emit("chunk", {chunk: serializePcm(floatTo16BitPcm(chunk[0])), frame_rate: 44100});
+            socket.emit("chunk", {chunk: encode16BitPcmToBase64(floatTo16BitPcm(chunk[0])), frame_rate: 44100});
         }
 
         function floatTo16BitPcm(chunk) {
@@ -94,7 +94,7 @@
             return result;
         }
 
-        function serializePcm(pcm) {
+        function encode16BitPcmToBase64(pcm) {
             chars = []
             for(i=0; i < pcm.length; i++) {
                 lower = pcm[i] & 255;
@@ -107,7 +107,7 @@
                 chars[2*i+1] = String.fromCharCode(upper);
             }
 
-            return chars.join("");
+            return btoa(chars.join(""));
         }
 
     }

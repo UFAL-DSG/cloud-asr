@@ -124,7 +124,7 @@ class FrontendWorker:
 class Decoder:
 
     def decode(self, data):
-        return "".join([struct.pack('B', ord(c)) for c in data])
+        return base64.b64decode(data)
 
 class NoWorkerAvailableError(Exception):
     pass
