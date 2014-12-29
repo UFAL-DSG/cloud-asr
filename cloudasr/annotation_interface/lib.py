@@ -9,7 +9,7 @@ class RecordingsSaver:
 
     def run(self):
         while self.should_continue():
-            recording = self.socket.recv()
+            recording = parseSaverMessage(self.socket.recv())
 
             id = uniqId2Int(recording.id)
             model = recording.model
