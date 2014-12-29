@@ -192,11 +192,12 @@ class RemoteSaverTest(unittest.TestCase):
         self.final_hypothesis = [(1.0, "Hello World!")]
         self.model = "en-GB"
         self.chunk = b"chunk"
+        self.frame_rate = 44100
         self.socket = SocketSpy()
         self.saver = RemoteSaver(self.socket, self.model)
 
     def test_saver_sends_all_information(self):
-        self.saver.new_recognition(self.id)
+        self.saver.new_recognition(self.id, self.frame_rate)
         self.saver.add_pcm(self.chunk)
         self.saver.add_pcm(self.chunk)
         self.saver.final_hypothesis(self.final_hypothesis)
@@ -204,6 +205,7 @@ class RemoteSaverTest(unittest.TestCase):
         message = parseSaverMessage(self.socket.sent_message)
         self.assertEquals(self.model, message.model)
         self.assertEquals(self.chunk * 2, message.body)
+        self.assertEquals(self.frame_rate, message.frame_rate)
         self.assertEquals(self.id, uniqId2Int(message.id))
         self.assertEquals(self.final_hypothesis, alternatives2List(message.alternatives))
 

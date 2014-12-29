@@ -120,12 +120,13 @@ def parseWorkerStatusMessage(string):
 
     return message
 
-def createSaverMessage(id, model, body, alternatives):
+def createSaverMessage(id, model, body, frame_rate, alternatives):
     message = SaverMessage()
     message.id.upper = id >> 64
     message.id.lower = id & ((1<<64)-1)
     message.model = model
     message.body = body
+    message.frame_rate = frame_rate
 
     for (confidence, transcript) in alternatives:
         alternative = message.alternatives.add()

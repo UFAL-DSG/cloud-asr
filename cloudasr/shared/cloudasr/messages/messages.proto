@@ -78,5 +78,6 @@ message SaverMessage {
 	required UniqueID id = 1;
 	required string model = 2;
 	required bytes body = 3;
-	repeated Alternative alternatives = 4;
+	required int32 frame_rate = 4;
+	repeated Alternative alternatives = 5;
 }
