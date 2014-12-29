@@ -9,12 +9,12 @@ from cloudasr.messages import RecognitionRequestMessage
 from cloudasr.messages.helpers import *
 
 
-def create_worker(model, hostname, port, master_address):
+def create_worker(model, hostname, port, master_address, recordings_saver_address):
     poller = create_poller("tcp://0.0.0.0:5678")
     heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
     audio = AudioUtils()
-    saver = Saver(model)
+    saver = RemoteSaver(create_recordings_saver_socket(recordings_saver_address), model)
     run_forever = lambda: True
 
     return Worker(poller, heartbeat, asr, audio, saver, run_forever)
@@ -31,6 +31,13 @@ def create_poller(frontend_address):
     time_func = time.time
 
     return Poller(sockets, time_func)
+
+def create_recordings_saver_socket(address):
+    context = zmq.Context()
+    socket = context.socket(zmq.PUSH)
+    socket.connect(address)
+
+    return socket
 
 def create_heartbeat(model, address, master_address):
     context = zmq.Context()
@@ -191,29 +198,6 @@ class AudioUtils:
 
         return pcm
 
-class Saver:
-
-    def __init__(self, model):
-        self.model = model
-        self.id = None
-        self.wav = None
-
-    def new_recognition(self, id, frame_rate=16000):
-        self.id = uniqId2Int(id)
-        self.wav = wave.open('/tmp/data/%s-%d.wav' % (self.model, self.id), 'w')
-        self.wav.setnchannels(1)
-        self.wav.setsampwidth(2)
-        self.wav.setframerate(frame_rate)
-
-    def add_pcm(self, pcm):
-        self.wav.writeframes(pcm)
-
-    def final_hypothesis(self, final_hypothesis):
-        json.dump(final_hypothesis, open('/tmp/data/%s-%d.json' % (self.model, self.id), 'w'))
-
-
-        self.wav.close()
-        self.wav = None
 
 class RemoteSaver:
 
@@ -224,7 +208,7 @@ class RemoteSaver:
         self.wav = b""
 
     def new_recognition(self, id, frame_rate=16000):
-        self.id = id
+        self.id = uniqId2Int(id)
         self.frame_rate = frame_rate
 
     def add_pcm(self, pcm):
@@ -232,6 +216,7 @@ class RemoteSaver:
 
     def final_hypothesis(self, final_hypothesis):
         self.socket.send(createSaverMessage(self.id, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
+        self.wav = b""
 
 
 

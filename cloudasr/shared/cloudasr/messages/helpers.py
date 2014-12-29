@@ -141,6 +141,13 @@ def parseSaverMessage(string):
 
     return message
 
+def createUniqueID(id):
+    uniqueId = UniqueID()
+    uniqueId.upper = id >> 64
+    uniqueId.lower = id & ((1<<64)-1)
+
+    return uniqueId
+
 def uniqId2Int(id):
     return (id.upper << 64 | id.lower)
 

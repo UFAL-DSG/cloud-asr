@@ -1,13 +1,32 @@
+import json
+import wave
+import zmq.green as zmq
 from cloudasr.messages.helpers import *
+
+def create_recordings_saver(address, path):
+    def create_socket():
+        context = zmq.Context()
+        socket = context.socket(zmq.PULL)
+        socket.bind(address)
+
+        return socket
+
+    file_saver = FileSaver(path)
+    run_forever = lambda: True
+
+    return RecordingsSaver(create_socket, file_saver, run_forever)
+
 
 class RecordingsSaver:
 
-    def __init__(self, socket, file_saver, should_continue):
-        self.socket = socket
+    def __init__(self, create_socket, file_saver, should_continue):
+        self.create_socket = create_socket
         self.file_saver = file_saver
         self.should_continue = should_continue
 
     def run(self):
+        self.socket = self.create_socket()
+
         while self.should_continue():
             recording = parseSaverMessage(self.socket.recv())
 
@@ -18,3 +37,24 @@ class RecordingsSaver:
             alternatives = alternatives2List(recording.alternatives)
 
             self.file_saver.save(id, model, body, frame_rate, alternatives)
+
+
+class FileSaver:
+
+    def __init__(self, path):
+        self.path = path
+
+    def save(self, id, model, body, frame_rate, alternatives):
+        self.save_wav(id, model, body, frame_rate)
+        self.save_hypothesis(id, model, alternatives)
+
+    def save_wav(self, id, model, body, frame_rate):
+        wav = wave.open('%s/%s-%d.wav' % (self.path, model, id), 'w')
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(frame_rate)
+        wav.writeframes(body)
+        wav.close()
+
+    def save_hypothesis(self, id, model, alternatives):
+        json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))

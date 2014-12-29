@@ -12,6 +12,9 @@ MASTER_TO_WORKER_PORT=5679
 MASTER_TO_WORKER_ADDR=tcp://${IP}:${MASTER_TO_WORKER_PORT}
 MASTER_TO_FRONTEND_PORT=5680
 MASTER_TO_FRONTEND_ADDR=tcp://${IP}:${MASTER_TO_FRONTEND_PORT}
+RECORDINGS_SAVER_HOST_PORT=5682
+RECORDINGS_SAVER_GUEST_PORT=5682
+RECORDINGS_SAVER_ADDR=tcp://${IP}:${RECORDINGS_SAVER_HOST_PORT}
 
 SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-packages/cloudasr
 MASTER_VOLUMES=-v ${CURDIR}/cloudasr/master:/opt/app -v ${SHARED_VOLUME}
@@ -29,6 +32,7 @@ WORKER_OPTS=--name worker \
 	-e HOST=${IP} \
 	-e PORT0=${WORKER_PORT} \
 	-e MASTER_ADDR=${MASTER_TO_WORKER_ADDR} \
+	-e RECORDINGS_SAVER_ADDR=${RECORDINGS_SAVER_ADDR} \
 	-e MODEL=en-towninfo \
 	-v ${CURDIR}/data:/tmp/data \
 	${WORKER_VOLUMES}
@@ -45,6 +49,14 @@ MONITOR_OPTS=--name monitor \
 	-p ${MONITOR_STATUS_PORT}:${MONITOR_STATUS_PORT} \
 	-e MONITOR_ADDR=tcp://0.0.0.0:${MONITOR_STATUS_PORT} \
 	${MONITOR_VOLUMES}
+
+ANNOTATION_INTERFACE_VOLUMES=-v ${CURDIR}/cloudasr/annotation_interface:/opt/app \
+	-v ${CURDIR}/cloudasr/annotation_interface/data:/tmp/data \
+	-v ${SHARED_VOLUME}
+ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
+	-p ${RECORDINGS_SAVER_HOST_PORT}:${RECORDINGS_SAVER_GUEST_PORT} \
+	-e PORT0=${RECORDINGS_SAVER_GUEST_PORT} \
+	${ANNOTATION_INTERFACE_VOLUMES}
 
 build:
 	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
@@ -83,6 +95,7 @@ run_locally:
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
+	docker run ${ANNOTATION_INTERFACE_OPTS} -d ufaldsg/cloud-asr-annotation-interface
 
 run_mesos:
 	python ${CURDIR}/deployment/run_on_mesos.py ${CURDIR}/deployment/mesos.json
@@ -100,8 +113,8 @@ run_monitor:
 	docker run ${MONITOR_OPTS} -i -t --rm ufaldsg/cloud-asr-monitor
 
 stop:
-	docker kill frontend worker master monitor
-	docker rm frontend worker master monitor
+	docker kill frontend worker master monitor annotation_interface
+	docker rm frontend worker master monitor annotation_interface
 
 unit-test:
 	nosetests cloudasr/shared
@@ -115,6 +128,7 @@ integration-test:
 	docker run ${FRONTEND_VOLUMES} --rm ufaldsg/cloud-asr-frontend nosetests /opt/app/test_factory.py
 	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master nosetests /opt/app/test_factory.py
 	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor nosetests /opt/app/test_factory.py
+	docker run ${ANNOTATION_INTERFACE_VOLUMES} --rm ufaldsg/cloud-asr-annotation-interface nosetests /opt/app/test_factory.py
 	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker nosetests /opt/app/test_factory.py
 
 test:

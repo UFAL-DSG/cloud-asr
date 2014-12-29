@@ -197,7 +197,7 @@ class RemoteSaverTest(unittest.TestCase):
         self.saver = RemoteSaver(self.socket, self.model)
 
     def test_saver_sends_all_information(self):
-        self.saver.new_recognition(self.id, self.frame_rate)
+        self.saver.new_recognition(createUniqueID(self.id), self.frame_rate)
         self.saver.add_pcm(self.chunk)
         self.saver.add_pcm(self.chunk)
         self.saver.final_hypothesis(self.final_hypothesis)
@@ -210,13 +210,16 @@ class RemoteSaverTest(unittest.TestCase):
         self.assertEquals(self.final_hypothesis, alternatives2List(message.alternatives))
 
     def test_saver_resets_after_final_hypothesis(self):
-        self.saver.new_recognition(self.id)
+        self.saver.new_recognition(createUniqueID(self.id))
+        self.saver.add_pcm(self.chunk)
         self.saver.final_hypothesis(self.final_hypothesis)
-        self.saver.new_recognition(self.id + 1)
+        self.saver.new_recognition(createUniqueID(self.id + 1))
+        self.saver.add_pcm(self.chunk)
         self.saver.final_hypothesis(self.final_hypothesis)
 
         message = parseSaverMessage(self.socket.sent_message)
         self.assertEquals(self.id + 1, uniqId2Int(message.id))
+        self.assertEquals(self.chunk, message.body)
 
 
 class ASRSpy:

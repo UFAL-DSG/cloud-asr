@@ -9,7 +9,8 @@ class TestRecordingsSaver(unittest.TestCase):
     def setUp(self):
         self.file_saver = FileSaverSpy()
         self.socket = SocketSpy()
-        self.saver = RecordingsSaver(self.socket, self.file_saver, self.socket.has_next_message)
+        self.create_socket = lambda: self.socket
+        self.saver = RecordingsSaver(self.create_socket, self.file_saver, self.socket.has_next_message)
 
     def test_saver_saves_recordings_received_via_socket(self):
         self.run_saver([
