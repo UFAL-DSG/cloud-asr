@@ -52,26 +52,31 @@ build:
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
+	docker build -t ufaldsg/cloud-asr-annotation-interface cloudasr/annotation_interface/
 
 build_local:
 	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/annotation_interface/cloudasr
 	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
+	docker build -t ufaldsg/cloud-asr-annotation-interface cloudasr/annotation_interface/
 	rm -rf cloudasr/frontend/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 	rm -rf cloudasr/monitor/cloudasr
+	rm -rf cloudasr/annotation_interface/cloudasr
 
 pull:
 	docker pull ufaldsg/cloud-asr-frontend
 	docker pull ufaldsg/cloud-asr-worker
 	docker pull ufaldsg/cloud-asr-master
 	docker pull ufaldsg/cloud-asr-monitor
+	docker pull ufaldsg/cloud-asr-annotation-interface
 
 run_locally:
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
