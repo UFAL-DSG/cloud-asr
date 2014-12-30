@@ -53,6 +53,30 @@ def monitor_spec(domain, master_ip, registry):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
+def annotation_interface_spec(domain, master_ip, registry):
+    return {
+        "id": "annotation",
+        "container": {
+            "type": "DOCKER",
+            "docker": {
+                "image": "%sufaldsg/cloud-asr-annotation-interface:latest" % registry,
+                "network": "BRIDGE",
+                "portMappings": [
+                    {"containerPort": 80, "hostPort": 31004},
+                    {"containerPort": 5682, "hostPort": 31005}
+                ]
+            },
+            "volumes": [
+                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
+            ]
+        },
+        "instances": "1",
+        "cpus": "0.25",
+        "mem": "256",
+        "uris": [],
+        "constraints": [["hostname", "LIKE", master_ip]]
+    }
+
 def frontend_spec(domain, master_ip, registry):
     return {
         "id": "demo",
@@ -76,7 +100,7 @@ def frontend_spec(domain, master_ip, registry):
         "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(master_name, master_ip, image, model, instances):
+def worker_spec(domain, master_ip, image, model, instances):
     return {
         "id": imageToWorkerName(image),
         "container": {
@@ -87,20 +111,21 @@ def worker_spec(master_name, master_ip, image, model, instances):
                 "portMappings": [
                     {"containerPort": 5678, "hostPort": 0}
                 ]
-            },
-            "volumes": [
-                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
-            ]
+            }
         },
         "instances": instances,
         "cpus": "0.25",
         "mem": "256",
         "env": {
             "MASTER_ADDR": "tcp://%s:31000" % master_ip,
+            "RECORDINGS_SAVER_ADDR": "tcp://%s:31005" % master_ip,
             "MODEL": model
         },
         "uris": [],
-        "dependencies": [master_name]
+        "dependencies": [
+            "/%s/master" % domain,
+            "/%s/annotation" % domain
+        ]
     }
 
 def imageToWorkerName(image):
@@ -112,16 +137,16 @@ def app_spec(config):
     domain = config["domain"]
     master_ip = config["master_ip"]
     registry = config.get("registry", "")
-    master_name = "/%s/master" % domain
 
     return {
         "id": domain,
         "apps": [
             master_spec(domain, master_ip, registry),
             monitor_spec(domain, master_ip, registry),
+            annotation_interface_spec(domain, master_ip, registry),
             frontend_spec(domain, master_ip, registry),
         ] + [
-            worker_spec(master_name, master_ip, registry + worker["image"], worker["model"], worker["instances"]) for worker in config["workers"]
+            worker_spec(domain, master_ip, registry + worker["image"], worker["model"], worker["instances"]) for worker in config["workers"]
         ]
     }
 
