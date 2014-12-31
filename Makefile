@@ -1,9 +1,8 @@
 IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 FRONTEND_HOST_PORT=8000
-FRONTEND_GUEST_PORT=80
 MONITOR_HOST_PORT=8001
-MONITOR_GUEST_PORT=80
+ANNOTATION_INTERFACE_HOST_PORT=8002
 MONITOR_STATUS_PORT=5681
 MONITOR_STATUS_ADDR=tcp://${IP}:${MONITOR_STATUS_PORT}
 WORKER_PORT=5678
@@ -39,22 +38,23 @@ WORKER_OPTS=--name worker \
 
 FRONTEND_VOLUMES=-v ${CURDIR}/cloudasr/frontend:/opt/app -v ${SHARED_VOLUME}
 FRONTEND_OPTS=--name frontend \
-	-p ${FRONTEND_HOST_PORT}:${FRONTEND_GUEST_PORT} \
+	-p ${FRONTEND_HOST_PORT}:80 \
 	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} \
 	${FRONTEND_VOLUMES}
 
 MONITOR_VOLUMES=-v ${CURDIR}/cloudasr/monitor:/opt/app -v ${SHARED_VOLUME}
 MONITOR_OPTS=--name monitor \
-	-p ${MONITOR_HOST_PORT}:${MONITOR_GUEST_PORT} \
+	-p ${MONITOR_HOST_PORT}:80 \
 	-p ${MONITOR_STATUS_PORT}:${MONITOR_STATUS_PORT} \
 	-e MONITOR_ADDR=tcp://0.0.0.0:${MONITOR_STATUS_PORT} \
 	${MONITOR_VOLUMES}
 
 ANNOTATION_INTERFACE_VOLUMES=-v ${CURDIR}/cloudasr/annotation_interface:/opt/app \
-	-v ${CURDIR}/cloudasr/annotation_interface/data:/tmp/data \
+	-v ${CURDIR}/cloudasr/annotation_interface/static/data:/opt/app/static/data \
 	-v ${SHARED_VOLUME}
 ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
 	-p ${RECORDINGS_SAVER_HOST_PORT}:${RECORDINGS_SAVER_GUEST_PORT} \
+	-p ${ANNOTATION_INTERFACE_HOST_PORT}:80 \
 	${ANNOTATION_INTERFACE_VOLUMES}
 
 build:

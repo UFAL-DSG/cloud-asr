@@ -1,3 +1,5 @@
+import os
+import re
 import json
 import wave
 import zmq.green as zmq
@@ -58,3 +60,27 @@ class FileSaver:
 
     def save_hypothesis(self, id, model, alternatives):
         json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))
+
+
+class RecordingsModel:
+
+    def __init__(self, path):
+        self.path = path
+
+    def get_recordings(self):
+        recordings = [f for f in os.listdir(self.path) if f.endswith('wav')]
+        recordings_data = []
+
+        for recording in recordings:
+            search = re.search("^([a-z-]+)-(\d+)\.wav$", recording)
+            wav_url = "/static/data/%s" % recording
+            hypothesis = json.load(open('%s/%s-%s.json' % (self.path, search.group(1), search.group(2))))
+
+            recordings_data.append({
+                'id': search.group(2),
+                'model': search.group(1),
+                'wav_url': wav_url,
+                'hypothesis': hypothesis[0][1]
+            })
+
+        return recordings_data
