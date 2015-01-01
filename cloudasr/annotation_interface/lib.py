@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import uuid
 import wave
 import zmq.green as zmq
 from cloudasr.messages.helpers import *
@@ -84,3 +85,11 @@ class RecordingsModel:
             })
 
         return recordings_data
+
+    def get_recording(self, id):
+        return {"id": id, "model": "en-towninfo", "wav_url": "/static/data/en-towninfo-%s.wav" % id}
+
+    def add_transcription(self, id, transcription):
+        f = open('%s/%s-%s.txt' % (self.path, id, uuid.uuid4().int), 'w')
+        f.write(transcription)
+        f.close()
