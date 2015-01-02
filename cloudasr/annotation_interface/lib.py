@@ -14,17 +14,17 @@ def create_recordings_saver(address, path):
 
         return socket
 
-    file_saver = FileSaver(path)
+    model = RecordingsModel(path)
     run_forever = lambda: True
 
-    return RecordingsSaver(create_socket, file_saver, run_forever)
+    return RecordingsSaver(create_socket, model, run_forever)
 
 
 class RecordingsSaver:
 
-    def __init__(self, create_socket, file_saver, should_continue):
+    def __init__(self, create_socket, model, should_continue):
         self.create_socket = create_socket
-        self.file_saver = file_saver
+        self.model = model
         self.should_continue = should_continue
 
     def run(self):
@@ -39,34 +39,14 @@ class RecordingsSaver:
             frame_rate = recording.frame_rate
             alternatives = alternatives2List(recording.alternatives)
 
-            self.file_saver.save(id, model, body, frame_rate, alternatives)
-
-
-class FileSaver:
-
-    def __init__(self, path):
-        self.path = path
-
-    def save(self, id, model, body, frame_rate, alternatives):
-        self.save_wav(id, model, body, frame_rate)
-        self.save_hypothesis(id, model, alternatives)
-
-    def save_wav(self, id, model, body, frame_rate):
-        wav = wave.open('%s/%s-%d.wav' % (self.path, model, id), 'w')
-        wav.setnchannels(1)
-        wav.setsampwidth(2)
-        wav.setframerate(frame_rate)
-        wav.writeframes(body)
-        wav.close()
-
-    def save_hypothesis(self, id, model, alternatives):
-        json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))
+            self.model.save_recording(id, model, body, frame_rate, alternatives)
 
 
 class RecordingsModel:
 
     def __init__(self, path):
         self.path = path
+        self.file_saver = FileSaver(path)
 
     def get_recordings(self):
         recordings = [f for f in os.listdir(self.path) if f.endswith('wav')]
@@ -86,6 +66,10 @@ class RecordingsModel:
 
         return recordings_data
 
+    def save_recording(self, id, model, body, frame_rate, alternatives):
+        self.file_saver.save_wav(id, model, body, frame_rate)
+        self.file_saver.save_hypothesis(id, model, alternatives)
+
     def get_recording(self, id):
         return {"id": id, "model": "en-towninfo", "wav_url": "/static/data/en-towninfo-%s.wav" % id}
 
@@ -93,3 +77,22 @@ class RecordingsModel:
         f = open('%s/%s-%s.txt' % (self.path, id, uuid.uuid4().int), 'w')
         f.write(transcription)
         f.close()
+
+
+class FileSaver:
+
+    def __init__(self, path):
+        self.path = path
+
+    def save_wav(self, id, model, body, frame_rate):
+        wav = wave.open('%s/%s-%d.wav' % (self.path, model, id), 'w')
+        wav.setnchannels(1)
+        wav.setsampwidth(2)
+        wav.setframerate(frame_rate)
+        wav.writeframes(body)
+        wav.close()
+
+    def save_hypothesis(self, id, model, alternatives):
+        json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))
+
+

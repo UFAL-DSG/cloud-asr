@@ -7,10 +7,10 @@ from cloudasr.messages.helpers import *
 class TestRecordingsSaver(unittest.TestCase):
 
     def setUp(self):
-        self.file_saver = FileSaverSpy()
+        self.model = RecordingsModelSpy()
         self.socket = SocketSpy()
         self.create_socket = lambda: self.socket
-        self.saver = RecordingsSaver(self.create_socket, self.file_saver, self.socket.has_next_message)
+        self.saver = RecordingsSaver(self.create_socket, self.model, self.socket.has_next_message)
 
     def test_saver_saves_recordings_received_via_socket(self):
         self.run_saver([
@@ -28,13 +28,13 @@ class TestRecordingsSaver(unittest.TestCase):
         self.saver.run()
 
     def assertThatSaverSavedRecordings(self, recordings):
-        self.assertEquals(recordings, self.file_saver.saved_recordings)
+        self.assertEquals(recordings, self.model.saved_recordings)
 
 
-class FileSaverSpy:
+class RecordingsModelSpy:
 
     def __init__(self):
         self.saved_recordings = []
 
-    def save(self, id, model, body, frame_rate, alternatives):
+    def save_recording(self, id, model, body, frame_rate, alternatives):
         self.saved_recordings.append((id, model, body, frame_rate, alternatives))
