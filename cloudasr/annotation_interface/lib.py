@@ -4,9 +4,10 @@ import json
 import uuid
 import wave
 import zmq.green as zmq
+from schema import create_db_session, Recording, Transcript
 from cloudasr.messages.helpers import *
 
-def create_recordings_saver(address, path):
+def create_recordings_saver(address, path, model):
     def create_socket():
         context = zmq.Context()
         socket = context.socket(zmq.PULL)
@@ -14,10 +15,12 @@ def create_recordings_saver(address, path):
 
         return socket
 
-    model = RecordingsModel(path)
     run_forever = lambda: True
 
     return RecordingsSaver(create_socket, model, run_forever)
+
+def create_db_connection(path):
+    return create_db_session(path)
 
 
 class RecordingsSaver:
@@ -44,39 +47,43 @@ class RecordingsSaver:
 
 class RecordingsModel:
 
-    def __init__(self, path):
+    def __init__(self, path, db):
+        self.db = db
         self.path = path
         self.file_saver = FileSaver(path)
 
     def get_recordings(self):
-        recordings = [f for f in os.listdir(self.path) if f.endswith('wav')]
-        recordings_data = []
-
-        for recording in recordings:
-            search = re.search("^([a-z-]+)-(\d+)\.wav$", recording)
-            wav_url = "/static/data/%s" % recording
-            hypothesis = json.load(open('%s/%s-%s.json' % (self.path, search.group(1), search.group(2))))
-
-            recordings_data.append({
-                'id': search.group(2),
-                'model': search.group(1),
-                'wav_url': wav_url,
-                'hypothesis': hypothesis[0][1]
-            })
-
-        return recordings_data
-
-    def save_recording(self, id, model, body, frame_rate, alternatives):
-        self.file_saver.save_wav(id, model, body, frame_rate)
-        self.file_saver.save_hypothesis(id, model, alternatives)
+        return self.db.query(Recording).all()
 
     def get_recording(self, id):
-        return {"id": id, "model": "en-towninfo", "wav_url": "/static/data/en-towninfo-%s.wav" % id}
+        return self.db.query(Recording).filter(Recording.id == int(id)).one()
+
+    def save_recording(self, id, model, body, frame_rate, alternatives):
+        (path, url) = self.file_saver.save_wav(id, model, body, frame_rate)
+        self.save_recording_to_db(id, model, path, url, alternatives)
+
+    def save_recording_to_db(self, id, model, path, url, alternatives):
+        recording = Recording(
+            id = id,
+            model = model,
+            path = path,
+            url = url,
+            hypothesis = alternatives[0][1],
+            confidence = alternatives[0][0]
+        )
+
+        self.db.add(recording)
+        self.db.commit()
 
     def add_transcription(self, id, transcription):
-        f = open('%s/%s-%s.txt' % (self.path, id, uuid.uuid4().int), 'w')
-        f.write(transcription)
-        f.close()
+        transcript = Transcript(
+            user_id = 1,
+            transcript = transcription
+        )
+
+        recording = self.get_recording(id)
+        recording.transcripts.append(transcript)
+        self.db.commit()
 
 
 class FileSaver:
@@ -85,12 +92,17 @@ class FileSaver:
         self.path = path
 
     def save_wav(self, id, model, body, frame_rate):
-        wav = wave.open('%s/%s-%d.wav' % (self.path, model, id), 'w')
+        path = '%s/%s-%d.wav' % (self.path, model, id)
+        url = '/static/data/%s-%d.wav' % (model, id)
+
+        wav = wave.open(path, 'w')
         wav.setnchannels(1)
         wav.setsampwidth(2)
         wav.setframerate(frame_rate)
         wav.writeframes(body)
         wav.close()
+
+        return (path, url)
 
     def save_hypothesis(self, id, model, alternatives):
         json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))

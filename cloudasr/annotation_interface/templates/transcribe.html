@@ -18,7 +18,7 @@
         <h2>Transcribe recording:</h2>
 
         <form action="{{ url_for('save_transcription') }}" method="POST">
-            <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["wav_url"] }}"></audio>
+            <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
 
             <div class="control-group">
                 <label for="transcription">Transcription:</label>
