@@ -40,7 +40,10 @@
                         <td>{{ recording["model"] }}</td>
                         <td>{{ recording["hypothesis"] }}</td>
                         <td class="col-md-3"><audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio></td>
-                        <td><a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a></td>
+                        <td>
+                            <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
+                            <a href="{{ url_for('transcriptions', id=recording["id"]) }}">transcriptions</a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

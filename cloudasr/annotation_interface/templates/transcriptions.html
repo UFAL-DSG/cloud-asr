@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap-theme.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>CloudASR Annotation Interface</title>
+</head>
+<body>
+    <div class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <h1>CloudASR Annotation Interface</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Transcriptions of the recording:</h2>
+
+        <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
+
+        <h3>Transcriptions</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th class="col-md-2">User</th>
+                    <th>Transcription</th>
+                    <th class="col-md-2">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transcription in recording.transcriptions %}
+                <tr>
+                    <td>{{ transcription["user_id"] }}</td>
+                    <td>{{ transcription["text"] }}</td>
+                    <td>{{ transcription["created"].strftime('%d.%m.%Y %H:%m')}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

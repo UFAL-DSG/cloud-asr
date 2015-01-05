@@ -37,22 +37,17 @@ class Recording(Base):
     hypothesis = Column(String)
     confidence = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
-    transcripts = relationship('Transcript')
-
-    def to_dict(self):
-        d = dict((col, getattr(self, col)) for col in self.__table__.columns.keys())
-        d["created"] = str(d["created"])
-
-        return d
+    transcriptions = relationship('Transcription')
 
 
-class Transcript(Base):
-    __tablename__ = 'transcript'
+class Transcription(Base):
+    __tablename__ = 'transcription'
 
     id = Column(Integer, primary_key = True)
     recording_id = Column(UUID, ForeignKey('recording.id'))
     user_id = Column(Integer)
-    transcript = Column(String)
+    text = Column(String)
+    created = Column(DateTime, default = datetime.datetime.utcnow)
 
 
 def create_db_session(path):

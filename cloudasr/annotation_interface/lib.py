@@ -4,7 +4,7 @@ import json
 import uuid
 import wave
 import zmq.green as zmq
-from schema import create_db_session, Recording, Transcript
+from schema import create_db_session, Recording, Transcription
 from cloudasr.messages.helpers import *
 
 def create_recordings_saver(address, path, model):
@@ -76,13 +76,13 @@ class RecordingsModel:
         self.db.commit()
 
     def add_transcription(self, id, transcription):
-        transcript = Transcript(
+        transcription = Transcription(
             user_id = 1,
-            transcript = transcription
+            text = transcription
         )
 
         recording = self.get_recording(id)
-        recording.transcripts.append(transcript)
+        recording.transcriptions.append(transcription)
         self.db.commit()
 
 
