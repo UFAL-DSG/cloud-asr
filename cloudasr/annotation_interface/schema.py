@@ -37,7 +37,17 @@ class Recording(Base):
     hypothesis = Column(String)
     confidence = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
+    hypotheses = relationship('Hypothesis')
     transcriptions = relationship('Transcription')
+
+
+class Hypothesis(Base):
+    __tablename__ = 'hypothesis'
+
+    id = Column(Integer, primary_key = True)
+    recording_id = Column(UUID, ForeignKey('recording.id'))
+    text = Column(String)
+    confidence = Column(Float)
 
 
 class Transcription(Base):
