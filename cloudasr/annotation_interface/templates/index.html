@@ -1,53 +1,35 @@
-<!doctype html>
-<html>
-<head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap-theme.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+{% extends "layout.html" %}
+{% block body %}
+<h2>Recent recordings:</h2>
 
-    <title>CloudASR Annotation Interface</title>
-</head>
-<body>
-    <div class="navbar navbar-default navbar-static-top">
-        <div class="container">
-            <h1>CloudASR Annotation Interface</h1>
-        </div>
-    </div>
-
-    <div class="container">
-        <h2>Recent recordings:</h2>
-
-        {% with messages = get_flashed_messages() %}
-            {% for message in messages %}
-                <div class="alert alert-success">{{ message }}</div>
-            {% endfor %}
-        {% endwith %}
-
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th class="col-md-3">ID</th>
-                    <th class="col-md-2">Model</th>
-                    <th class="col-md-3">Hypothesis</th>
-                    <th class="col-md-3"></th>
-                    <th class="col-md-1"></th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for recording in recordings %}
-                    <tr>
-                        <td class="col-md-3">{{ recording["id"] }}</td>
-                        <td>{{ recording["model"] }}</td>
-                        <td>{{ recording["hypothesis"] }}</td>
-                        <td class="col-md-3"><audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio></td>
-                        <td>
-                            <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
-                            <a href="{{ url_for('transcriptions', id=recording["id"]) }}">transcriptions</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>
+{% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th class="col-md-3">ID</th>
+            <th class="col-md-2">Model</th>
+            <th class="col-md-3">Hypothesis</th>
+            <th class="col-md-3"></th>
+            <th class="col-md-1"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for recording in recordings %}
+            <tr>
+                <td class="col-md-3">{{ recording["id"] }}</td>
+                <td>{{ recording["model"] }}</td>
+                <td>{{ recording["hypothesis"] }}</td>
+                <td class="col-md-3"><audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio></td>
+                <td>
+                    <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
+                    <a href="{{ url_for('transcriptions', id=recording["id"]) }}">transcriptions</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
