@@ -152,4 +152,4 @@ def uniqId2Int(id):
     return (id.upper << 64 | id.lower)
 
 def alternatives2List(alternatives):
-    return [(alternative.confidence, alternative.transcript) for alternative in alternatives]
+    return [{"confidence": alternative.confidence, "transcript": alternative.transcript} for alternative in alternatives]

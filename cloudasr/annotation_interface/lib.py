@@ -68,14 +68,14 @@ class RecordingsModel:
             model = model,
             path = path,
             url = url,
-            hypothesis = alternatives[0][1],
-            confidence = alternatives[0][0]
+            hypothesis = alternatives[0]["transcript"],
+            confidence = alternatives[0]["confidence"]
         )
 
         for alternative in alternatives:
             recording.hypotheses.append(Hypothesis(
-                text = alternative[1],
-                confidence = alternative[0]
+                text = alternative["transcript"],
+                confidence = alternative["confidence"]
             ))
 
         self.db.add(recording)

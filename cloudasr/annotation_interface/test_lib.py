@@ -19,8 +19,8 @@ class TestRecordingsSaver(unittest.TestCase):
         ])
 
         self.assertThatSaverSavedRecordings([
-            (1, 'en-GB', b'body 1', 44100, [(1.0, 'Hello World 1!')]),
-            (2, 'en-GB', b'body 2', 44100, [(1.0, 'Hello World 2!')])
+            (1, 'en-GB', b'body 1', 44100, [{'confidence': 1.0, 'transcript': 'Hello World 1!'}]),
+            (2, 'en-GB', b'body 2', 44100, [{'confidence': 1.0, 'transcript': 'Hello World 2!'}])
         ])
 
     def run_saver(self, messages):

@@ -207,7 +207,7 @@ class RemoteSaverTest(unittest.TestCase):
         self.assertEquals(self.chunk * 2, message.body)
         self.assertEquals(self.frame_rate, message.frame_rate)
         self.assertEquals(self.id, uniqId2Int(message.id))
-        self.assertEquals(self.final_hypothesis, alternatives2List(message.alternatives))
+        self.assertEquals([{"confidence": self.final_hypothesis[0][0], "transcript": self.final_hypothesis[0][1]}], alternatives2List(message.alternatives))
 
     def test_saver_resets_after_final_hypothesis(self):
         self.saver.new_recognition(createUniqueID(self.id))
