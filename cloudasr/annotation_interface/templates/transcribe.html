@@ -1,20 +1,146 @@
 {% extends "layout.html" %}
 {% block body %}
-<h2>Transcribe recording:</h2>
 
-<form action="{{ url_for('save_transcription') }}" method="POST">
-    <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
+<div class="row">
 
-    <div class="control-group">
-        <label for="transcription">Transcription:</label>
-        <div class="controls">
-            <textarea name="transcription" class="form-control" rows=3></textarea>
+<div class="col-xs-6">
+    <h2>Instructions</h2>
+
+    <h3>Numerals</h3>
+    <p>
+        Please, do not use numbers to transcribe numerals; spell them out:
+    </p>
+
+    <table class="table">
+        <tr class="danger">
+            <td class="col-md-3">53</td>
+            <td class="col-md-3">NO</td>
+        </tr>
+        <tr class="success">
+            <td>fifty three</td>
+            <td>YES</td>
+        </tr>
+    </table>
+
+    <h3>Ortography</h3>
+    <p>
+        Please, try to avoid spelling errors.
+        Punctuation and capitalisation generally do not matter,
+            but please donot capitalise sentence-initial letters (unless they belong to an acronym, see the next sentence).
+        The exception is with acronyms – please transcribe acronyms in uppercase letters.
+    </p>
+
+    <h3>Incomplete Words</h3>
+    <p>
+        If a word is pronounced incomplete, put ‘-’ (dash) before or after the pronounced part of the word.
+    </p>
+
+    <p>
+        <strong>Examples:</strong> incomp- -eech -crastinat-
+    </p>
+
+    <h3>Non-speech Sounds</h3>
+    <p>
+        For non-speech sounds, you can transcribe them using the following symbols (including the parentheses!):
+    </p>
+
+    <table class="table">
+        <tr>
+            <th class="col-md-2">symbol</th>
+            <th class="col-md-4">meaning</th>
+        </tr>
+        <tr>
+            <td>(breatd)</td>
+            <td>tde sound of breatding, sniffing etc.</td>
+        </tr>
+        <tr>
+            <td>(cough)</td>
+            <td>tde sound of coughing</td>
+        </tr>
+        <tr>
+            <td>(hum)</td>
+            <td>humming (all of hum, erm, ehm hmm etc.)</td>
+        </tr>
+        <tr>
+            <td>(laugh)</td>
+            <td>laughter</td>
+        </tr>
+        <tr>
+            <td>(noise)</td>
+            <td>noise on tde background</td>
+        </tr>
+        <tr>
+            <td>(sil)</td>
+            <td>silence if it is prominent or if tdere is notding else to transcribe</td>
+        </tr>
+        <tr>
+            <td>(unint)</td>
+            <td>unintelligible speech</td>
+        </tr>
+    </table>
+
+    <h2>Censoring</h2>
+    <p>
+        Some pieces of text should not be transcribed, namely personal information and impolite expressions.
+    </p>
+
+    <h3>Personal information</h3>
+    <p>
+        Following types of information should be censored:
+    </p>
+
+    <ul>
+        <li>identifying personal information, such as ID number, passport number etc.</li>
+        <li>person names are allowed in transcriptions</li>
+        <li>surnames are allowed only when they do not identify a concrete person and they have no pejorative mood</li>
+        <li>passwords</li>
+        <li>account numbers</li>
+    </ul>
+
+    <h3>Offensive language</h3>
+    <p>
+        Racist and offensive language should be censored too.
+    </p>
+
+    <h3>What to transcribe</h3>
+    <p>
+        If you come across a phrase or an entire utterance that should be censored for one of the reasons mentioned,
+            please transcribe it using the appropriate tag:
+    </p>
+
+    <table class="table">
+        <tr>
+            <th class="col-md-2">symbol</th>
+            <th class="col-md-4">meaning</th>
+        </tr>
+        <tr>
+            <td>(personal)</td>
+            <td>personal information</td>
+        </tr>
+        <tr>
+            <td>(vulgarism)</td>
+            <td>offensive language</td>
+        </tr>
+    </table>
+</div>
+
+<div class="col-xs-6">
+    <h2>Transcribe recording</h2>
+
+    <form action="{{ url_for('save_transcription') }}" method="POST">
+        <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
+
+        <div class="control-group">
+            <label for="transcription">Transcription:</label>
+            <div class="controls">
+                <textarea name="transcription" class="form-control" rows=3></textarea>
+            </div>
         </div>
-    </div>
 
-    <div class="control-group">
-        <button type="submit" class="btn btn-primary" />Save</button>
-        <input type="hidden" name="id" value="{{ recording["id"] }}" />
-    </div>
-</form>
+        <div class="control-group">
+            <button type="submit" class="btn btn-primary" />Save</button>
+            <input type="hidden" name="id" value="{{ recording["id"] }}" />
+        </div>
+    </form>
+</div>
 {% endblock %}
