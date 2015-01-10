@@ -14,7 +14,11 @@ saver = create_recordings_saver("tcp://0.0.0.0:5682", "/opt/app/static/data", mo
 
 @app.route('/')
 def index():
-    return render_template('index.html', recordings=model.get_recordings())
+    return render_template('index.html', models=model.get_models())
+
+@app.route('/recordings/<model_name>')
+def recordings(model_name):
+    return render_template('recordings.html', recordings=model.get_recordings(model_name))
 
 @app.route('/transcribe/<id>')
 def transcribe(id):

@@ -10,24 +10,15 @@
 <table class="table table-bordered">
     <thead>
         <tr>
-            <th class="col-md-3">ID</th>
-            <th class="col-md-2">Model</th>
-            <th class="col-md-3">Hypothesis</th>
-            <th class="col-md-3"></th>
-            <th class="col-md-1"></th>
+            <th class="col-md-6">Model</th>
+            <th class="col-md-6">Recordings</th>
         </tr>
     </thead>
     <tbody>
-        {% for recording in recordings %}
+        {% for model in models %}
             <tr>
-                <td class="col-md-3">{{ recording["id"] }}</td>
-                <td>{{ recording["model"] }}</td>
-                <td>{{ recording["hypothesis"] }}</td>
-                <td class="col-md-3"><audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio></td>
-                <td>
-                    <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
-                    <a href="{{ url_for('transcriptions', id=recording["id"]) }}">transcriptions</a>
-                </td>
+                <td><a href="{{ url_for('recordings', model=model["model"]) }}">{{ model["model"] }}<a/></td>
+                <td>{{ model[1] }}</td>
             </tr>
         {% endfor %}
     </tbody>

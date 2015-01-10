@@ -52,11 +52,18 @@ class RecordingsModel:
         self.path = path
         self.file_saver = FileSaver(path)
 
-    def get_recordings(self):
-        return self.db.query(Recording).all()
+    def get_models(self):
+        from sqlalchemy import func
+        return self.db.query(Recording.model, func.count(Recording.id)) \
+            .group_by(Recording.model) \
+            .order_by(Recording.model.asc()) \
+            .all()
+
+    def get_recordings(self, model):
+        return self.db.query(Recording).filter(Recording.model == model).all()
 
     def get_recording(self, id):
-        return self.db.query(Recording).filter(Recording.id == int(id)).one()
+        return self.db.query(Recording).get(int(id))
 
     def save_recording(self, id, model, body, frame_rate, alternatives):
         (path, url) = self.file_saver.save_wav(id, model, body, frame_rate)
