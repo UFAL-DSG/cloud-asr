@@ -54,7 +54,7 @@ class RecordingsModel:
 
     def get_models(self):
         from sqlalchemy import func
-        return self.db.query(Recording.model, func.count(Recording.id)) \
+        return self.db.query(Recording.model, func.count(Recording.id).label("count")) \
             .group_by(Recording.model) \
             .order_by(Recording.model.asc()) \
             .all()
