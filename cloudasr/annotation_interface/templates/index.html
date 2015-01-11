@@ -17,7 +17,7 @@
     <tbody>
         {% for model in models %}
             <tr>
-                <td><a href="{{ url_for('recordings', model=model["model"]) }}">{{ model["model"] }}<a/></td>
+                <td><a href="{{ url_for('recordings', model_name=model["model"]) }}">{{ model["model"] }}<a/></td>
                 <td>{{ model[1] }}</td>
             </tr>
         {% endfor %}
