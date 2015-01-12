@@ -65,6 +65,15 @@ class RecordingsModel:
     def get_recording(self, id):
         return self.db.query(Recording).get(int(id))
 
+    def get_random_recording(self):
+        from sqlalchemy import func
+        return self.db.query(Recording) \
+            .outerjoin(Transcription) \
+            .group_by(Recording.id) \
+            .order_by(Recording.confidence.asc(), func.count(Recording.id).asc(), func.random()) \
+            .limit(1) \
+            .one()
+
     def save_recording(self, id, model, body, frame_rate, alternatives):
         (path, url) = self.file_saver.save_wav(id, model, body, frame_rate)
         self.save_recording_to_db(id, model, path, url, alternatives)

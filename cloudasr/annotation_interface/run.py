@@ -20,9 +20,15 @@ def index():
 def recordings(model_name):
     return render_template('recordings.html', recordings=model.get_recordings(model_name))
 
+@app.route('/transcribe')
 @app.route('/transcribe/<id>')
-def transcribe(id):
-    return render_template('transcribe.html', recording=model.get_recording(id))
+def transcribe(id = None):
+    if id is None:
+        recording = model.get_random_recording()
+    else:
+        recording = model.get_recording(id)
+
+    return render_template('transcribe.html', recording=recording)
 
 @app.route('/transcriptions/<id>')
 def transcriptions(id):
