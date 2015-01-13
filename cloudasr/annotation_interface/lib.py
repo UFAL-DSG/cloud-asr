@@ -68,9 +68,7 @@ class RecordingsModel:
     def get_random_recording(self):
         from sqlalchemy import func
         return self.db.query(Recording) \
-            .outerjoin(Transcription) \
-            .group_by(Recording.id) \
-            .order_by(Recording.confidence.asc(), func.count(Recording.id).asc(), func.random()) \
+            .order_by(Recording.score.asc(), func.random()) \
             .limit(1) \
             .one()
 
@@ -85,7 +83,8 @@ class RecordingsModel:
             path = path,
             url = url,
             hypothesis = alternatives[0]["transcript"],
-            confidence = alternatives[0]["confidence"]
+            confidence = alternatives[0]["confidence"],
+            score = alternatives[0]["confidence"]
         )
 
         for alternative in alternatives:
@@ -105,6 +104,7 @@ class RecordingsModel:
 
         recording = self.get_recording(id)
         recording.transcriptions.append(transcription)
+        recording.update_score()
         self.db.commit()
 
 

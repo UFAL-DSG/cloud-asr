@@ -36,9 +36,13 @@ class Recording(Base):
     url = Column(String)
     hypothesis = Column(String)
     confidence = Column(Float)
+    score = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     hypotheses = relationship('Hypothesis')
     transcriptions = relationship('Transcription')
+
+    def update_score(self):
+        self.score += 1
 
 
 class Hypothesis(Base):
