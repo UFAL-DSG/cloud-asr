@@ -34,8 +34,6 @@ class Recording(Base):
     model = Column(String)
     path = Column(String)
     url = Column(String)
-    hypothesis = Column(String)
-    confidence = Column(Float)
     score = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     hypotheses = relationship('Hypothesis')

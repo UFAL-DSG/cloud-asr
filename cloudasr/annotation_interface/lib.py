@@ -82,8 +82,6 @@ class RecordingsModel:
             model = model,
             path = path,
             url = url,
-            hypothesis = alternatives[0]["transcript"],
-            confidence = alternatives[0]["confidence"],
             score = alternatives[0]["confidence"]
         )
 

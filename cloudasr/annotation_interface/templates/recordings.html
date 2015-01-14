@@ -22,7 +22,7 @@
             <tr>
                 <td class="col-md-3">{{ recording["id"] }}</td>
                 <td>{{ recording["model"] }}</td>
-                <td>{{ recording["hypothesis"] }}</td>
+                <td>{{ recording["hypotheses"][0]["text"] }}</td>
                 <td class="col-md-3"><audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio></td>
                 <td>
                     <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
