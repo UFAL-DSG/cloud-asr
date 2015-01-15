@@ -38,7 +38,7 @@ def transcriptions(id):
 def save_transcription():
     flash('Recording was successfully transcribed')
     model.add_transcription(request.form['id'], request.form['transcription'])
-    return redirect(url_for('index'))
+    return redirect(url_for('recordings', model_name=request.form['model']))
 
 
 if __name__ == "__main__":
