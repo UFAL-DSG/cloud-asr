@@ -10,6 +10,7 @@
         <tr>
             <th class="col-md-2">User</th>
             <th>Transcription</th>
+            <th class="col-md-2">Has been played?</th>
             <th class="col-md-2">Created</th>
         </tr>
     </thead>
@@ -18,6 +19,7 @@
         <tr>
             <td>{{ transcription["user_id"] }}</td>
             <td>{{ transcription["text"] }}</td>
+            <td>{{ transcription["has_been_played"] }}</td>
             <td>{{ transcription["created"].strftime('%d.%m.%Y %H:%m')}}</td>
         </tr>
         {% endfor %}

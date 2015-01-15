@@ -128,7 +128,7 @@
     <h2>Transcribe recording</h2>
 
     <form action="{{ url_for('save_transcription') }}" method="POST">
-        <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
+        <audio id="audio" controls src="{{ recording["url"] }}"></audio>
 
         <div class="control-group">
             <label for="transcription">Transcription:</label>
@@ -141,7 +141,14 @@
             <button type="submit" class="btn btn-primary" />Save</button>
             <input type="hidden" name="id" value="{{ recording["id"] }}" />
             <input type="hidden" name="model" value="{{ recording["model"] }}" />
+            <input type="hidden" name="has_been_played" id="has_been_played" value="0" />
         </div>
     </form>
+
+    <script type="text/javascript">
+        document.getElementById("audio").addEventListener("ended", function() {
+            document.getElementById("has_been_played").value = 1;
+        });
+    </script>
 </div>
 {% endblock %}

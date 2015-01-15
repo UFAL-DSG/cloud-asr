@@ -1,6 +1,6 @@
 import struct
 import datetime
-from sqlalchemy import Column, String, Integer, Float, DateTime, ForeignKey, create_engine, types
+from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, ForeignKey, create_engine, types
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -60,6 +60,7 @@ class Transcription(Base):
     user_id = Column(Integer)
     text = Column(String)
     created = Column(DateTime, default = datetime.datetime.utcnow)
+    has_been_played = Column(Boolean)
 
 
 def create_db_session(path):

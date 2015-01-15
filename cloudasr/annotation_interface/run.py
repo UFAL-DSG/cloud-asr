@@ -37,7 +37,7 @@ def transcriptions(id):
 @app.route('/save-transcription', methods=['POST'])
 def save_transcription():
     flash('Recording was successfully transcribed')
-    model.add_transcription(request.form['id'], request.form['transcription'])
+    model.add_transcription(request.form['id'], request.form['transcription'], request.form['has_been_played'] == '1')
     return redirect(url_for('recordings', model_name=request.form['model']))
 
 
