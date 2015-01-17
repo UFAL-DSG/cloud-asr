@@ -18,7 +18,7 @@ def index():
 
 @app.route('/recordings/<model_name>')
 def recordings(model_name):
-    return render_template('recordings.html', recordings=model.get_recordings(model_name))
+    return render_template('recordings.html', recordings=model.get_recordings(model_name), model_name=model_name)
 
 @app.route('/transcribe')
 @app.route('/transcribe/<id>')
@@ -39,6 +39,14 @@ def save_transcription():
     flash('Recording was successfully transcribed')
     model.add_transcription(request.form['id'], request.form['transcription'], request.form['has_been_played'] == '1')
     return redirect(url_for('recordings', model_name=request.form['model']))
+
+@app.route('/crowdflower/<model_name>')
+def crowdflower(model_name):
+    return render_template('crowdflower.html', model_name=model_name)
+
+@app.route('/crowdflower_export/<model_name>')
+def crowdflower_export(model_name):
+    return "Not implemented yet!"
 
 
 if __name__ == "__main__":
