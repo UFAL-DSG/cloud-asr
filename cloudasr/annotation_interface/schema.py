@@ -61,6 +61,9 @@ class Transcription(Base):
     text = Column(String)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     has_been_played = Column(Boolean)
+    native_speaker = Column(Boolean)
+    offensive_language = Column(Boolean)
+    not_a_speech = Column(Boolean)
 
 
 def create_db_session(path):

@@ -10,7 +10,7 @@
         <tr>
             <th class="col-md-2">User</th>
             <th>Transcription</th>
-            <th class="col-md-2">Has been played?</th>
+            <th class="col-md-3"></th>
             <th class="col-md-2">Created</th>
         </tr>
     </thead>
@@ -19,7 +19,18 @@
         <tr>
             <td>{{ transcription["user_id"] }}</td>
             <td>{{ transcription["text"] }}</td>
-            <td>{{ transcription["has_been_played"] }}</td>
+            <td>
+                <dl class="dl-horizontal">
+                    <dt>Has been played?</dt>
+                    <dd>{{ transcription["has_been_played"] }}</dd>
+                    <dt>Is it a speech?</dt>
+                    <dd>{{ not transcription["not_a_speech"] }}</dd>
+                    <dt>Native speaker?</dt>
+                    <dd>{{ transcription["native_speaker"] }}</dd>
+                    <dt>Offensive language?</dt>
+                    <dd>{{ transcription["offensive_language"] }}</dd>
+                </dl>
+            </td>
             <td>{{ transcription["created"].strftime('%d.%m.%Y %H:%m')}}</td>
         </tr>
         {% endfor %}
