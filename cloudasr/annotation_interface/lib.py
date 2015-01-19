@@ -68,7 +68,7 @@ class RecordingsModel:
     def get_random_recording(self):
         from sqlalchemy import func
         return self.db.query(Recording) \
-            .order_by(Recording.score.asc(), func.random()) \
+            .order_by(Recording.rand_score) \
             .limit(1) \
             .one()
 

@@ -1,3 +1,4 @@
+import random
 import struct
 import datetime
 from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, ForeignKey, create_engine, types
@@ -35,12 +36,14 @@ class Recording(Base):
     path = Column(String)
     url = Column(String)
     score = Column(Float)
+    rand_score = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     hypotheses = relationship('Hypothesis')
     transcriptions = relationship('Transcription')
 
     def update_score(self):
         self.score += 1
+        self.rand_score += random.uniform(-0.5, 0.5)
 
 
 class Hypothesis(Base):
