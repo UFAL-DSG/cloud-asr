@@ -82,7 +82,8 @@ class RecordingsModel:
             model = model,
             path = path,
             url = url,
-            score = alternatives[0]["confidence"]
+            score = alternatives[0]["confidence"],
+            rand_score = alternatives[0]["confidence"]
         )
 
         for alternative in alternatives:
