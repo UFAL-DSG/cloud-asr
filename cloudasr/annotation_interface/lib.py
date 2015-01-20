@@ -95,11 +95,10 @@ class RecordingsModel:
         self.db.add(recording)
         self.db.commit()
 
-    def add_transcription(self, id, transcription, has_been_played, native_speaker, offensive_language, not_a_speech):
+    def add_transcription(self, id, transcription, native_speaker, offensive_language, not_a_speech):
         transcription = Transcription(
             user_id = 1,
             text = transcription,
-            has_been_played = has_been_played,
             native_speaker = native_speaker,
             offensive_language = offensive_language,
             not_a_speech = not_a_speech

@@ -156,16 +156,15 @@
         </div>
 
         <div class="control-group">
-            <button type="submit" class="btn btn-primary" />Save</button>
+            <button type="submit" class="btn btn-primary" id="submit" disabled />Save</button>
             <input type="hidden" name="id" value="{{ recording["id"] }}" />
             <input type="hidden" name="model" value="{{ recording["model"] }}" />
-            <input type="hidden" name="has_been_played" id="has_been_played" value="0" />
         </div>
     </form>
 
     <script type="text/javascript">
         document.getElementById("audio").addEventListener("ended", function() {
-            document.getElementById("has_been_played").value = 1;
+            document.getElementById("submit").disabled = false;
         });
     </script>
 </div>

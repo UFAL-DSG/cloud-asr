@@ -41,7 +41,6 @@ def save_transcription():
     model.add_transcription(
         request.form['id'],
         request.form['transcription'],
-        request.form['has_been_played'] == '1',
         'native_speaker' in request.form,
         'offensive_language' in request.form,
         'not_a_speech' in request.form
