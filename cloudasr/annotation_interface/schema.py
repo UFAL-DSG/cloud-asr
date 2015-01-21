@@ -15,7 +15,11 @@ class UUID(types.TypeDecorator):
         types.TypeDecorator.__init__(self, length=self.impl.length)
 
     def process_bind_param(self, value, dialect=None):
-        return struct.pack('>QQ', (value >> 64), value & ((1 << 64) - 1))
+        if value is not None:
+            value = int(value)
+            return struct.pack('>QQ', (value >> 64), value & ((1 << 64) - 1))
+        else:
+            return None
 
     def process_result_value(self, value, dialect=None):
         if value:
@@ -35,6 +39,7 @@ class User(Base):
     email = Column(String)
     name = Column(String)
     avatar = Column(String)
+    transcriptions = relationship('Transcription', backref="user")
 
     def is_authenticated(self):
         return True
@@ -81,7 +86,7 @@ class Transcription(Base):
 
     id = Column(Integer, primary_key = True)
     recording_id = Column(UUID, ForeignKey('recording.id'))
-    user_id = Column(Integer)
+    user_id = Column(UUID, ForeignKey('user.id'), nullable = True)
     text = Column(String)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     has_been_played = Column(Boolean)

@@ -2,8 +2,8 @@ import os
 import gevent
 from flask import Flask, flash, request, jsonify, render_template, redirect, url_for
 from flask.ext.socketio import SocketIO
-from flask_login import LoginManager, login_user
-from flask_googlelogin import GoogleLogin
+from flask.ext.login import LoginManager, login_user, current_user
+from flask.ext.googlelogin import GoogleLogin
 from lib import create_recordings_saver, create_db_connection, RecordingsModel, UsersModel
 
 
@@ -53,6 +53,7 @@ def save_transcription():
     flash('Recording was successfully transcribed')
 
     recordings_model.add_transcription(
+        current_user,
         request.form['id'],
         request.form['transcription'],
         'native_speaker' in request.form,

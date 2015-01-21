@@ -95,9 +95,9 @@ class RecordingsModel:
         self.db.add(recording)
         self.db.commit()
 
-    def add_transcription(self, id, transcription, native_speaker, offensive_language, not_a_speech):
+    def add_transcription(self, user, id, transcription, native_speaker, offensive_language, not_a_speech):
         transcription = Transcription(
-            user_id = 1,
+            user_id = user.get_id(),
             text = transcription,
             native_speaker = native_speaker,
             offensive_language = offensive_language,

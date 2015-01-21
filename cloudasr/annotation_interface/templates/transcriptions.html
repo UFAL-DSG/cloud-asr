@@ -17,7 +17,13 @@
     <tbody>
         {% for transcription in recording.transcriptions %}
         <tr>
-            <td>{{ transcription["user_id"] }}</td>
+            <td>
+                {% if transcription["user"] is not none %}
+                    {{ transcription["user"]["name"] }}
+                {% else %}
+                    Anonymous
+                {% endif %}
+            </td>
             <td>{{ transcription["text"] }}</td>
             <td>
                 <dl class="dl-horizontal">
