@@ -28,6 +28,27 @@ class UUID(types.TypeDecorator):
         return False
 
 
+class User(Base):
+    __tablename__ = 'user'
+
+    id = Column(UUID, primary_key = True)
+    email = Column(String)
+    name = Column(String)
+    avatar = Column(String)
+
+    def is_authenticated(self):
+        return True
+
+    def is_active(self):
+        return True
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return unicode(self.id)
+
+
 class Recording(Base):
     __tablename__ = 'recording'
 

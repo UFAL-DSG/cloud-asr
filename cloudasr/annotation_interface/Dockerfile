@@ -3,7 +3,7 @@ FROM ufaldsg/cloud-asr-base
 MAINTAINER Ondrej Klejch
 
 RUN apt-get install sqlite3
-RUN pip install flask flask-socketio sqlalchemy
+RUN pip install flask flask-socketio flask-login flask-googlelogin sqlalchemy
 
 ADD . /opt/app
 WORKDIR /opt/app

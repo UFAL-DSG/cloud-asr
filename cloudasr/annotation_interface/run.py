@@ -1,44 +1,58 @@
+import os
 import gevent
 from flask import Flask, flash, request, jsonify, render_template, redirect, url_for
 from flask.ext.socketio import SocketIO
-from lib import create_recordings_saver, create_db_connection, RecordingsModel
+from flask_login import LoginManager, login_user
+from flask_googlelogin import GoogleLogin
+from lib import create_recordings_saver, create_db_connection, RecordingsModel, UsersModel
 
 
 app = Flask(__name__)
-app.secret_key = '12345'
-app.config['DEBUG'] = True
+app.config.update(
+    SECRET_KEY = '12345',
+    DEBUG = True,
+    GOOGLE_LOGIN_CLIENT_ID = os.environ['GOOGLE_LOGIN_CLIENT_ID'],
+    GOOGLE_LOGIN_CLIENT_SECRET = os.environ['GOOGLE_LOGIN_CLIENT_SECRET'],
+    GOOGLE_LOGIN_SCOPES = 'https://www.googleapis.com/auth/userinfo.email',
+)
+
 socketio = SocketIO(app)
+login_manager = LoginManager(app)
+google_login = GoogleLogin(app, login_manager)
+
 db = create_db_connection("db")
-model = RecordingsModel("/opt/app/static/data", db)
-saver = create_recordings_saver("tcp://0.0.0.0:5682", "/opt/app/static/data", model)
+users_model = UsersModel(db)
+recordings_model = RecordingsModel("/opt/app/static/data", db)
+saver = create_recordings_saver("tcp://0.0.0.0:5682", "/opt/app/static/data", recordings_model)
+
 
 @app.route('/')
 def index():
-    return render_template('index.html', models=model.get_models())
+    return render_template('index.html', models=recordings_model.get_models())
 
 @app.route('/recordings/<model_name>')
 def recordings(model_name):
-    return render_template('recordings.html', recordings=model.get_recordings(model_name), model_name=model_name)
+    return render_template('recordings.html', recordings=recordings_model.get_recordings(model_name), model_name=model_name)
 
 @app.route('/transcribe')
 @app.route('/transcribe/<id>')
 def transcribe(id = None):
     if id is None:
-        recording = model.get_random_recording()
+        recording = recordings_model.get_random_recording()
     else:
-        recording = model.get_recording(id)
+        recording = recordings_model.get_recording(id)
 
     return render_template('transcribe.html', recording=recording)
 
 @app.route('/transcriptions/<id>')
 def transcriptions(id):
-    return render_template('transcriptions.html', recording=model.get_recording(id))
+    return render_template('transcriptions.html', recording=recordings_model.get_recording(id))
 
 @app.route('/save-transcription', methods=['POST'])
 def save_transcription():
     flash('Recording was successfully transcribed')
 
-    model.add_transcription(
+    recordings_model.add_transcription(
         request.form['id'],
         request.form['transcription'],
         'native_speaker' in request.form,
@@ -55,6 +69,20 @@ def crowdflower(model_name):
 @app.route('/crowdflower_export/<model_name>')
 def crowdflower_export(model_name):
     return "Not implemented yet!"
+
+@app.route('/login/google')
+@google_login.oauth2callback
+def login_google(token, userinfo, **params):
+    login_user(users_model.upsert_user(userinfo))
+    return redirect(url_for('index'))
+
+@app.context_processor
+def inject_google_login_url():
+    return dict(google_login_url = google_login.login_url(redirect_uri=url_for('login_google', _external=True)))
+
+@login_manager.user_loader
+def load_user(id):
+    return users_model.get_user(id)
 
 
 if __name__ == "__main__":

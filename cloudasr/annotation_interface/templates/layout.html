@@ -10,7 +10,15 @@
 <body>
     <div class="navbar navbar-default navbar-static-top">
         <div class="container">
-            <h1>CloudASR Annotation Interface</h1>
+            <div class="navbar-header">
+                <a href="/" class="navbar-brand">CloudASR Annotation Interface</a>
+            </div>
+
+            {% if current_user.is_authenticated() %}
+                <p class="navbar-text navbar-right">You're logged in as {{ current_user.name }}</p>
+            {% else %}
+                <a href="{{ google_login_url }}" class="btn btn-default navbar-btn navbar-right">Login with Google+</a>
+            {% endif %}
         </div>
     </div>
 

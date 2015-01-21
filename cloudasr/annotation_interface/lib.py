@@ -4,7 +4,7 @@ import json
 import uuid
 import wave
 import zmq.green as zmq
-from schema import create_db_session, Recording, Hypothesis, Transcription
+from schema import create_db_session, User, Recording, Hypothesis, Transcription
 from cloudasr.messages.helpers import *
 
 def create_recordings_saver(address, path, model):
@@ -130,5 +130,34 @@ class FileSaver:
 
     def save_hypothesis(self, id, model, alternatives):
         json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))
+
+
+class UsersModel:
+
+    def __init__(self, db):
+        self.db = db
+
+    def get_user(self, id):
+        return self.db.query(User).get(int(id))
+
+    def upsert_user(self, userinfo):
+        user = self.get_user(userinfo['id'])
+
+        if user:
+            user.email = userinfo['email']
+            user.name = userinfo['name']
+            user.avatar = userinfo['picture']
+        else:
+            user = User(
+                id = int(userinfo['id']),
+                email = userinfo['email'],
+                name = userinfo['name'],
+                avatar = userinfo['picture']
+            )
+
+        self.db.add(user)
+        self.db.commit()
+
+        return user
 
 
