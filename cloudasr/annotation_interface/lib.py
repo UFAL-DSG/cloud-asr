@@ -128,9 +128,6 @@ class FileSaver:
 
         return (path, url)
 
-    def save_hypothesis(self, id, model, alternatives):
-        json.dump(alternatives, open('%s/%s-%d.json' % (self.path, model, id), 'w'))
-
 
 class UsersModel:
 
