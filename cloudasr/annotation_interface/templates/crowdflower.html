@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h2>CrowdFlower Audio Transcription</h2>
+<p>
+    Thank you for deciding to help us annotate recordings.
+    In the following text we will walk you through creation of the CrowdFlower task for audio transcription.
+</p>
+
+<ol>
+    <li>Login to your CrowdFlower account as a customer.</li>
+    <li>Click on the <strong>Create Job</strong> button.</li>
+    <li>
+        Click on the <strong>View All Templates</strong>,
+        select <strong>Audio Transcription</strong> and
+        click on the <strong>Use This Template</strong> button.
+    </li>
+    <li>
+        On the <strong>Build your job</strong> page leave everything as it is and continue by clicking on the <strong>Save</strong> button.
+    </li>
+    <li>
+        Go to the <strong>Data</strong> page and upload there <a href="{{ url_for('crowdflower_export', model_name=model_name) }}">this file</a>.
+        In this file there are 100 selected recordings that we need to transcribe.
+    </li>
+    <li>
+        Go to the <strong>Job Settings</strong> page and set the following values:
+        <table class="table">
+            <tr>
+                <th>Performance</th>
+                <td>Medium value</td>
+            </tr>
+            <tr>
+                <th>Jugments per row:</th>
+                <td>1</td>
+            </tr>
+            <tr>
+                <th>Number of rows displayed on each page:</th>
+                <td>1</td>
+            </tr>
+            <tr>
+                <th>Payment amount per page</th>
+                <td>5</td>
+            </tr>
+        </table>
+    </li>
+    <li>
+        Finally, you can start the task on <strong>Launch</strong> page.
+    </li>
+
+</ol>
+
+{% endblock %}
