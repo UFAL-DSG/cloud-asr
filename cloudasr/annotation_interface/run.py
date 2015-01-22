@@ -2,7 +2,7 @@ import os
 import gevent
 from flask import Flask, flash, request, jsonify, render_template, redirect, url_for
 from flask.ext.socketio import SocketIO
-from flask.ext.login import LoginManager, login_user, current_user
+from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
 from lib import create_recordings_saver, create_db_connection, RecordingsModel, UsersModel
 
@@ -77,9 +77,18 @@ def login_google(token, userinfo, **params):
     login_user(users_model.upsert_user(userinfo))
     return redirect(url_for('index'))
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
 @app.context_processor
 def inject_google_login_url():
-    return dict(google_login_url = google_login.login_url(redirect_uri=url_for('login_google', _external=True)))
+    return dict(
+        google_login_url = google_login.login_url(redirect_uri=url_for('login_google', _external=True)),
+        logout_url = url_for('logout')
+    )
 
 @login_manager.user_loader
 def load_user(id):
