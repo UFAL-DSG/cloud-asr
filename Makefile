@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
+IP=`ip addr show docker0 | grep -Po 'inet \K[\d.]+'`
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 FRONTEND_HOST_PORT=8000
 MONITOR_HOST_PORT=8001
