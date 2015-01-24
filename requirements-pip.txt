@@ -4,3 +4,4 @@ socketIO-client
 pyzmq
 protobuf
 grequests
+sqlalchemy
