@@ -1,3 +1,4 @@
+SHELL=/bin/bash
 IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 FRONTEND_HOST_PORT=8000
