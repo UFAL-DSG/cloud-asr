@@ -13,6 +13,7 @@ RUN git clone https://github.com/UFAL-DSG/pykaldi.git
 WORKDIR /app/pykaldi
 # PyKaldi tools.
 WORKDIR tools
+RUN git checkout 1a71ef6a1f1b6a228c72c3637410bb86daea0d5c
 RUN make atlas openfst
 # Compile the Kaldi src.
 WORKDIR ../src
