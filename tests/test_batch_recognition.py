@@ -1,12 +1,16 @@
 import os
+import json
+import time
 import urllib2
 import StringIO
 import unittest
-import json
 from jsonschema import validate
 
 
 class TestBatchRecognition(unittest.TestCase):
+
+    def setUp(self):
+        time.sleep(1)
 
     def test_batch_recognition(self):
         response = self.get_response_for_wav()

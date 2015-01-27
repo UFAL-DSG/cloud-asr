@@ -1,9 +1,10 @@
 import os
+import time
+import wave
+import struct
 import base64
 import urllib2
 import unittest
-import wave
-import struct
 from jsonschema import validate
 from socketIO_client import SocketIO
 
@@ -14,6 +15,7 @@ class TestOnlineRecognition(unittest.TestCase):
         self.socketIO = SocketIO('localhost', 8000)
         self.received_responses = 0
         self.expected_responses = 0
+        time.sleep(1)
 
     def test_online_recognition(self):
         self.socketIO.on('result', self.assertMessageHasCorrectSchema)
