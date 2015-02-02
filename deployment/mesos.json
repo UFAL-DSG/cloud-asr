@@ -1,5 +1,7 @@
 {
     "domain": "cloudasr.com",
+    "registry": "registry.hub.docker.io",
+    "tag": "latest",
     "marathon_url": "http://147.251.253.234:8080",
     "master_ip": "147.251.254.245",
     "workers": [

@@ -1,18 +1,19 @@
+import os
 import sys
 import json
 import requests
 
-def master_spec(domain, master_ip, registry):
+def master_spec(domain, master_ip, registry, tag):
     return {
         "id": "master",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-master:latest" % registry,
+                "image": "%s/ufaldsg/cloud-asr-master:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 5679, "hostPort": 31000},
-                    {"containerPort": 5680, "hostPort": 31001}
+                    {"containerPort": 5679, "hostPort": 31100},
+                    {"containerPort": 5680, "hostPort": 31101}
                 ]
             }
         },
@@ -22,24 +23,24 @@ def master_spec(domain, master_ip, registry):
         "env": {
             "WORKER_ADDR": "tcp://0.0.0.0:5679",
             "FRONTEND_ADDR": "tcp://0.0.0.0:5680",
-            "MONITOR_ADDR": "tcp://%s:31002" % master_ip
+            "MONITOR_ADDR": "tcp://%s:31102" % master_ip
         },
         "uris": [],
         "dependencies": ["/%s/monitor" % domain],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def monitor_spec(domain, master_ip, registry):
+def monitor_spec(domain, master_ip, registry, tag):
     return {
         "id": "monitor",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-monitor:latest" % registry,
+                "image": "%s/ufaldsg/cloud-asr-monitor:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 80, "hostPort": 31003},
-                    {"containerPort": 5681, "hostPort": 31002}
+                    {"containerPort": 80, "hostPort": 31103},
+                    {"containerPort": 5681, "hostPort": 31102}
                 ]
             }
         },
@@ -53,60 +54,64 @@ def monitor_spec(domain, master_ip, registry):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def annotation_interface_spec(domain, master_ip, registry):
+def annotation_interface_spec(domain, master_ip, registry, tag):
     return {
         "id": "annotation",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-annotation-interface:latest" % registry,
+                "image": "%s/ufaldsg/cloud-asr-annotation-interface:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 80, "hostPort": 31004},
-                    {"containerPort": 5682, "hostPort": 31005}
+                    {"containerPort": 80, "hostPort": 31104},
+                    {"containerPort": 5682, "hostPort": 31105}
                 ]
             },
             "volumes": [
-                {"containerPath": "/tmp/data", "hostPath": "/tmp/data", "mode": "RW"}
+                {"containerPath": "/opt/app/static/data", "hostPath": "/home/data", "mode": "RW"}
             ]
         },
         "instances": "1",
         "cpus": "0.25",
         "mem": "256",
+        "env": {
+	        "GOOGLE_LOGIN_CLIENT_ID": os.environ["CLOUDASR_GOOGLE_LOGIN_CLIENT_ID"],
+	        "GOOGLE_LOGIN_CLIENT_SECRET": os.environ["CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET"]
+        },
         "uris": [],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def frontend_spec(domain, master_ip, registry):
+def frontend_spec(domain, master_ip, registry, tag):
     return {
         "id": "demo",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%sufaldsg/cloud-asr-frontend:latest" % registry,
+                "image": "%s/ufaldsg/cloud-asr-frontend:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 0}
                 ]
             }
         },
-        "instances": "2",
+        "instances": "1",
         "cpus": "0.25",
         "mem": "256",
         "env": {
-            "MASTER_ADDR": "tcp://%s:31001" % master_ip,
+            "MASTER_ADDR": "tcp://%s:31101" % master_ip,
         },
         "uris": [],
         "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(domain, master_ip, image, model, instances):
+def worker_spec(domain, master_ip, image, model, instances, registry, tag):
     return {
         "id": imageToWorkerName(image),
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": image,
+                "image": "%s/%s:%s" % (registry, image, tag),
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 5678, "hostPort": 0}
@@ -117,8 +122,8 @@ def worker_spec(domain, master_ip, image, model, instances):
         "cpus": "0.25",
         "mem": "256",
         "env": {
-            "MASTER_ADDR": "tcp://%s:31000" % master_ip,
-            "RECORDINGS_SAVER_ADDR": "tcp://%s:31005" % master_ip,
+            "MASTER_ADDR": "tcp://%s:31100" % master_ip,
+            "RECORDINGS_SAVER_ADDR": "tcp://%s:31105" % master_ip,
             "MODEL": model
         },
         "uris": [],
@@ -136,17 +141,18 @@ def imageToWorkerName(image):
 def app_spec(config):
     domain = config["domain"]
     master_ip = config["master_ip"]
-    registry = config.get("registry", "")
+    registry = config.get("registry", "registry.hub.docker.io")
+    tag = config.get("tag", "latest")
 
     return {
         "id": domain,
         "apps": [
-            master_spec(domain, master_ip, registry),
-            monitor_spec(domain, master_ip, registry),
-            annotation_interface_spec(domain, master_ip, registry),
-            frontend_spec(domain, master_ip, registry),
+            master_spec(domain, master_ip, registry, tag),
+            monitor_spec(domain, master_ip, registry, tag),
+            annotation_interface_spec(domain, master_ip, registry, tag),
+            frontend_spec(domain, master_ip, registry, tag),
         ] + [
-            worker_spec(domain, master_ip, registry + worker["image"], worker["model"], worker["instances"]) for worker in config["workers"]
+            worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
         ]
     }
 
