@@ -25,7 +25,7 @@ def master_spec(domain, master_ip, registry, tag):
             "FRONTEND_ADDR": "tcp://0.0.0.0:5680",
             "MONITOR_ADDR": "tcp://%s:31102" % master_ip
         },
-        "uris": [],
+        "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/monitor" % domain],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
@@ -50,7 +50,7 @@ def monitor_spec(domain, master_ip, registry, tag):
         "env": {
             "MONITOR_ADDR": "tcp://0.0.0.0:5681"
         },
-        "uris": [],
+        "uris": ["/root/.dockercfg"],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
@@ -78,7 +78,7 @@ def annotation_interface_spec(domain, master_ip, registry, tag):
 	        "GOOGLE_LOGIN_CLIENT_ID": os.environ["CLOUDASR_GOOGLE_LOGIN_CLIENT_ID"],
 	        "GOOGLE_LOGIN_CLIENT_SECRET": os.environ["CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET"]
         },
-        "uris": [],
+        "uris": ["/root/.dockercfg"],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
@@ -101,7 +101,7 @@ def frontend_spec(domain, master_ip, registry, tag):
         "env": {
             "MASTER_ADDR": "tcp://%s:31101" % master_ip,
         },
-        "uris": [],
+        "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/master" % domain]
     }
 
@@ -126,7 +126,7 @@ def worker_spec(domain, master_ip, image, model, instances, registry, tag):
             "RECORDINGS_SAVER_ADDR": "tcp://%s:31105" % master_ip,
             "MODEL": model
         },
-        "uris": [],
+        "uris": ["/root/.dockercfg"],
         "dependencies": [
             "/%s/master" % domain,
             "/%s/annotation" % domain
