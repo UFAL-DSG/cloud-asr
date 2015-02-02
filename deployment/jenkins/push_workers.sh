@@ -2,14 +2,14 @@
 
 docker login -u "$DOCKER_USER" -p "$DOCKER_PASSWORD" -e "$DOCKER_EMAIL" $DOCKER_REGISTRY
 
-docker tag ufaldsg/worker_cs $DOCKER_REGISTRY/ufaldsg/worker_cs:$BUILD_NUMBER
-docker tag ufaldsg/worker_cs_alex $DOCKER_REGISTRY/ufaldsg/worker_cs_alex:$BUILD_NUMBER
-docker tag ufaldsg/worker_en_towninfo $DOCKER_REGISTRY/ufaldsg/worker_en_towninfo:$BUILD_NUMBER
-docker tag ufaldsg/worker_en_voxforge_wiki $DOCKER_REGISTRY/ufaldsg/worker_en_voxforge_wiki:$BUILD_NUMBER
-docker tag ufaldsg/worker_en_wiki $DOCKER_REGISTRY/ufaldsg/worker_en_wiki:$BUILD_NUMBER
+docker tag ufaldsg/cloud-asr-worker-cs $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-cs:$BUILD_NUMBER
+docker tag ufaldsg/cloud-asr-worker-cs-alex $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-cs-alex:$BUILD_NUMBER
+docker tag ufaldsg/cloud-asr-worker-en-towninfo $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-en-towninfo:$BUILD_NUMBER
+docker tag ufaldsg/cloud-asr-worker-en-voxforge_wiki $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-en-voxforge:$BUILD_NUMBER
+docker tag ufaldsg/cloud-asr-worker-en-wiki $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-en-wiki:$BUILD_NUMBER
 
-docker push $DOCKER_REGISTRY/ufaldsg/worker_cs:$BUILD_NUMBER
-docker push $DOCKER_REGISTRY/ufaldsg/worker_cs_alex:$BUILD_NUMBER
-docker push $DOCKER_REGISTRY/ufaldsg/worker_en_towninfo:$BUILD_NUMBER
-docker push $DOCKER_REGISTRY/ufaldsg/worker_en_voxforge_wiki:$BUILD_NUMBER
-docker push $DOCKER_REGISTRY/ufaldsg/worker_en_wiki:$BUILD_NUMBER
+docker push $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-cs:$BUILD_NUMBER
+docker push $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-cs-alex:$BUILD_NUMBER
+docker push $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-en-towninfo:$BUILD_NUMBER
+docker push $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-en-voxforge:$BUILD_NUMBER
+docker push $DOCKER_REGISTRY/ufaldsg/cloud-asr-worker-en-wiki:$BUILD_NUMBER
