@@ -2,7 +2,7 @@ FROM ufaldsg/cloud-asr-base
 
 MAINTAINER Ondrej Klejch
 
-RUN pip install flask flask-socketio gunicorn
+RUN pip install flask flask-socketio Werkzeug==0.9.6 gunicorn==19.1.1
 
 ADD . /opt/app
 WORKDIR /opt/app
