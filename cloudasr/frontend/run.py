@@ -3,7 +3,7 @@ from flask.ext.socketio import SocketIO, emit, session
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 import os
 app = Flask(__name__)
-app.secret_key = 12345
+app.secret_key = "12345"
 app.config['DEBUG'] = True
 socketio = SocketIO(app)
 
