@@ -60,7 +60,8 @@ ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
 	-p 5682:5682 \
 	-p 8002:80 \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
-	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET}
+	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
+	-v ${CURDIR}/../cloudasr/annotation_interface/static/data:/opt/app/static/data
 
 pull:
 	docker pull ufaldsg/cloud-asr-frontend
