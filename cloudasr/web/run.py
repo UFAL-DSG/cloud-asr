@@ -1,8 +1,8 @@
 import os
-from flask import Flask, flash, render_template, redirect, url_for
+from flask import Flask, flash, render_template, redirect, request, url_for
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
-from cloudasr.models import create_db_connection, UsersModel
+from cloudasr.models import create_db_connection, UsersModel, RecordingsModel
 
 
 app = Flask(__name__)
@@ -19,6 +19,7 @@ google_login = GoogleLogin(app, login_manager)
 
 db = create_db_connection(os.environ['CONNECTION_STRING'])
 users_model = UsersModel(db)
+recordings_model = RecordingsModel(db)
 
 @app.route('/')
 def index():
@@ -31,6 +32,30 @@ def demo():
 @app.route('/documentation')
 def documentation():
     return render_template('documentation.html')
+
+@app.route('/transcribe')
+def transcribe(id = None):
+    if id is None:
+        recording = recordings_model.get_random_recording()
+    else:
+        recording = recordings_model.get_recording(id)
+
+    return render_template('transcribe.html', recording=recording)
+
+@app.route('/save-transcription', methods=['POST'])
+def save_transcription():
+    flash('Recording was successfully transcribed')
+
+    recordings_model.add_transcription(
+        current_user,
+        request.form['id'],
+        request.form['transcription'],
+        'native_speaker' in request.form,
+        'offensive_language' in request.form,
+        'not_a_speech' in request.form
+    )
+
+    return redirect(url_for('transcribe'))
 
 @app.route('/login/google')
 @google_login.oauth2callback
