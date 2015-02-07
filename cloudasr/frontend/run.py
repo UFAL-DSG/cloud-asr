@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask.ext.socketio import SocketIO, emit, session
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 import os
@@ -7,10 +7,6 @@ app.secret_key = "12345"
 app.config['DEBUG'] = True
 socketio = SocketIO(app)
 
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route("/recognize", methods=['POST'])
 def recognize_batch():

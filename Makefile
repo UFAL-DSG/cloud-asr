@@ -43,6 +43,11 @@ WORKER_OPTS=--name worker \
 	-v ${CURDIR}/data:/tmp/data \
 	${WORKER_VOLUMES}
 
+WEB_VOLUMES=-v ${CURDIR}/cloudasr/web:/opt/app -v ${SHARED_VOLUME}
+WEB_OPTS=--name web \
+	-p 8004:80 \
+	${WEB_VOLUMES}
+
 FRONTEND_VOLUMES=-v ${CURDIR}/cloudasr/frontend:/opt/app -v ${SHARED_VOLUME}
 FRONTEND_OPTS=--name frontend \
 	-p ${FRONTEND_HOST_PORT}:80 \
@@ -77,6 +82,7 @@ ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
 
 build:
 	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
+	docker build -t ufaldsg/cloud-asr-web cloudasr/web
 	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
@@ -115,6 +121,7 @@ mysql_data:
 
 run_locally: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
+	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
@@ -126,6 +133,9 @@ run_mesos:
 
 run_worker:
 	docker run ${WORKER_OPTS} -i -t --rm ufaldsg/cloud-asr-worker
+
+run_web:
+	docker run ${WEB_OPTS} -i -t --rm ufaldsg/cloud-asr-frontend python run.py
 
 run_frontend:
 	docker run ${FRONTEND_OPTS} -i -t --rm ufaldsg/cloud-asr-frontend

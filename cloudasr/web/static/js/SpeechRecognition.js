@@ -1,6 +1,6 @@
 (function(window){
 
-    var SpeechRecognition = function() {
+    var SpeechRecognition = function(apiUrl) {
         this.continuous = true;
         this.interimResults = true;
         this.onstart = function() {};
@@ -11,7 +11,7 @@
 
         var recognizer = this;
         var recorder = createRecorder();
-        var socket = createSocket();
+        var socket = createSocket(apiUrl);
 
         this.start = function(model) {
             socket.emit('begin', {'model':model});
@@ -40,8 +40,8 @@
             recognizer.onend();
         };
 
-        function createSocket() {
-            socket = io.connect();
+        function createSocket(apiUrl) {
+            socket = io.connect(apiUrl);
 
             socket.on("connect", function() {
                 console.log("Socket connected");
