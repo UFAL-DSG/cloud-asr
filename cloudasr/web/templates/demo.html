@@ -1,130 +1,117 @@
-<!doctype html>
-<html>
-<head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/Recorder.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/SpeechRecognition.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/models.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% extends "layout.html" %}
 
-    <title>CloudASR Demo</title>
-</head>
-<body>
-    <div class="container">
-        <div class="page-header">
-            <div class="row">
-                <div class="span9">
-                    <h1>CloudASR <small>Dictate demo</small></h1>
-                </div>
-                <div class="span3 text-right">
-                    <a href="http://www.cloudasr.com" class="btn btn-info ">Visit our homepage</a>
-                </div>
-            </div>
-        </div>
+{% block body %}
 
-        <p class="text-center">
-            <a id="start_recording" class="btn"><img src="{{ url_for('static', filename='img/microphone.png') }}" /></a>
-            <a id="stop_recording" class="btn btn-danger" style="display: none"><img src="{{ url_for('static', filename='img/microphone_speech.png') }}" /></a>
-        </p>
+<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
+<script src="{{ url_for('static', filename='js/Recorder.js') }}"></script>
+<script src="{{ url_for('static', filename='js/SpeechRecognition.js') }}"></script>
+<script src="{{ url_for('static', filename='js/models.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-        <p id="start_recording_text" class="text-center lead">
-            Click on the microphone to <strong>record your speech</strong>.
-        </p>
+<h1>CloudASR <small>Dictate demo</small></h1>
 
-        <p id="stop_recording_text" class="text-center lead" style="display: none">
-            Click on the microphone to <strong>stop recording</strong>.
-        </p>
+<p class="text-center">
+    <a id="start_recording" class="btn"><img src="{{ url_for('static', filename='img/microphone.png') }}" /></a>
+    <a id="stop_recording" class="btn btn-danger" style="display: none"><img src="{{ url_for('static', filename='img/microphone_speech.png') }}" /></a>
+</p>
 
-        <div id="error" class="alert alert-danger text-center" role="alert" style="display: none"></div>
+<p id="start_recording_text" class="text-center lead">
+    Click on the microphone to <strong>record your speech</strong>.
+</p>
 
-        <div class="well">
-            <div id="result"></div>
-            <div class="text-right" style="color: #777; display: none"><small id="request_id"></small></div>
-        </div>
+<p id="stop_recording_text" class="text-center lead" style="display: none">
+    Click on the microphone to <strong>stop recording</strong>.
+</p>
 
-        <div class="text-center">
-            <select id="language-model" class="form-control span5"></select>
-        </div>
+<div id="error" class="alert alert-danger text-center" role="alert" style="display: none"></div>
 
-        <div class="well" style="margin-top: 20px">
-            <div id="en-voxforge" class="lang-description">
-                <p><strong>English (Voxforge AM+Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
+<div class="well well-lg">
+    <div id="result"></div>
+    <div class="text-right" style="color: #777; display: none"><small id="request_id"></small></div>
+</div>
 
-                <ul>
-                    <li>Who was the first president of the United States?</li>
-                    <li>I live in the Czech Republic.</li>
-                    <li>Who was that?</li>
-                </ul>
-            </div>
-
-            <div id="en-wiki" class="lang-description" style="display:none">
-                <p><strong>English (TED AM+Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
-
-                <ul>
-                    <li>Who was the first president of the United States?</li>
-                    <li>I live in the Czech Republic.</li>
-                    <li>Who was that?</li>
-                </ul>
-            </div>
-
-            <div id="en-towninfo" class="lang-description" style="display:none">
-                <p>
-                    <strong>English (VYSTADIAL TownInfo AM+LM)</strong> - town information domain specific model.
-                    The model is based on free data <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4671-4" rel="noreferrer">Vystadial 2013 – English data</a>.
-                    You can try sentences like:
-                </p>
-
-                <ul>
-                    <li>I am looking for a cheap Chinese restaurant.</li>
-                    <li>I am looking for a fast food.</li>
-                    <li>I am looking for a bar.</li>
-                </ul>
-            </div>
-
-            <div id="cs" class="lang-description" style="display:none">
-                <p><strong>Czech (VYSTADIAL AM + Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
-
-                <ul>
-                    <li>Praha je hlavní město České Republiky.</li>
-                    <li>Bydlím v Praze.</li>
-                    <li>Bedřich Smetana je slavný český skladatel.</li>
-                </ul>
-            </div>
-
-            <div id="cs-alex" class="lang-description" style="display:none">
-                <p>
-                    <strong>Czech (VYSTADIAL AM + PTIcs LM)</strong> - public transport domain specific model.
-                    The model is based on free data <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4670-6" rel="noreferrer">Vystadial 2013 – Czech data</a>.
-                    You can try sentences like these:
-                </p>
-
-                <ul>
-                    <li>Chtěl bych jet z Anděla na Malostranskou.</li>
-                    <li>Jak se dostanu z Prahy do Brna?</li>
-                    <li>V kolik hodin mi to jede?</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="well" style="margin-top: 20px">
-            <h4>Privacy &amp; Terms</h4>
-            <p>
-                All data, including audio recording, is stored for the purpose of ASR quality improvement.
-                Note that the data can be shared with third parties for both research and commercial purposes.
-                All collected data will be made available to the ASR community;
-                    therefore, do not say anything you do not want anyone to know about.
-            </p>
-
-            <p>
-                The service is available for free.
-                As a result, no guarantees are given regarding the quality of ASR results.
-                As of now, it is a beta product; thus,
-                    things may break and the service may not be available for large periods of time.
-            </p>
-        </div>
+<div class="row">
+    <div class="col-lg-4 col-lg-offset-4">
+        <select id="language-model" class="form-control"></select>
     </div>
-</body>
-</html>
+</div>
+
+<div class="well" style="margin-top: 20px">
+    <div id="en-voxforge" class="lang-description">
+        <p><strong>English (Voxforge AM+Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
+
+        <ul>
+            <li>Who was the first president of the United States?</li>
+            <li>I live in the Czech Republic.</li>
+            <li>Who was that?</li>
+        </ul>
+    </div>
+
+    <div id="en-wiki" class="lang-description" style="display:none">
+        <p><strong>English (TED AM+Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
+
+        <ul>
+            <li>Who was the first president of the United States?</li>
+            <li>I live in the Czech Republic.</li>
+            <li>Who was that?</li>
+        </ul>
+    </div>
+
+    <div id="en-towninfo" class="lang-description" style="display:none">
+        <p>
+            <strong>English (VYSTADIAL TownInfo AM+LM)</strong> - town information domain specific model.
+            The model is based on free data <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4671-4" rel="noreferrer">Vystadial 2013 – English data</a>.
+            You can try sentences like:
+        </p>
+
+        <ul>
+            <li>I am looking for a cheap Chinese restaurant.</li>
+            <li>I am looking for a fast food.</li>
+            <li>I am looking for a bar.</li>
+        </ul>
+    </div>
+
+    <div id="cs" class="lang-description" style="display:none">
+        <p><strong>Czech (VYSTADIAL AM + Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
+
+        <ul>
+            <li>Praha je hlavní město České Republiky.</li>
+            <li>Bydlím v Praze.</li>
+            <li>Bedřich Smetana je slavný český skladatel.</li>
+        </ul>
+    </div>
+
+    <div id="cs-alex" class="lang-description" style="display:none">
+        <p>
+            <strong>Czech (VYSTADIAL AM + PTIcs LM)</strong> - public transport domain specific model.
+            The model is based on free data <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4670-6" rel="noreferrer">Vystadial 2013 – Czech data</a>.
+            You can try sentences like these:
+        </p>
+
+        <ul>
+            <li>Chtěl bych jet z Anděla na Malostranskou.</li>
+            <li>Jak se dostanu z Prahy do Brna?</li>
+            <li>V kolik hodin mi to jede?</li>
+        </ul>
+    </div>
+</div>
+
+<div class="well" style="margin-top: 20px">
+    <h4>Privacy &amp; Terms</h4>
+    <p>
+        All data, including audio recording, is stored for the purpose of ASR quality improvement.
+        Note that the data can be shared with third parties for both research and commercial purposes.
+        All collected data will be made available to the ASR community;
+            therefore, do not say anything you do not want anyone to know about.
+    </p>
+
+    <p>
+        The service is available for free.
+        As a result, no guarantees are given regarding the quality of ASR results.
+        As of now, it is a beta product; thus,
+            things may break and the service may not be available for large periods of time.
+    </p>
+</div>
+
+{% endblock %}

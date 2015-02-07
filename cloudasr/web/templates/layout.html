@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap-theme.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>CloudASR Annotation Interface</title>
+</head>
+<body>
+    <div class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <div class="navbar-header">
+                <a href="/" class="navbar-brand">CloudASR</a>
+            </div>
+
+            <ul class="nav navbar-nav">
+                <li><a href="/demo">Demo</a></li>
+                <li><a href="/documentation">Documentation</a></li>
+                <li><a href="https://github.com/UFAL-DSG/cloud-asr">View on GitHub</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        {% block body %}{% endblock %}
+    </div>
+</body>
+</html>

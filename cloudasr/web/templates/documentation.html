@@ -1,0 +1,255 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<h1>CloudASR <small>Documentation</small></h1>
+
+
+<h3>
+    <a id="installation" href="#installation"></a>Installation
+</h3>
+
+<p>
+    In order to be able to run CloudASR Docker has to be installed on the host machine.
+    You can follow the instructions for your distribution at <a href="http://docs.docker.com/installation/">http://docs.docker.com/installation/</a>.
+    Additionally it is necessary to download docker images.
+    You can do that by typing <code>make pull</code> - be aware that the images has several GBs.
+</p>
+
+<h3>
+    <a id="running-the-demo-locally" href="#running-the-demo-locally"></a>Running the demo locally
+</h3>
+
+<p>
+    Just type <code>make run_locally</code> and everything will be running in a while.
+    You can open <a href="http://localhost:8001">http://localhost:8001</a> to see which workers are running.
+    Additionally, you can open <a href="http://localhost:8000">http://localhost:8000</a> and try out our interactive web demo.
+</p>
+
+<h3>
+    <a id="running-the-demo-on-mesos-cluster" href="#running-the-demo-on-mesos-cluster"></a>Running the demo on Mesos cluster
+</h3>
+
+<p>
+    In order to be able to run the demo on Mesos cluster, you have to update <code>marathon_url</code> and <code>master_ip</code> in the <code>mesos.json</code> configuration:
+</p>
+
+<pre>
+{
+    "domain": "cloudasr.com",
+    "marathon_url": "localhost:8080",
+    "master_ip": "127.0.0.1 - IP of the mesos-slave where the CloudASR master should run",
+    "workers": [
+        {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-en-wiki", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-cs", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-cs-alex", "instances": 1}
+    ]
+}
+</pre>
+
+<div class="bs-callout bs-callout-default">
+    <p>
+        Note that the suffix of the worker image name corresponds to <code>lang</code> parameter used in Batch and Online APIs.
+        For <code>example ufaldsg/cloud-asr-worker-en</code> will handle requests with parameter <code>lang=en</code>.
+    </p>
+</div>
+
+<p>
+    After that you can type <code>make run_mesos</code> and you should see running instances in the Marathon console in a while.
+    After that you should start a load-balancer on a server associated with the domain specified in the <code>mesos.json</code>. You can do that by typing:
+</p>
+
+<pre>docker run -p 80:80 -e MARATHON_URL=localhost:8080 -d choko/haproxy</pre>
+
+<p>
+    After that you should be able to see the demo page on <a href="http://demo.cloudasr.com">http://demo.cloudasr.com</a> and the monitor page on <a href="http://monitor.cloudasr.com">http://monitor.cloudasr.com</a>.
+</p>
+
+<h2>
+    <a id="how-to-use-cloudasr" href="#how-to-use-cloudasr"></a>How to use CloudASR
+</h2>
+
+<p>
+    CloudASR provides two modes of speech recognition: online recognition and batch recognition.
+    In the following text we will describe how you can use them.
+</p>
+
+<h3>
+    <a id="batch-api" href="#batch-api"></a>Batch API
+</h3>
+
+<p>
+    Batch API is compatible with Google Speech API, but it supports only wav files and json output at this moment.
+    Users can use parameter <code>lang</code> to specify which language they want to use for speech recognition.
+    These language models are available now:
+</p>
+
+<ul>
+    <li>
+        <strong>en-towninfo</strong> - English (VYSTADIAL TownInfo AM+LM)
+    </li>
+    <li>
+        <strong>en-wiki</strong> - English (TED AM+Wikipedia LM)
+    </li>
+    <li>
+        <strong>cs</strong> - Czech (VYSTADIAL AM + Wikipedia LM)
+    </li>
+    <li>
+        <strong>cs-alex</strong> - Czech (VYSTADIAL AM + PTIcs LM)
+    </li>
+</ul>
+
+<p>
+    If you want to transcribe english speech in a <code>recording.wav</code> file you can send following curl request:
+</p>
+
+<pre>curl -X POST --data-binary @recording.wav --header 'Content-Type: audio/x-wav; rate=16000;' 'http://localhost:8000/recognize?lang=en-towninfo'</pre>
+
+<p>
+    and you should get a response similiar to this:
+</p>
+
+<pre>{
+  "result": [
+    {
+      "alternative": [
+        {
+          "confidence": 0.5549500584602356,
+          "transcript": "I'M LOOKING FOR A BAR"
+        },
+        {
+          "confidence": 0.14846260845661163,
+          "transcript": "I AM LOOKING FOR A BAR"
+        },
+        {
+          "confidence": 0.08276544511318207,
+          "transcript": "I'M LOOKING FOR A RESTAURANT"
+        },
+        {
+          "confidence": 0.06668572872877121,
+          "transcript": "I AM LOOKING FOR A RESTAURANT"
+        }
+      ],
+      "final": true
+    }
+  ],
+  "result_index": 0
+}</pre>
+
+<h3>
+    <a id="online-api" href="#online-api"></a>Online API
+</h3>
+
+<p>
+    Online API uses Sockets.io for transfering PCM chunks to the CloudASR server.
+    Messages have following format:
+</p>
+
+<h4>
+    <a id="from-client-to-server" href="#from-client-to-server"></a>From Client to Server
+</h4>
+
+<ul>
+    <li>
+        First we have to start recognition by sending information about used language.
+        <pre>socketio.emit('begin', {'lang': 'en-GB'})</pre>
+    </li>
+    <li>
+        After that we can send PCM chunks to the server. Every chunk is a 16 bit PCM array.
+        <pre>socketio.emit('chunk',  {'chunk': [128, 123, 15,..., 25], 'frame_rate': 16000})</pre>
+    </li>
+    <li>
+        Finally we end the recognition by sending following message
+        <pre>socketio.emit('end', {})</pre>
+    </li>
+</ul>
+
+<h4>
+    <a id="from-server-to-client" href="#from-server-to-client"></a>From Server to Client
+</h4>
+
+<p>
+    Server responds to every chunk with a message with interim results:
+</p>
+
+<pre>{
+    "status": 0,
+    "final": false,
+    "result": {
+        "hypotheses": [
+            {"transcript": "I AM LOOKING"}
+        ]
+    }
+}</pre>
+
+<p>
+    At the end of the recognition server sends final hypothesis in the following format:
+</p>
+
+<pre>{
+    "result": [
+        {
+            "alternative": [
+                {"confidence": 0.5364137887954712, "transcript": "I AM LOOKING FOR A MY"},
+                {"confidence": 0.46358612179756165, "transcript": "I'M LOOKING FOR A MY"}
+            ],
+            "final": true
+        }
+    ],
+    "result_index": 0
+}</pre>
+
+<div class="bs-callout bs-callout-default">
+    <p>Note that the Online API will switch from SocketsIO to binary Websockets to decrease the traffic in the near future.</p>
+</div>
+
+<h4>
+    <a id="using-cloudasrs-speechrecognitionjs-library" href="#using-cloudasrs-speechrecognitionjs-library"></a>Using CloudASR's SpeechRecognition.js library
+</h4>
+
+<p>
+    If you want to use speech recegnition on your website, you can use our javascript library. Please add these scripts to your html:
+</p>
+
+<pre>
+&lt;script src="http://demo.cloudasr.com/js/socket.io.js"&gt;&lt;/script&gt;
+&lt;script src="http://demo.cloudasr.com/js/Recorder.js"&gt;&lt;/script&gt;
+&lt;script src="http://demo.cloudasr.com/js/SpeechRecognition.js'"&gt;&lt;/script&gt;
+</pre>
+
+<p>
+    Then you can use SpeechRecognition in following manner:
+</p>
+
+<pre>var speechRecognition = new SpeechRecognition();
+speechRecognition.onStart = function() {
+    console.log("Recognition started");
+}
+
+speechRecognition.onEnd = function() {
+    console.log("Recognition ended");
+}
+
+speechRecognition.onError = function(error) {
+    console.log("Error occured: " + error);
+}
+
+speechRecognition.onResult = function(result) {
+    console.log(result);
+}
+
+var lang = "en-wiki";
+$("#button_start").click(function() {
+    speechRecognition.start(lang);
+});
+
+$("#button_stop").click(function() {
+    speechRecognition.stop()
+});
+</pre>
+
+<p>
+    You can also take a look at source code of our demo page
+    (<a href="https://github.com/UFAL-DSG/cloud-asr/blob/master/cloudasr/frontend/templates/index.html">index.html</a>, <a href="https://github.com/UFAL-DSG/cloud-asr/blob/master/cloudasr/frontend/static/js/main.js">main.js</a>).
+</p>
+{% endblock %}
