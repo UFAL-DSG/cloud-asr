@@ -22,8 +22,8 @@ google_login = GoogleLogin(app, login_manager)
 
 db = create_db_connection(os.environ['CONNECTION_STRING'])
 users_model = UsersModel(db)
-recordings_model = RecordingsModel("/opt/app/static/data", db)
-saver = create_recordings_saver("tcp://0.0.0.0:5682", "/opt/app/static/data", recordings_model)
+recordings_model = RecordingsModel(db, os.environ['STORAGE_PATH'], os.environ['DOMAIN'])
+saver = create_recordings_saver("tcp://0.0.0.0:5682", recordings_model)
 
 
 @app.route('/')
