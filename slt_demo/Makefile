@@ -1,4 +1,10 @@
 IP=`ifconfig docker0 | sed -n 's/addr://g;s/.*inet \([^ ]*\) .*/\1/p'`
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_USER=cloudasr
+MYSQL_PASSWORD=cloudasr
+MYSQL_DATABASE=cloudasr
+MYSQL_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql`
+MYSQL_CONNECTION_STRING=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_IP}/${MYSQL_DATABASE}
 
 MONITOR_OPTS=--name monitor \
 	-p 8001:80 \
@@ -59,11 +65,20 @@ WORKER_CS_ALEX_OPTS=--name worker_cs_alex \
 ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
 	-p 5682:5682 \
 	-p 8002:80 \
+	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
 	-v ${CURDIR}/../cloudasr/annotation_interface/static/data:/opt/app/static/data
 
+MYSQL_OPTS=--name mysql \
+	-e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
+	-e MYSQL_USER=${MYSQL_USER} \
+	-e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
+	-e MYSQL_DATABASE=${MYSQL_DATABASE} \
+	-v ${CURDIR}/mysql_data:/var/lib/mysql
+
 pull:
+	docker pull mysql
 	docker pull ufaldsg/cloud-asr-frontend
 	docker pull ufaldsg/cloud-asr-worker-en-towninfo
 	docker pull ufaldsg/cloud-asr-worker-en-wiki
@@ -74,7 +89,13 @@ pull:
 	docker pull ufaldsg/cloud-asr-monitor
 	docker pull ufaldsg/cloud-asr-annotation-interface
 
-run_locally:
+mysql_data:
+	echo "PREPARING MySQL DATABASE"
+	docker run ${MYSQL_OPTS} -d mysql
+	docker stop mysql && docker rm mysql
+
+run_locally: mysql_data
+	docker run ${MYSQL_OPTS} -d mysql
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
 	docker run ${WORKER_EN_OPTS} -d ufaldsg/cloud-asr-worker-en-towninfo
 	docker run ${WORKER_EN_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-wiki
@@ -89,6 +110,6 @@ run_mesos:
 	python ${CURDIR}/../deployment/run_on_mesos.py ${CURDIR}/mesos.json
 
 stop:
-	docker kill frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface
-	docker rm frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface
+	docker kill frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
+	docker rm frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
 

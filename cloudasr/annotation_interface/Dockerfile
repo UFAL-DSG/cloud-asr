@@ -2,8 +2,8 @@ FROM ufaldsg/cloud-asr-base
 
 MAINTAINER Ondrej Klejch
 
-RUN apt-get install sqlite3
-RUN pip install flask flask-socketio flask-login flask-googlelogin sqlalchemy Werkzeug==0.9.6
+RUN apt-get install -y libmysqlclient-dev
+RUN pip install flask flask-socketio flask-login flask-googlelogin sqlalchemy MySQL-python Werkzeug==0.9.6
 
 ADD . /opt/app
 WORKDIR /opt/app

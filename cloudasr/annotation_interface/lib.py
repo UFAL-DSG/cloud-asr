@@ -19,8 +19,8 @@ def create_recordings_saver(address, path, model):
 
     return RecordingsSaver(create_socket, model, run_forever)
 
-def create_db_connection(path):
-    return create_db_session(path)
+def create_db_connection(connection_string):
+    return create_db_session(connection_string)
 
 
 class RecordingsSaver:

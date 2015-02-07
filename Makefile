@@ -15,6 +15,12 @@ MASTER_TO_FRONTEND_ADDR=tcp://${IP}:${MASTER_TO_FRONTEND_PORT}
 RECORDINGS_SAVER_HOST_PORT=5682
 RECORDINGS_SAVER_GUEST_PORT=5682
 RECORDINGS_SAVER_ADDR=tcp://${IP}:${RECORDINGS_SAVER_HOST_PORT}
+MYSQL_ROOT_PASSWORD=123456
+MYSQL_USER=cloudasr
+MYSQL_PASSWORD=cloudasr
+MYSQL_DATABASE=cloudasr
+MYSQL_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql`
+MYSQL_CONNECTION_STRING=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_IP}/${MYSQL_DATABASE}
 
 SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-packages/cloudasr
 MASTER_VOLUMES=-v ${CURDIR}/cloudasr/master:/opt/app -v ${SHARED_VOLUME}
@@ -50,12 +56,21 @@ MONITOR_OPTS=--name monitor \
 	-e MONITOR_ADDR=tcp://0.0.0.0:${MONITOR_STATUS_PORT} \
 	${MONITOR_VOLUMES}
 
+MYSQL_OPTS=--name mysql \
+	-e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
+	-e MYSQL_USER=${MYSQL_USER} \
+	-e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
+	-e MYSQL_DATABASE=${MYSQL_DATABASE} \
+	-v ${CURDIR}/mysql_data:/var/lib/mysql
+
 ANNOTATION_INTERFACE_VOLUMES=-v ${CURDIR}/cloudasr/annotation_interface:/opt/app \
 	-v ${CURDIR}/cloudasr/annotation_interface/static/data:/opt/app/static/data \
 	-v ${SHARED_VOLUME}
 ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
+	--link mysql:mysql \
 	-p ${RECORDINGS_SAVER_HOST_PORT}:${RECORDINGS_SAVER_GUEST_PORT} \
 	-p ${ANNOTATION_INTERFACE_HOST_PORT}:80 \
+	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
 	${ANNOTATION_INTERFACE_VOLUMES}
@@ -86,13 +101,20 @@ build_local:
 	rm -rf cloudasr/annotation_interface/cloudasr
 
 pull:
+	docker pull mysql
 	docker pull ufaldsg/cloud-asr-frontend
 	docker pull ufaldsg/cloud-asr-worker
 	docker pull ufaldsg/cloud-asr-master
 	docker pull ufaldsg/cloud-asr-monitor
 	docker pull ufaldsg/cloud-asr-annotation-interface
 
-run_locally:
+mysql_data:
+	echo "PREPARING MySQL DATABASE"
+	docker run ${MYSQL_OPTS} -d mysql
+	docker stop mysql && docker rm mysql
+
+run_locally: mysql_data
+	docker run ${MYSQL_OPTS} -d mysql
 	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
@@ -114,9 +136,12 @@ run_master:
 run_monitor:
 	docker run ${MONITOR_OPTS} -i -t --rm ufaldsg/cloud-asr-monitor
 
+run_annotation_interface:
+	docker run ${ANNOTATION_INTERFACE_OPTS} -i -t --rm ufaldsg/cloud-asr-annotation-interface
+
 stop:
-	docker kill frontend worker master monitor annotation_interface
-	docker rm frontend worker master monitor annotation_interface
+	docker kill frontend worker master monitor annotation_interface mysql
+	docker rm frontend worker master monitor annotation_interface mysql
 
 unit-test:
 	nosetests cloudasr/shared

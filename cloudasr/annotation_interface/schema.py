@@ -1,14 +1,15 @@
 import random
 import struct
 import datetime
-from sqlalchemy import Column, String, Integer, Float, DateTime, Boolean, ForeignKey, create_engine, types
+from sqlalchemy import Column, String, Text, Integer, Float, DateTime, Boolean, ForeignKey, create_engine, types
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.mysql.base import MSBinary
 
 Base = declarative_base()
 
 class UUID(types.TypeDecorator):
-    impl = types.Binary
+    impl = MSBinary
 
     def __init__(self):
         self.impl.length = 16
@@ -36,9 +37,9 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(UUID, primary_key = True)
-    email = Column(String)
-    name = Column(String)
-    avatar = Column(String)
+    email = Column(String(128))
+    name = Column(String(128))
+    avatar = Column(String(128))
     transcriptions = relationship('Transcription', backref="user")
 
     def is_authenticated(self):
@@ -58,9 +59,9 @@ class Recording(Base):
     __tablename__ = 'recording'
 
     id = Column(UUID, primary_key = True)
-    model = Column(String)
-    path = Column(String)
-    url = Column(String)
+    model = Column(String(128))
+    path = Column(String(128))
+    url = Column(String(128))
     score = Column(Float)
     rand_score = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
@@ -77,7 +78,7 @@ class Hypothesis(Base):
 
     id = Column(Integer, primary_key = True)
     recording_id = Column(UUID, ForeignKey('recording.id'))
-    text = Column(String)
+    text = Column(Text)
     confidence = Column(Float)
 
 
@@ -87,7 +88,7 @@ class Transcription(Base):
     id = Column(Integer, primary_key = True)
     recording_id = Column(UUID, ForeignKey('recording.id'))
     user_id = Column(UUID, ForeignKey('user.id'), nullable = True)
-    text = Column(String)
+    text = Column(Text)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     has_been_played = Column(Boolean)
     native_speaker = Column(Boolean)
@@ -95,8 +96,8 @@ class Transcription(Base):
     not_a_speech = Column(Boolean)
 
 
-def create_db_session(path):
-    engine = create_engine('sqlite:///%s' % path)
+def create_db_session(connection_string):
+    engine = create_engine(connection_string)
     Session = sessionmaker(bind=engine)
     session = Session()
     Base.metadata.create_all(engine)

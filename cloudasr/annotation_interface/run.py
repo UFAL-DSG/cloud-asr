@@ -20,7 +20,7 @@ socketio = SocketIO(app)
 login_manager = LoginManager(app)
 google_login = GoogleLogin(app, login_manager)
 
-db = create_db_connection("db")
+db = create_db_connection(os.environ['CONNECTION_STRING'])
 users_model = UsersModel(db)
 recordings_model = RecordingsModel("/opt/app/static/data", db)
 saver = create_recordings_saver("tcp://0.0.0.0:5682", "/opt/app/static/data", recordings_model)
