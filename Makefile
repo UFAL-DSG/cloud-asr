@@ -20,7 +20,7 @@ MYSQL_USER=cloudasr
 MYSQL_PASSWORD=cloudasr
 MYSQL_DATABASE=cloudasr
 MYSQL_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql`
-MYSQL_CONNECTION_STRING=mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_IP}/${MYSQL_DATABASE}
+MYSQL_CONNECTION_STRING="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_IP}/${MYSQL_DATABASE}?charset=utf8"
 
 SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-packages/cloudasr
 MASTER_VOLUMES=-v ${CURDIR}/cloudasr/master:/opt/app -v ${SHARED_VOLUME}
@@ -66,7 +66,8 @@ MYSQL_OPTS=--name mysql \
 	-e MYSQL_USER=${MYSQL_USER} \
 	-e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
 	-e MYSQL_DATABASE=${MYSQL_DATABASE} \
-	-v ${CURDIR}/mysql_data:/var/lib/mysql
+	-v ${CURDIR}/mysql_data:/var/lib/mysql \
+	-v ${CURDIR}/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf
 
 ANNOTATION_INTERFACE_VOLUMES=-v ${CURDIR}/cloudasr/annotation_interface:/opt/app \
 	-v ${CURDIR}/cloudasr/annotation_interface/static/data:/opt/app/static/data \
