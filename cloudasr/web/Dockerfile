@@ -2,8 +2,9 @@ FROM ufaldsg/cloud-asr-base
 
 MAINTAINER Ondrej Klejch
 
-RUN pip install flask flask-socketio Werkzeug==0.9.6 gunicorn==19.1.1
+RUN apt-get install -y libmysqlclient-dev
+RUN pip install flask flask-login flask-googlelogin sqlalchemy MySQL-python Werkzeug==0.9.6 gunicorn==19.1.1
 
 ADD . /opt/app
 WORKDIR /opt/app
-CMD while true; do gunicorn -c gunicorn_config.py run:app; done
+CMD while true; do python run.py; done

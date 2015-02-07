@@ -46,6 +46,9 @@ WORKER_OPTS=--name worker \
 WEB_VOLUMES=-v ${CURDIR}/cloudasr/web:/opt/app -v ${SHARED_VOLUME}
 WEB_OPTS=--name web \
 	-p 8004:80 \
+	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
+	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
+	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
 	${WEB_VOLUMES}
 
 FRONTEND_VOLUMES=-v ${CURDIR}/cloudasr/frontend:/opt/app -v ${SHARED_VOLUME}
@@ -136,7 +139,7 @@ run_worker:
 	docker run ${WORKER_OPTS} -i -t --rm ufaldsg/cloud-asr-worker
 
 run_web:
-	docker run ${WEB_OPTS} -i -t --rm ufaldsg/cloud-asr-frontend python run.py
+	docker run ${WEB_OPTS} -i -t --rm ufaldsg/cloud-asr-web python run.py
 
 run_frontend:
 	docker run ${FRONTEND_OPTS} -i -t --rm ufaldsg/cloud-asr-frontend
@@ -151,8 +154,8 @@ run_annotation_interface:
 	docker run ${ANNOTATION_INTERFACE_OPTS} -i -t --rm ufaldsg/cloud-asr-annotation-interface
 
 stop:
-	docker kill frontend worker master monitor annotation_interface mysql
-	docker rm frontend worker master monitor annotation_interface mysql
+	docker kill frontend worker master monitor annotation_interface mysql web
+	docker rm frontend worker master monitor annotation_interface mysql web
 
 unit-test:
 	nosetests cloudasr/shared

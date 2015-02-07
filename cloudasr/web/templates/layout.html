@@ -19,6 +19,17 @@
                 <li><a href="/documentation">Documentation</a></li>
                 <li><a href="https://github.com/UFAL-DSG/cloud-asr">View on GitHub</a></li>
             </ul>
+
+            {% if current_user.is_authenticated() %}
+                <div class="navbar-right">
+                    <p class="navbar-text">
+                        You're logged in as {{ current_user.name }}
+                    </p>
+                    <a href="{{ logout_url }}" class="btn btn-default navbar-btn">Logout</a>
+                </div>
+            {% else %}
+                <a href="{{ google_login_url }}" class="btn btn-default navbar-btn navbar-right">Login with Google+</a>
+            {% endif %}
         </div>
     </div>
 
