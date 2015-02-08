@@ -1,9 +1,9 @@
 <!doctype html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap-theme.min.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 
     <title>CloudASR Annotation Interface</title>
 </head>
@@ -26,7 +26,9 @@
                     <p class="navbar-text">
                         You're logged in as {{ current_user.name }}
                     </p>
-                    <a href="{{ logout_url }}" class="btn btn-default navbar-btn">Logout</a>
+                    <a href="{{ logout_url }}" class="btn btn-default navbar-btn">
+                        <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>
+                    </a>
                 </div>
             {% else %}
                 <a href="{{ google_login_url }}" class="btn btn-default navbar-btn navbar-right">Login with Google+</a>
