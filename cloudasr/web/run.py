@@ -33,12 +33,13 @@ def demo():
 def documentation():
     return render_template('documentation.html')
 
-@app.route('/transcribe')
-def transcribe(id = None):
-    if id is None:
-        recording = recordings_model.get_random_recording()
-    else:
-        recording = recordings_model.get_recording(id)
+@app.route('/models')
+def models():
+    return render_template('models.html', models=recordings_model.get_models())
+
+@app.route('/transcribe/<model>')
+def transcribe(model):
+    recording = recordings_model.get_random_recording(model)
 
     return render_template('transcribe.html', recording=recording)
 

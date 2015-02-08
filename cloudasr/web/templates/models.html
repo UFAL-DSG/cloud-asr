@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th class="col-md-6">Model</th>
+            <th class="col-md-6">Recordings</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for model in models %}
+            <tr>
+                <td><a href="{{ url_for('transcribe', model=model["model"]) }}">{{ model["model"] }}<a/></td>
+                <td>{{ model["count"] }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

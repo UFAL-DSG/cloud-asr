@@ -28,9 +28,10 @@ class RecordingsModel:
     def get_recording(self, id):
         return self.db.query(Recording).get(int(id))
 
-    def get_random_recording(self):
+    def get_random_recording(self, model):
         from sqlalchemy import func
         return self.db.query(Recording) \
+            .filter(Recording.model == model) \
             .order_by(Recording.rand_score) \
             .limit(1) \
             .one()
