@@ -27,7 +27,7 @@ def index():
 
 @app.route('/demo')
 def demo():
-    return render_template('demo.html')
+    return render_template('demo.html', api_url = os.environ['API_URL'])
 
 @app.route('/documentation')
 def documentation():

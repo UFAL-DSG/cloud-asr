@@ -1,7 +1,7 @@
 var lastResult;
 
 $(document).ready(function() {
-    var speechRecognition = new SpeechRecognition("http://localhost:8000");
+    var speechRecognition = new SpeechRecognition(apiUrl);
     var $result = $('#result');
 
     speechRecognition.onresult = function(result) {
