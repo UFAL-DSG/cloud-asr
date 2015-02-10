@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Recent recordings for model: {{ model }}</h2>
+
+{% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th class="col-md-3">ID</th>
+            <th class="col-md-5">Hypothesis</th>
+            <th class="col-md-3"></th>
+            <th class="col-md-1"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for recording in recordings %}
+            <tr>
+                <td class="col-md-3">{{ recording["id"] }}</td>
+                <td>{{ recording["hypotheses"][0]["text"] }}</td>
+                <td class="col-md-3"><audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio></td>
+                <td>
+                    <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
+                    <a href="{{ url_for('transcriptions', id=recording["id"]) }}">transcriptions</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

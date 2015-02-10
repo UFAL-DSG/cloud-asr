@@ -1,8 +1,8 @@
 import os
-from flask import Flask, flash, render_template, redirect, request, url_for
+from flask import Flask, flash, render_template, redirect, request, url_for, session
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
-from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, Identity, identity_loaded, identity_changed
+from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
 from cloudasr.models import create_db_connection, UsersModel, RecordingsModel
 
 
@@ -42,10 +42,17 @@ def models():
     return render_template('models.html', models=recordings_model.get_models())
 
 @app.route('/transcribe/<model>')
-def transcribe(model):
-    recording = recordings_model.get_random_recording(model)
+@app.route('/transcribe/<int:id>')
+def transcribe(id = None, model = None):
+    if id is not None:
+        recording = recordings_model.get_recording(id)
+        backlink = url_for('recordings', model = recording.model)
 
-    return render_template('transcribe.html', recording=recording)
+    if model is not None:
+        recording = recordings_model.get_random_recording(model)
+        backlink = url_for('transcribe', model = recording.model)
+
+    return render_template('transcribe.html', recording=recording, backlink=backlink)
 
 @app.route('/save-transcription', methods=['POST'])
 def save_transcription():
@@ -60,7 +67,18 @@ def save_transcription():
         'not_a_speech' in request.form
     )
 
-    return redirect(url_for('transcribe'))
+    return redirect(request.form['backlink'])
+
+@app.route('/recordings/<model>')
+@admin_permission.require()
+def recordings(model):
+    return render_template('recordings.html', recordings=recordings_model.get_recordings(model), model=model)
+
+
+@app.route('/transcriptions/<id>')
+@admin_permission.require()
+def transcriptions(id):
+    return render_template('transcriptions.html', recording=recordings_model.get_recording(id))
 
 @app.route('/login/google')
 @google_login.oauth2callback
@@ -76,6 +94,11 @@ def login_google(token, userinfo, **params):
 @login_required
 def logout():
     logout_user()
+
+    for key in ['identity.name', 'identity.auth_type']:
+        session.pop(key, None)
+    identity_changed.send(app, identity=AnonymousIdentity())
+
     return redirect(url_for('index'))
 
 @app.context_processor
