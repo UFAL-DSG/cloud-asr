@@ -41,6 +41,7 @@ class User(Base):
     name = Column(String(128))
     avatar = Column(String(128))
     transcriptions = relationship('Transcription', backref="user")
+    admin = Column(Boolean)
 
     def is_authenticated(self):
         return True

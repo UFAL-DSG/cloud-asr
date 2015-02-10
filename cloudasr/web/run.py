@@ -2,6 +2,7 @@ import os
 from flask import Flask, flash, render_template, redirect, request, url_for
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
+from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, Identity, identity_loaded, identity_changed
 from cloudasr.models import create_db_connection, UsersModel, RecordingsModel
 
 
@@ -16,6 +17,9 @@ app.config.update(
 
 login_manager = LoginManager(app)
 google_login = GoogleLogin(app, login_manager)
+
+principals = Principal(app)
+admin_permission = Permission(RoleNeed('admin'))
 
 db = create_db_connection(os.environ['CONNECTION_STRING'])
 users_model = UsersModel(db)
@@ -62,6 +66,10 @@ def save_transcription():
 @google_login.oauth2callback
 def login_google(token, userinfo, **params):
     login_user(users_model.upsert_user(userinfo))
+
+    identity = Identity(userinfo['id'])
+    identity_changed.send(app, identity = identity)
+
     return redirect(url_for('index'))
 
 @app.route('/logout')
@@ -80,6 +88,17 @@ def inject_google_login_url():
 @login_manager.user_loader
 def load_user(id):
     return users_model.get_user(id)
+
+@identity_loaded.connect_via(app)
+def on_identity_loaded(sender, identity):
+    identity.user = current_user
+
+    if hasattr(current_user, 'id'):
+        identity.provides.add(UserNeed(current_user.id))
+
+    if hasattr(current_user, 'admin') and current_user.admin:
+        identity.provides.add(RoleNeed('admin'))
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=80)
