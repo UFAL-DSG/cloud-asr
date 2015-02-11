@@ -180,3 +180,6 @@ test:
 
 compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
+
+mysql-console:
+	mysql --host=${MYSQL_IP} --user=${MYSQL_USER} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
