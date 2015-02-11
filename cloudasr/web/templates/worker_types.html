@@ -9,10 +9,10 @@
         </tr>
     </thead>
     <tbody>
-        {% for model in models %}
+        {% for worker_type in worker_types %}
             <tr>
-                <td><a href="{{ url_for('transcribe', model=model["model"]) }}">{{ model["model"] }}<a/></td>
-                <td>{{ model["count"] }}</td>
+                <td><a href="{{ url_for('transcribe', model=worker_type["id"]) }}">{{ worker_type["id"] }}<a/></td>
+                <td>{{ worker_type["recordings"] | count }}</td>
             </tr>
         {% endfor %}
     </tbody>

@@ -56,11 +56,21 @@ class User(Base):
         return unicode(self.id)
 
 
+class WorkerType(Base):
+    __tablename__ = 'worker_type'
+
+    id = Column(String(32), primary_key = True)
+    lang = Column(String(10))
+    name = Column(String(128))
+    description = Column(Text)
+    recordings = relationship('Recording')
+
+
 class Recording(Base):
     __tablename__ = 'recording'
 
     id = Column(UUID, primary_key = True)
-    model = Column(String(128))
+    model = Column(String(32), ForeignKey('worker_type.id'))
     path = Column(String(128))
     url = Column(String(128))
     score = Column(Float)

@@ -2,7 +2,8 @@ import os
 import gevent
 from flask import Flask
 from flask.ext.socketio import SocketIO
-from lib import create_recordings_saver, create_db_connection, RecordingsModel
+from lib import create_recordings_saver, create_db_connection
+from cloudasr.models import WorkerTypesModel, RecordingsModel
 
 
 app = Flask(__name__)
@@ -13,7 +14,8 @@ app.config.update(
 socketio = SocketIO(app)
 
 db = create_db_connection(os.environ['CONNECTION_STRING'])
-recordings_model = RecordingsModel(db, os.environ['STORAGE_PATH'], os.environ['DOMAIN'])
+worker_types_model = WorkerTypesModel(db)
+recordings_model = RecordingsModel(db, worker_types_model, os.environ['STORAGE_PATH'], os.environ['DOMAIN'])
 saver = create_recordings_saver("tcp://0.0.0.0:5682", recordings_model)
 
 if __name__ == "__main__":

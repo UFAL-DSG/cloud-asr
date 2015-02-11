@@ -3,7 +3,7 @@ from flask import Flask, flash, render_template, redirect, request, url_for, ses
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
 from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
-from cloudasr.models import create_db_connection, UsersModel, RecordingsModel
+from cloudasr.models import create_db_connection, UsersModel, RecordingsModel, WorkerTypesModel
 
 
 app = Flask(__name__)
@@ -23,7 +23,8 @@ admin_permission = Permission(RoleNeed('admin'))
 
 db = create_db_connection(os.environ['CONNECTION_STRING'])
 users_model = UsersModel(db)
-recordings_model = RecordingsModel(db)
+worker_types_model = WorkerTypesModel(db)
+recordings_model = RecordingsModel(db, worker_types_model)
 
 @app.route('/')
 def index():
@@ -37,9 +38,9 @@ def demo():
 def documentation():
     return render_template('documentation.html')
 
-@app.route('/models')
-def models():
-    return render_template('models.html', models=recordings_model.get_models())
+@app.route('/worker-types')
+def worker_types():
+    return render_template('worker_types.html', worker_types=worker_types_model.get_models())
 
 @app.route('/transcribe/<model>')
 @app.route('/transcribe/<int:id>')

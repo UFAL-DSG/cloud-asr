@@ -1,26 +1,41 @@
 import json
 import wave
-from cloudasr.schema import create_db_session, User, Recording, Hypothesis, Transcription
+from cloudasr.schema import create_db_session, WorkerType, User, Recording, Hypothesis, Transcription
 
 def create_db_connection(connection_string):
     return create_db_session(connection_string)
 
 
+class WorkerTypesModel:
+
+    def __init__(self, db):
+        self.db = db
+
+    def get_models(self):
+        return self.db.query(WorkerType).all()
+
+    def get_worker_type(self, id):
+        return self.db.query(WorkerType).get(id)
+
+    def upsert_worker_type(self, id):
+        worker_type = self.get_worker_type(id)
+
+        if not worker_type:
+            worker_type = WorkerType(id = id)
+            self.db.add(worker_type)
+            self.db.commit()
+
+        return worker_type
+
 class RecordingsModel:
 
-    def __init__(self, db, path = None, url = None):
+    def __init__(self, db, worker_types_model, path = None, url = None):
         self.db = db
+        self.worker_types_model = worker_types_model
         self.url = url
 
         if path is not None:
             self.file_saver = FileSaver(path)
-
-    def get_models(self):
-        from sqlalchemy import func
-        return self.db.query(Recording.model, func.count(Recording.id).label("count")) \
-            .group_by(Recording.model) \
-            .order_by(Recording.model.asc()) \
-            .all()
 
     def get_recordings(self, model):
         return self.db.query(Recording).filter(Recording.model == model).all()
@@ -41,14 +56,17 @@ class RecordingsModel:
         self.save_recording_to_db(id, model, path, url, alternatives)
 
     def save_recording_to_db(self, id, model, path, url, alternatives):
+        worker_type = self.worker_types_model.upsert_worker_type(model)
+
         recording = Recording(
             id = id,
-            model = model,
             path = path,
             url = self.url + url,
             score = alternatives[0]["confidence"],
             rand_score = alternatives[0]["confidence"]
         )
+
+        worker_type.recordings.append(recording)
 
         for alternative in alternatives:
             recording.hypotheses.append(Hypothesis(
