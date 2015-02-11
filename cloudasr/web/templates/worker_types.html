@@ -4,15 +4,23 @@
 <table class="table table-bordered">
     <thead>
         <tr>
-            <th class="col-md-6">Model</th>
-            <th class="col-md-6">Recordings</th>
+            <th class="col-md-9">Model</th>
+            <th class="col-md-1 text-center">Recordings</th>
         </tr>
     </thead>
     <tbody>
         {% for worker_type in worker_types %}
             <tr>
-                <td><a href="{{ url_for('transcribe', model=worker_type["id"]) }}">{{ worker_type["id"] }}<a/></td>
-                <td>{{ worker_type["recordings"] | count }}</td>
+                <td>
+                    <a href="{{ url_for('transcribe', model=worker_type["id"]) }}">{{ worker_type["id"] }}<a/>
+
+                    {% if current_user.admin %}
+                    <div class="pull-right">
+                        <a href="{{ url_for('recordings', model=worker_type["id"]) }}">Recordings</a>
+                    </div>
+                    {% endif %}
+                </td>
+                <td class="text-center">{{ worker_type["recordings"] | count }}</td>
             </tr>
         {% endfor %}
     </tbody>
