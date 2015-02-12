@@ -1,30 +1,23 @@
 {% extends "layout.html" %}
 {% block body %}
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th class="col-md-9">Model</th>
-            <th class="col-md-1 text-center">Recordings</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for worker_type in worker_types %}
-            <tr>
-                <td>
-                    <a href="{{ url_for('transcribe', model=worker_type["id"]) }}">{{ worker_type["id"] }}<a/>
+{% for worker_type in worker_types %}
+        <h3>
+            <a href="{{ url_for('transcribe', model=worker_type["id"]) }}">
+                {{ worker_type["name"] }} <small>{{ worker_type["id"] }}</small>
+            </a>
+        </h3>
 
-                    {% if current_user.admin %}
-                    <div class="pull-right">
-                        <a href="{{ url_for('recordings', model=worker_type["id"]) }}">Recordings</a>
-                        <a href="{{ url_for('edit_worker', model=worker_type["id"]) }}">Edit</a>
-                    </div>
-                    {% endif %}
-                </td>
-                <td class="text-center">{{ worker_type["recordings"] | count }}</td>
-            </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <div>{{ worker_type["description"] | safe }}</div>
+
+        <div class="btn-group">
+            <a href="{{ url_for('transcribe', model=worker_type["id"]) }}" class="btn btn-default">Transcribe</a>
+
+            {% if current_user.admin %}
+                    <a href="{{ url_for('recordings', model=worker_type["id"]) }}" class="btn btn-default">View Recordings</a>
+                    <a href="{{ url_for('edit_worker', model=worker_type["id"]) }}" class="btn btn-default">Edit Description</a>
+            {% endif %}
+        </div>
+{% endfor %}
 
 {% endblock %}
