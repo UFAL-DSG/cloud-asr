@@ -27,6 +27,13 @@ class WorkerTypesModel:
 
         return worker_type
 
+    def edit_worker(self, id, name, description):
+        worker = self.get_worker_type(id)
+        worker.name = name
+        worker.description = description
+
+        self.db.commit()
+
 class RecordingsModel:
 
     def __init__(self, db, worker_types_model, path = None, url = None):

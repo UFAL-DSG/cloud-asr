@@ -75,11 +75,22 @@ def save_transcription():
 def recordings(model):
     return render_template('recordings.html', recordings=recordings_model.get_recordings(model), model=model)
 
-
 @app.route('/transcriptions/<id>')
 @admin_permission.require()
 def transcriptions(id):
     return render_template('transcriptions.html', recording=recordings_model.get_recording(id))
+
+@app.route('/edit-worker/<model>')
+@admin_permission.require()
+def edit_worker(model):
+    return render_template('edit_worker.html', worker = worker_types_model.get_worker_type(model))
+
+@app.route('/save-worker-description', methods=['POST'])
+@admin_permission.require()
+def save_worker_description():
+    flash('Worker\'s description was successfully saved')
+    worker_types_model.edit_worker(request.form['id'], request.form['name'], request.form['description'])
+    return redirect(url_for('worker_types'))
 
 @app.route('/login/google')
 @google_login.oauth2callback

@@ -17,6 +17,7 @@
                     {% if current_user.admin %}
                     <div class="pull-right">
                         <a href="{{ url_for('recordings', model=worker_type["id"]) }}">Recordings</a>
+                        <a href="{{ url_for('edit_worker', model=worker_type["id"]) }}">Edit</a>
                     </div>
                     {% endif %}
                 </td>
