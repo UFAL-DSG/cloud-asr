@@ -14,6 +14,18 @@ class WorkerTypesModel:
     def get_models(self):
         return self.db.query(WorkerType).all()
 
+    def get_available_workers(self):
+        workers = []
+
+        for worker in self.db.query(WorkerType).all():
+            workers.append({
+                'id': worker.id,
+                'name': worker.name,
+                'description': worker.description
+            })
+
+        return workers
+
     def get_worker_type(self, id):
         return self.db.query(WorkerType).get(id)
 

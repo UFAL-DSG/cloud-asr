@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, render_template, redirect, request, url_for, session
+from flask import Flask, flash, render_template, redirect, request, url_for, session, jsonify
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
 from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
@@ -33,6 +33,10 @@ def index():
 @app.route('/demo')
 def demo():
     return render_template('demo.html', api_url = os.environ['API_URL'])
+
+@app.route('/available-workers')
+def available_workers():
+    return jsonify({"workers": worker_types_model.get_available_workers()})
 
 @app.route('/documentation')
 def documentation():

@@ -9,6 +9,7 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
 var apiUrl = "{{ api_url }}";
+var availableWorkersUrl = "{{ url_for('available_workers') }}";
 </script>
 
 
@@ -41,63 +42,8 @@ var apiUrl = "{{ api_url }}";
 </div>
 
 <div class="well" style="margin-top: 20px">
-    <div id="en-voxforge" class="lang-description">
-        <p><strong>English (Voxforge AM+Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
-
-        <ul>
-            <li>Who was the first president of the United States?</li>
-            <li>I live in the Czech Republic.</li>
-            <li>Who was that?</li>
-        </ul>
-    </div>
-
-    <div id="en-wiki" class="lang-description" style="display:none">
-        <p><strong>English (TED AM+Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
-
-        <ul>
-            <li>Who was the first president of the United States?</li>
-            <li>I live in the Czech Republic.</li>
-            <li>Who was that?</li>
-        </ul>
-    </div>
-
-    <div id="en-towninfo" class="lang-description" style="display:none">
-        <p>
-            <strong>English (VYSTADIAL TownInfo AM+LM)</strong> - town information domain specific model.
-            The model is based on free data <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4671-4" rel="noreferrer">Vystadial 2013 – English data</a>.
-            You can try sentences like:
-        </p>
-
-        <ul>
-            <li>I am looking for a cheap Chinese restaurant.</li>
-            <li>I am looking for a fast food.</li>
-            <li>I am looking for a bar.</li>
-        </ul>
-    </div>
-
-    <div id="cs" class="lang-description" style="display:none">
-        <p><strong>Czech (VYSTADIAL AM + Wikipedia LM)</strong> - open domain model. You can try sentences like these:</p>
-
-        <ul>
-            <li>Praha je hlavní město České Republiky.</li>
-            <li>Bydlím v Praze.</li>
-            <li>Bedřich Smetana je slavný český skladatel.</li>
-        </ul>
-    </div>
-
-    <div id="cs-alex" class="lang-description" style="display:none">
-        <p>
-            <strong>Czech (VYSTADIAL AM + PTIcs LM)</strong> - public transport domain specific model.
-            The model is based on free data <a href="https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4670-6" rel="noreferrer">Vystadial 2013 – Czech data</a>.
-            You can try sentences like these:
-        </p>
-
-        <ul>
-            <li>Chtěl bych jet z Anděla na Malostranskou.</li>
-            <li>Jak se dostanu z Prahy do Brna?</li>
-            <li>V kolik hodin mi to jede?</li>
-        </ul>
-    </div>
+    <h3 class="lang-name"></h3>
+    <div id="en-voxforge" class="lang-description"></div>
 </div>
 
 <div class="well" style="margin-top: 20px">

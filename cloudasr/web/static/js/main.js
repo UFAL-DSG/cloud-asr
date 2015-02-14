@@ -42,13 +42,21 @@ $(document).ready(function() {
     });
 
     var modelSelect = $('#language-model');
-    $.each(models, function(id, label) {
-        modelSelect.append($("<option></option>").attr("value", id).text(label))
-    })
+    var models = [];
+
+    $.get(availableWorkersUrl, function(data) {
+        $.each(data["workers"], function(key, value) {
+            models[value["id"]] = value;
+            modelSelect.append($("<option></option>").attr("value", value["id"]).text(value["name"]));
+        });
+
+        $('.lang-name').text(models[modelSelect.val()]["name"]);
+        $('.lang-description').html(models[modelSelect.val()]["description"]);
+    });
 
     modelSelect.change(function(elem) {
-        $('.lang-description').hide();
-        $('#' + modelSelect.val()).show();
+        $('.lang-name').text(models[modelSelect.val()]["name"]);
+        $('.lang-description').html(models[modelSelect.val()]["description"]);
     });
 
 });
