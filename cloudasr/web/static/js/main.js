@@ -50,6 +50,7 @@ $(document).ready(function() {
             modelSelect.append($("<option></option>").attr("value", value["id"]).text(value["name"]));
         });
 
+        modelSelect.val(model);
         $('.lang-name').text(models[modelSelect.val()]["name"]);
         $('.lang-description').html(models[modelSelect.val()]["description"]);
     });

@@ -31,8 +31,9 @@ def index():
     return render_template('index.html')
 
 @app.route('/demo')
-def demo():
-    return render_template('demo.html', api_url = os.environ['API_URL'])
+@app.route('/demo/<model>')
+def demo(model=None):
+    return render_template('demo.html', api_url = os.environ['API_URL'], model = model)
 
 @app.route('/available-workers')
 def available_workers():
