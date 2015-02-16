@@ -85,6 +85,11 @@ def recordings(model):
 def transcriptions(id):
     return render_template('transcriptions.html', recording=recordings_model.get_recording(id))
 
+@app.route('/new-worker')
+@admin_permission.require()
+def new_worker():
+    return render_template('edit_worker.html', worker = {"id": None})
+
 @app.route('/edit-worker/<model>')
 @admin_permission.require()
 def edit_worker(model):

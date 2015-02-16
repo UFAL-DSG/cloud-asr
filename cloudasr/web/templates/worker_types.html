@@ -1,6 +1,12 @@
 {% extends "layout.html" %}
 {% block body %}
 
+{% if current_user.admin %}
+<div class="pull-right btn-group">
+    <a href="{{ url_for('new_worker') }}" class="btn btn-default">New</a>
+</div>
+{% endif %}
+
 {% for worker_type in worker_types %}
         <h3>
             <a href="{{ url_for('transcribe', model=worker_type["id"]) }}">
