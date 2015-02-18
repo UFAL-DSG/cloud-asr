@@ -161,7 +161,7 @@ stop:
 	docker rm frontend worker master monitor annotation_interface mysql web
 
 unit-test:
-	nosetests cloudasr/shared
+	nosetests cloudasr/shared/cloudasr
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/frontend
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker
