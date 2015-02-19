@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 IP=`ip addr show docker0 | grep -Po 'inet \K[\d.]+'`
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
-FRONTEND_HOST_PORT=8000
+API_HOST_PORT=8000
 MONITOR_HOST_PORT=8001
 ANNOTATION_INTERFACE_HOST_PORT=8002
 MONITOR_STATUS_PORT=5681
@@ -10,8 +10,8 @@ WORKER_PORT=5678
 WORKER_ADDR=tcp://${IP}:${WORKER_PORT}
 MASTER_TO_WORKER_PORT=5679
 MASTER_TO_WORKER_ADDR=tcp://${IP}:${MASTER_TO_WORKER_PORT}
-MASTER_TO_FRONTEND_PORT=5680
-MASTER_TO_FRONTEND_ADDR=tcp://${IP}:${MASTER_TO_FRONTEND_PORT}
+MASTER_TO_API_PORT=5680
+MASTER_TO_API_ADDR=tcp://${IP}:${MASTER_TO_API_PORT}
 RECORDINGS_SAVER_HOST_PORT=5682
 RECORDINGS_SAVER_GUEST_PORT=5682
 RECORDINGS_SAVER_ADDR=tcp://${IP}:${RECORDINGS_SAVER_HOST_PORT}
@@ -26,9 +26,9 @@ SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-p
 MASTER_VOLUMES=-v ${CURDIR}/cloudasr/master:/opt/app -v ${SHARED_VOLUME}
 MASTER_OPTS=--name master \
 	-p ${MASTER_TO_WORKER_PORT}:${MASTER_TO_WORKER_PORT} \
-	-p ${MASTER_TO_FRONTEND_PORT}:${MASTER_TO_FRONTEND_PORT} \
+	-p ${MASTER_TO_API_PORT}:${MASTER_TO_API_PORT} \
 	-e WORKER_ADDR=tcp://0.0.0.0:${MASTER_TO_WORKER_PORT} \
-	-e FRONTEND_ADDR=tcp://0.0.0.0:${MASTER_TO_FRONTEND_PORT} \
+	-e API_ADDR=tcp://0.0.0.0:${MASTER_TO_API_PORT} \
 	-e MONITOR_ADDR=${MONITOR_STATUS_ADDR} \
 	${MASTER_VOLUMES}
 
@@ -49,14 +49,14 @@ WEB_OPTS=--name web \
 	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
-	-e API_URL=http://${IP}:${FRONTEND_HOST_PORT} \
+	-e API_URL=http://${IP}:${API_HOST_PORT} \
 	${WEB_VOLUMES}
 
-FRONTEND_VOLUMES=-v ${CURDIR}/cloudasr/frontend:/opt/app -v ${SHARED_VOLUME}
-FRONTEND_OPTS=--name frontend \
-	-p ${FRONTEND_HOST_PORT}:80 \
-	-e MASTER_ADDR=${MASTER_TO_FRONTEND_ADDR} \
-	${FRONTEND_VOLUMES}
+API_VOLUMES=-v ${CURDIR}/cloudasr/api:/opt/app -v ${SHARED_VOLUME}
+API_OPTS=--name api \
+	-p ${API_HOST_PORT}:80 \
+	-e MASTER_ADDR=${MASTER_TO_API_ADDR} \
+	${API_VOLUMES}
 
 MONITOR_VOLUMES=-v ${CURDIR}/cloudasr/monitor:/opt/app -v ${SHARED_VOLUME}
 MONITOR_OPTS=--name monitor \
@@ -90,24 +90,24 @@ ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
 build:
 	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
 	docker build -t ufaldsg/cloud-asr-web cloudasr/web
-	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
+	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-annotation-interface cloudasr/annotation_interface/
 
 build_local:
-	cp -r cloudasr/shared/cloudasr cloudasr/frontend/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/api/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/annotation_interface/cloudasr
-	docker build -t ufaldsg/cloud-asr-frontend cloudasr/frontend/
+	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-annotation-interface cloudasr/annotation_interface/
-	rm -rf cloudasr/frontend/cloudasr
+	rm -rf cloudasr/api/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 	rm -rf cloudasr/monitor/cloudasr
@@ -115,7 +115,7 @@ build_local:
 
 pull:
 	docker pull mysql
-	docker pull ufaldsg/cloud-asr-frontend
+	docker pull ufaldsg/cloud-asr-api
 	docker pull ufaldsg/cloud-asr-worker
 	docker pull ufaldsg/cloud-asr-master
 	docker pull ufaldsg/cloud-asr-monitor
@@ -129,7 +129,7 @@ mysql_data:
 run_locally: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
 	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
-	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
+	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
@@ -144,8 +144,8 @@ run_worker:
 run_web:
 	docker run ${WEB_OPTS} -i -t --rm ufaldsg/cloud-asr-web python run.py
 
-run_frontend:
-	docker run ${FRONTEND_OPTS} -i -t --rm ufaldsg/cloud-asr-frontend
+run_api:
+	docker run ${API_OPTS} -i -t --rm ufaldsg/cloud-asr-api
 
 run_master:
 	docker run ${MASTER_OPTS} -i -t --rm ufaldsg/cloud-asr-master
@@ -157,19 +157,19 @@ run_annotation_interface:
 	docker run ${ANNOTATION_INTERFACE_OPTS} -i -t --rm ufaldsg/cloud-asr-annotation-interface
 
 stop:
-	docker kill frontend worker master monitor annotation_interface mysql web
-	docker rm frontend worker master monitor annotation_interface mysql web
+	docker kill api worker master monitor annotation_interface mysql web
+	docker rm api worker master monitor annotation_interface mysql web
 
 unit-test:
 	nosetests cloudasr/shared/cloudasr
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/frontend
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/api
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/monitor
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/annotation_interface
 
 integration-test:
-	docker run ${FRONTEND_VOLUMES} --rm ufaldsg/cloud-asr-frontend nosetests /opt/app/test_factory.py
+	docker run ${API_VOLUMES} --rm ufaldsg/cloud-asr-api nosetests /opt/app/test_factory.py
 	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master nosetests /opt/app/test_factory.py
 	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor nosetests /opt/app/test_factory.py
 	docker run ${ANNOTATION_INTERFACE_VOLUMES} --rm ufaldsg/cloud-asr-annotation-interface nosetests /opt/app/test_factory.py

@@ -22,7 +22,7 @@ def master_spec(domain, master_ip, registry, tag):
         "mem": "256",
         "env": {
             "WORKER_ADDR": "tcp://0.0.0.0:5679",
-            "FRONTEND_ADDR": "tcp://0.0.0.0:5680",
+            "API_ADDR": "tcp://0.0.0.0:5680",
             "MONITOR_ADDR": "tcp://%s:31102" % master_ip
         },
         "uris": ["/root/.dockercfg"],
@@ -82,13 +82,13 @@ def annotation_interface_spec(domain, master_ip, registry, tag):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def frontend_spec(domain, master_ip, registry, tag):
+def api_spec(domain, master_ip, registry, tag):
     return {
         "id": "demo",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%s/ufaldsg/cloud-asr-frontend:%s" % (registry, tag),
+                "image": "%s/ufaldsg/cloud-asr-api:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 0}
@@ -150,7 +150,7 @@ def app_spec(config):
             master_spec(domain, master_ip, registry, tag),
             monitor_spec(domain, master_ip, registry, tag),
             annotation_interface_spec(domain, master_ip, registry, tag),
-            frontend_spec(domain, master_ip, registry, tag),
+            api_spec(domain, master_ip, registry, tag),
         ] + [
             worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
         ]

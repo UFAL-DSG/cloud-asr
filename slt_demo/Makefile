@@ -15,10 +15,10 @@ MASTER_OPTS=--name master \
 	-p 5679:5679 \
 	-p 5680:5680 \
 	-e WORKER_ADDR=tcp://0.0.0.0:5679 \
-	-e FRONTEND_ADDR=tcp://0.0.0.0:5680 \
+	-e API_ADDR=tcp://0.0.0.0:5680 \
 	-e MONITOR_ADDR=tcp://${IP}:5681
 
-FRONTEND_OPTS=--name frontend \
+API_OPTS=--name api \
 	-p 8000:80 \
 	-e MASTER_ADDR=tcp://${IP}:5680
 
@@ -79,7 +79,7 @@ MYSQL_OPTS=--name mysql \
 
 pull:
 	docker pull mysql
-	docker pull ufaldsg/cloud-asr-frontend
+	docker pull ufaldsg/cloud-asr-api
 	docker pull ufaldsg/cloud-asr-worker-en-towninfo
 	docker pull ufaldsg/cloud-asr-worker-en-wiki
 	docker pull ufaldsg/cloud-asr-worker-en-voxforge
@@ -96,7 +96,7 @@ mysql_data:
 
 run_locally: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
-	docker run ${FRONTEND_OPTS} -d ufaldsg/cloud-asr-frontend
+	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
 	docker run ${WORKER_EN_OPTS} -d ufaldsg/cloud-asr-worker-en-towninfo
 	docker run ${WORKER_EN_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-wiki
 	docker run ${WORKER_EN_VOXFORGE_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-voxforge
@@ -110,6 +110,6 @@ run_mesos:
 	python ${CURDIR}/../deployment/run_on_mesos.py ${CURDIR}/mesos.json
 
 stop:
-	docker kill frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
-	docker rm frontend master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
+	docker kill api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
+	docker rm api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
 
