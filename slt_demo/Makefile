@@ -18,6 +18,13 @@ MASTER_OPTS=--name master \
 	-e API_ADDR=tcp://0.0.0.0:5680 \
 	-e MONITOR_ADDR=tcp://${IP}:5681
 
+WEB_OPTS=--name web \
+	-p 8004:80 \
+	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
+	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
+	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
+	-e API_URL=http://${IP}:8000 \
+
 API_OPTS=--name api \
 	-p 8000:80 \
 	-e MASTER_ADDR=tcp://${IP}:5680
@@ -79,6 +86,7 @@ MYSQL_OPTS=--name mysql \
 
 pull:
 	docker pull mysql
+	docker pull ufaldsg/cloud-asr-web
 	docker pull ufaldsg/cloud-asr-api
 	docker pull ufaldsg/cloud-asr-worker-en-towninfo
 	docker pull ufaldsg/cloud-asr-worker-en-wiki
@@ -96,6 +104,7 @@ mysql_data:
 
 run_locally: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
+	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
 	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
 	docker run ${WORKER_EN_OPTS} -d ufaldsg/cloud-asr-worker-en-towninfo
 	docker run ${WORKER_EN_WIKI_OPTS} -d ufaldsg/cloud-asr-worker-en-wiki
@@ -110,6 +119,6 @@ run_mesos:
 	python ${CURDIR}/../deployment/run_on_mesos.py ${CURDIR}/mesos.json
 
 stop:
-	docker kill api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
-	docker rm api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
+	docker kill web api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
+	docker rm web api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
 
