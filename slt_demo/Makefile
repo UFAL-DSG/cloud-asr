@@ -69,13 +69,13 @@ WORKER_CS_ALEX_OPTS=--name worker_cs_alex \
 	-e RECORDINGS_SAVER_ADDR=tcp://${IP}:5682 \
 	-e MODEL=cs-alex
 
-ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
+RECORDINGS_OPTS=--name recordings \
 	-p 5682:5682 \
 	-p 8002:80 \
 	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
-	-v ${CURDIR}/../cloudasr/annotation_interface/static/data:/opt/app/static/data
+	-v ${CURDIR}/../cloudasr/recordings/static/data:/opt/app/static/data
 
 MYSQL_OPTS=--name mysql \
 	-e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
@@ -95,7 +95,7 @@ pull:
 	docker pull ufaldsg/cloud-asr-worker-cs-alex
 	docker pull ufaldsg/cloud-asr-master
 	docker pull ufaldsg/cloud-asr-monitor
-	docker pull ufaldsg/cloud-asr-annotation-interface
+	docker pull ufaldsg/cloud-asr-recordings
 
 mysql_data:
 	echo "PREPARING MySQL DATABASE"
@@ -113,12 +113,12 @@ run_locally: mysql_data
 	docker run ${WORKER_CS_ALEX_OPTS} -d ufaldsg/cloud-asr-worker-cs-alex
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
-	docker run ${ANNOTATION_INTERFACE_OPTS} -d ufaldsg/cloud-asr-annotation-interface
+	docker run ${RECORDINGS_OPTS} -d ufaldsg/cloud-asr-recordings
 
 run_mesos:
 	python ${CURDIR}/../deployment/run_on_mesos.py ${CURDIR}/mesos.json
 
 stop:
-	docker kill web api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
-	docker rm web api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex annotation_interface mysql
+	docker kill web api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex recordings mysql
+	docker rm web api master monitor worker_en worker_en_wiki worker_en_voxforge_wiki worker_cs worker_cs_alex recordings mysql
 

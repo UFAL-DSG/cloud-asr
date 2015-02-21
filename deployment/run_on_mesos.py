@@ -54,13 +54,13 @@ def monitor_spec(domain, master_ip, registry, tag):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def annotation_interface_spec(domain, master_ip, registry, tag):
+def recordings_spec(domain, master_ip, registry, tag):
     return {
-        "id": "annotation",
+        "id": "recordings",
         "container": {
             "type": "DOCKER",
             "docker": {
-                "image": "%s/ufaldsg/cloud-asr-annotation-interface:%s" % (registry, tag),
+                "image": "%s/ufaldsg/cloud-asr-recordings:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 31104},
@@ -129,7 +129,7 @@ def worker_spec(domain, master_ip, image, model, instances, registry, tag):
         "uris": ["/root/.dockercfg"],
         "dependencies": [
             "/%s/master" % domain,
-            "/%s/annotation" % domain
+            "/%s/recordings" % domain
         ]
     }
 
@@ -149,7 +149,7 @@ def app_spec(config):
         "apps": [
             master_spec(domain, master_ip, registry, tag),
             monitor_spec(domain, master_ip, registry, tag),
-            annotation_interface_spec(domain, master_ip, registry, tag),
+            recordings_spec(domain, master_ip, registry, tag),
             api_spec(domain, master_ip, registry, tag),
         ] + [
             worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]

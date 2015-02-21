@@ -3,7 +3,7 @@ IP=`ip addr show docker0 | grep -Po 'inet \K[\d.]+'`
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 API_HOST_PORT=8000
 MONITOR_HOST_PORT=8001
-ANNOTATION_INTERFACE_HOST_PORT=8002
+RECORDINGS_HOST_PORT=8002
 MONITOR_STATUS_PORT=5681
 MONITOR_STATUS_ADDR=tcp://${IP}:${MONITOR_STATUS_PORT}
 WORKER_PORT=5678
@@ -73,19 +73,19 @@ MYSQL_OPTS=--name mysql \
 	-v ${CURDIR}/mysql_data:/var/lib/mysql \
 	-v ${CURDIR}/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf
 
-ANNOTATION_INTERFACE_VOLUMES=-v ${CURDIR}/cloudasr/annotation_interface:/opt/app \
-	-v ${CURDIR}/cloudasr/annotation_interface/static/data:/opt/app/static/data \
+RECORDINGS_VOLUMES=-v ${CURDIR}/cloudasr/recordings:/opt/app \
+	-v ${CURDIR}/cloudasr/recordings/static/data:/opt/app/static/data \
 	-v ${SHARED_VOLUME}
-ANNOTATION_INTERFACE_OPTS=--name annotation_interface \
+RECORDINGS_OPTS=--name recordings \
 	--link mysql:mysql \
 	-p ${RECORDINGS_SAVER_HOST_PORT}:${RECORDINGS_SAVER_GUEST_PORT} \
-	-p ${ANNOTATION_INTERFACE_HOST_PORT}:80 \
+	-p ${RECORDINGS_HOST_PORT}:80 \
 	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
 	-e STORAGE_PATH=/opt/app/static/data \
 	-e DOMAIN=http://localhost:8002 \
-	${ANNOTATION_INTERFACE_VOLUMES}
+	${RECORDINGS_VOLUMES}
 
 build:
 	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
@@ -94,24 +94,24 @@ build:
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
-	docker build -t ufaldsg/cloud-asr-annotation-interface cloudasr/annotation_interface/
+	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
 
 build_local:
 	cp -r cloudasr/shared/cloudasr cloudasr/api/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
-	cp -r cloudasr/shared/cloudasr cloudasr/annotation_interface/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/recordings/cloudasr
 	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
-	docker build -t ufaldsg/cloud-asr-annotation-interface cloudasr/annotation_interface/
+	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
 	rm -rf cloudasr/api/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 	rm -rf cloudasr/monitor/cloudasr
-	rm -rf cloudasr/annotation_interface/cloudasr
+	rm -rf cloudasr/recordings/cloudasr
 
 pull:
 	docker pull mysql
@@ -119,7 +119,7 @@ pull:
 	docker pull ufaldsg/cloud-asr-worker
 	docker pull ufaldsg/cloud-asr-master
 	docker pull ufaldsg/cloud-asr-monitor
-	docker pull ufaldsg/cloud-asr-annotation-interface
+	docker pull ufaldsg/cloud-asr-recordings
 
 mysql_data:
 	echo "PREPARING MySQL DATABASE"
@@ -133,7 +133,7 @@ run_locally: mysql_data
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
-	docker run ${ANNOTATION_INTERFACE_OPTS} -d ufaldsg/cloud-asr-annotation-interface
+	docker run ${RECORDINGS_OPTS} -d ufaldsg/cloud-asr-recordings
 
 run_mesos:
 	python ${CURDIR}/deployment/run_on_mesos.py ${CURDIR}/deployment/mesos.json
@@ -153,12 +153,12 @@ run_master:
 run_monitor:
 	docker run ${MONITOR_OPTS} -i -t --rm ufaldsg/cloud-asr-monitor
 
-run_annotation_interface:
-	docker run ${ANNOTATION_INTERFACE_OPTS} -i -t --rm ufaldsg/cloud-asr-annotation-interface
+run_recordings:
+	docker run ${RECORDINGS_OPTS} -i -t --rm ufaldsg/cloud-asr-recordings
 
 stop:
-	docker kill api worker master monitor annotation_interface mysql web
-	docker rm api worker master monitor annotation_interface mysql web
+	docker kill api worker master monitor recordings mysql web
+	docker rm api worker master monitor recordings mysql web
 
 unit-test:
 	nosetests cloudasr/shared/cloudasr
@@ -166,13 +166,13 @@ unit-test:
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/monitor
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/annotation_interface
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/recordings
 
 integration-test:
 	docker run ${API_VOLUMES} --rm ufaldsg/cloud-asr-api nosetests /opt/app/test_factory.py
 	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master nosetests /opt/app/test_factory.py
 	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor nosetests /opt/app/test_factory.py
-	docker run ${ANNOTATION_INTERFACE_VOLUMES} --rm ufaldsg/cloud-asr-annotation-interface nosetests /opt/app/test_factory.py
+	docker run ${RECORDINGS_VOLUMES} --rm ufaldsg/cloud-asr-recordings nosetests /opt/app/test_factory.py
 	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker nosetests /opt/app/test_factory.py
 
 test:
