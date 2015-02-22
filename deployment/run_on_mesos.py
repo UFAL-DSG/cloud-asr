@@ -54,7 +54,7 @@ def monitor_spec(domain, master_ip, registry, tag):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def recordings_spec(domain, master_ip, registry, tag):
+def recordings_spec(domain, master_ip, registry, tag, connection_string):
     return {
         "id": "recordings",
         "container": {
@@ -75,8 +75,8 @@ def recordings_spec(domain, master_ip, registry, tag):
         "cpus": "0.25",
         "mem": "256",
         "env": {
-	        "GOOGLE_LOGIN_CLIENT_ID": os.environ["CLOUDASR_GOOGLE_LOGIN_CLIENT_ID"],
-	        "GOOGLE_LOGIN_CLIENT_SECRET": os.environ["CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET"]
+            "CONNECTION_STRING": connection_string,
+            "STORAGE_PATH": "/opt/app/static/data"
         },
         "uris": ["/root/.dockercfg"],
         "constraints": [["hostname", "LIKE", master_ip]]
@@ -100,6 +100,32 @@ def api_spec(domain, master_ip, registry, tag):
         "mem": "256",
         "env": {
             "MASTER_ADDR": "tcp://%s:31101" % master_ip,
+        },
+        "uris": ["/root/.dockercfg"],
+        "dependencies": ["/%s/master" % domain]
+    }
+
+def web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret):
+    return {
+        "id": "www",
+        "container": {
+            "type": "DOCKER",
+            "docker": {
+                "image": "%s/ufaldsg/cloud-asr-web:%s" % (registry, tag),
+                "network": "BRIDGE",
+                "portMappings": [
+                    {"containerPort": 80, "hostPort": 0}
+                ]
+            }
+        },
+        "instances": "1",
+        "cpus": "0.25",
+        "mem": "256",
+        "env": {
+            "CONNECTION_STRING": connection_string,
+            "GOOGLE_LOGIN_CLIENT_ID": google_login_client_id,
+            "GOOGLE_LOGIN_CLIENT_SECRET": google_login_client_secret,
+            "API_URL": "api." + domain,
         },
         "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/master" % domain]
@@ -143,14 +169,18 @@ def app_spec(config):
     master_ip = config["master_ip"]
     registry = config.get("registry", "registry.hub.docker.io")
     tag = config.get("tag", "latest")
+    connection_string = config["connection_string"]
+    google_login_client_id = config["google_login_client_id"]
+    google_login_client_secret = config["google_login_client_secret"]
 
     return {
         "id": domain,
         "apps": [
             master_spec(domain, master_ip, registry, tag),
             monitor_spec(domain, master_ip, registry, tag),
-            recordings_spec(domain, master_ip, registry, tag),
+            recordings_spec(domain, master_ip, registry, tag, connection_string),
             api_spec(domain, master_ip, registry, tag),
+            web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret),
         ] + [
             worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
         ]
