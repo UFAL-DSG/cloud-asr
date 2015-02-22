@@ -73,8 +73,7 @@ RECORDINGS_OPTS=--name recordings \
 	-p 5682:5682 \
 	-p 8002:80 \
 	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
-	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
-	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
+	-e STORAGE_PATH=/opt/app/static/data \
 	-v ${CURDIR}/../cloudasr/recordings/static/data:/opt/app/static/data
 
 MYSQL_OPTS=--name mysql \
