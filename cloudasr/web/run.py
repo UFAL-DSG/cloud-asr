@@ -9,7 +9,7 @@ from cloudasr.models import create_db_connection, UsersModel, RecordingsModel, W
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY = '12345',
-    DEBUG = True,
+    DEBUG = 'DEBUG' in os.environ,
     GOOGLE_LOGIN_CLIENT_ID = os.environ['GOOGLE_LOGIN_CLIENT_ID'],
     GOOGLE_LOGIN_CLIENT_SECRET = os.environ['GOOGLE_LOGIN_CLIENT_SECRET'],
     GOOGLE_LOGIN_SCOPES = 'https://www.googleapis.com/auth/userinfo.email',

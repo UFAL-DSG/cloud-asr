@@ -51,6 +51,7 @@ WEB_OPTS=--name web \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
 	-e GA_TRACKING_ID='' \
 	-e API_URL=http://${IP}:${API_HOST_PORT} \
+	-e DEBUG=1 \
 	${WEB_VOLUMES}
 
 API_VOLUMES=-v ${CURDIR}/cloudasr/api:/opt/app -v ${SHARED_VOLUME}
