@@ -127,6 +127,7 @@ def logout():
 def inject_google_login_url():
     return dict(
         google_login_url = google_login.login_url(redirect_uri=url_for('login_google', _external=True)),
+        ga_tracking_id = os.environ.get('GA_TRACKING_ID', None),
         logout_url = url_for('logout')
     )
 

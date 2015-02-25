@@ -105,7 +105,7 @@ def api_spec(domain, master_ip, registry, tag):
         "dependencies": ["/%s/master" % domain]
     }
 
-def web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret):
+def web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id):
     return {
         "id": "www",
         "container": {
@@ -125,6 +125,7 @@ def web_spec(domain, master_ip, registry, tag, connection_string, google_login_c
             "CONNECTION_STRING": connection_string,
             "GOOGLE_LOGIN_CLIENT_ID": google_login_client_id,
             "GOOGLE_LOGIN_CLIENT_SECRET": google_login_client_secret,
+            "GA_TRACKING_ID": ga_tracking_id,
             "API_URL": "api." + domain,
         },
         "uris": ["/root/.dockercfg"],
@@ -172,6 +173,7 @@ def app_spec(config):
     connection_string = config["connection_string"]
     google_login_client_id = config["google_login_client_id"]
     google_login_client_secret = config["google_login_client_secret"]
+    ga_tracking_id = config.get("ga_tracking_id", "")
 
     return {
         "id": domain,
@@ -180,7 +182,7 @@ def app_spec(config):
             monitor_spec(domain, master_ip, registry, tag),
             recordings_spec(domain, master_ip, registry, tag, connection_string),
             api_spec(domain, master_ip, registry, tag),
-            web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret),
+            web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id),
         ] + [
             worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
         ]
