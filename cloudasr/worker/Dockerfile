@@ -35,6 +35,8 @@ RUN python -c 'import fst; import kaldi.decoders'
 WORKDIR /app
 RUN rm -rf pykaldi
 
+RUN apt-get install -y gfortran && pip install theano
+
 WORKDIR /opt/app
 ADD download_models.sh /opt/app/download_models.sh
 RUN bash download_models.sh
