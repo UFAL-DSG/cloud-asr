@@ -32,7 +32,7 @@ MASTER_OPTS=--name master \
 	-e MONITOR_ADDR=${MONITOR_STATUS_ADDR} \
 	${MASTER_VOLUMES}
 
-WORKER_VOLUMES=-v ${CURDIR}/cloudasr/worker:/opt/app -v ${SHARED_VOLUME}
+WORKER_VOLUMES=-v ${CURDIR}/cloudasr/worker:/opt/app -v ${SHARED_VOLUME} -v ${CURDIR}/resources/:/opt/resources/
 WORKER_OPTS=--name worker \
 	-p ${WORKER_PORT}:${WORKER_PORT} \
 	-e HOST=${IP} \
@@ -173,7 +173,7 @@ integration-test:
 	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master nosetests /opt/app/test_factory.py
 	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor nosetests /opt/app/test_factory.py
 	docker run ${RECORDINGS_VOLUMES} --rm ufaldsg/cloud-asr-recordings nosetests /opt/app/test_factory.py
-	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker nosetests /opt/app/test_factory.py
+	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker nosetests /opt/app/test_factory.py /opt/app/vad/test.py
 
 test:
 	nosetests tests/
