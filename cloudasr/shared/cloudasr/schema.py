@@ -108,7 +108,7 @@ class Transcription(Base):
 
 
 def create_db_session(connection_string):
-    engine = create_engine(connection_string, pool_size=20, pool_recycle=3600)
+    engine = create_engine(connection_string, pool_recycle=3600)
     Session = sessionmaker(bind=engine)
     session = Session()
     Base.metadata.create_all(engine)
