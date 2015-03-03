@@ -84,7 +84,7 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
 
 def api_spec(domain, master_ip, registry, tag):
     return {
-        "id": "demo",
+        "id": "api",
         "container": {
             "type": "DOCKER",
             "docker": {
