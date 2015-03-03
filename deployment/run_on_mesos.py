@@ -165,12 +165,19 @@ def imageToWorkerName(image):
     m = re.search('ufaldsg\/cloud-asr-worker-(.*)', image)
     return "worker" + m.group(1).replace('-', '')
 
+def ensure_charset_is_in_connection_string(connection_string):
+    if not "charset=utf8" in connection_string:
+        print "You have to specify charset=utf8 in your connection string"
+        exit()
+
+    return connection_string
+
 def app_spec(config):
     domain = config["domain"]
     master_ip = config["master_ip"]
     registry = config.get("registry", "registry.hub.docker.io")
     tag = config.get("tag", "latest")
-    connection_string = config["connection_string"]
+    connection_string = ensure_charset_is_in_connection_string(config["connection_string"])
     google_login_client_id = config["google_login_client_id"]
     google_login_client_secret = config["google_login_client_secret"]
     ga_tracking_id = config.get("ga_tracking_id", "")
