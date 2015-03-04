@@ -49,12 +49,13 @@ def create_heartbeat(model, address, master_address):
 
 class Worker:
 
-    def __init__(self, poller, heartbeat, asr, audio, saver, should_continue):
+    def __init__(self, poller, heartbeat, asr, audio, saver, vad, should_continue):
         self.poller = poller
         self.heartbeat = heartbeat
         self.asr = asr
         self.audio = audio
         self.saver = saver
+        self.vad = vad
         self.should_continue = should_continue
         self.current_request_id = None
 
@@ -104,20 +105,39 @@ class Worker:
 
     def handle_online_request(self, request):
         pcm = self.audio.resample_to_default_sample_rate(request.body, request.frame_rate)
-        interim_hypothesis = self.asr.recognize_chunk(pcm)
-        self.saver.add_pcm(request.body)
+        vad, change, pcm = self.vad.decide(pcm)
 
-        if request.has_next == True:
-            response = self.create_interim_response(interim_hypothesis)
-            self.poller.send("frontend", response.SerializeToString())
-            self.heartbeat.send("WORKING")
+        if vad:
+            interim_hypothesis = self.asr.recognize_chunk(pcm)
         else:
+            interim_hypothesis = (1.0, "")
+
+        if change == "silence":
             final_hypothesis = self.asr.get_final_hypothesis()
             response = self.create_final_response(final_hypothesis)
             self.poller.send("frontend", response.SerializeToString())
+            self.heartbeat.send("WORKING")
+            return
+
+        self.saver.add_pcm(request.body)
+
+        if request.has_next == True:
+            self.send_interim_hypothesis(interim_hypothesis)
+            self.heartbeat.send("WORKING")
+        else:
+            final_hypothesis = self.asr.get_final_hypothesis()
+            self.send_final_hypothesis(final_hypothesis)
             self.heartbeat.send("FINISHED")
             self.saver.final_hypothesis(final_hypothesis)
             self.end_online_recognition()
+
+    def send_interim_hypothesis(self, interim_hypothesis):
+        response = self.create_interim_response(interim_hypothesis)
+        self.poller.send("frontend", response.SerializeToString())
+
+    def send_final_hypothesis(self, final_hypothesis):
+        response = self.create_final_response(final_hypothesis)
+        self.poller.send("frontend", response.SerializeToString())
 
     def is_online_recognition_running(self):
         return self.current_request_id is not None

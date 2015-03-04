@@ -12,12 +12,13 @@ class TestWorker(unittest.TestCase):
         self.worker_address = "tcp://127.0.0.1:5678"
         self.master_socket = SocketSpy()
         self.saver = SaverSpy()
+        self.vad = VADSpy()
 
         self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
         self.poller = PollerSpy()
         self.asr = ASRSpy([(1.0, "Hello World!")], (1.0, "Interim result"))
         self.audio = DummyAudio()
-        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.saver, self.poller.has_next_message)
+        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.saver, self.vad, self.poller.has_next_message)
 
     def test_worker_forwards_resampled_wav_from_every_message_to_asr_as_pcm(self):
         messages = [
@@ -158,6 +159,77 @@ class TestWorker(unittest.TestCase):
             1: {"frame_rate": 44100, "pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}
         })
 
+    def test_worker_forwards_pcm_data_to_vad(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", id = 1, has_next = False)}
+        ]
+
+        self.run_worker(messages)
+        self.assertThatVadReceivedChunks(["resampled message 1"])
+
+    def test_worker_sends_empty_hypothesis_when_vad_detects_silence(self):
+        self.vad.set_messages([
+            (False, None, ""),
+            (False, None, ""),
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("silence 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("silence 2", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+
+        expected_message = createResultsMessage(False, [(1.0, "")])
+        self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
+
+    def test_worker_sends_hypothesis_when_vad_detects_speech(self):
+        self.vad.set_messages([
+            (True, None, "resampled message 1"),
+            (True, None, "resampled message 2")
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("speech 2", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+
+        expected_message = createResultsMessage(False, [(1.0, "Interim result")])
+        self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
+
+    def test_worker_sends_final_hypothesis_when_vad_detects_change_to_silence(self):
+        self.vad.set_messages([
+            (True, None, "resampled speech 1"),
+            (False, "silence", "")
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("silence 1", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+
+        expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
+        self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
+
+    def test_worker_sends_working_heartbeat_when_vad_detects_change_to_silence(self):
+        self.vad.set_messages([
+            (True, None, "resampled speech 1"),
+            (False, "silence", "")
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("silence 1", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        self.assertThatHeartbeatsWereSent(["STARTED", "WORKING", "WORKING"])
+
     def run_worker(self, messages):
         self.poller.add_messages(messages)
         self.worker.run()
@@ -177,6 +249,9 @@ class TestWorker(unittest.TestCase):
 
     def assertThatDataWasStored(self, data):
         self.assertEquals(data, self.saver.saved_data)
+
+    def assertThatVadReceivedChunks(self, data):
+        self.assertEquals(data, self.vad.data)
 
     def make_frontend_request(self, message, type = "BATCH", has_next = True, id = 0):
         return createRecognitionRequestMessage(type, message, has_next, id, 44100).SerializeToString()
@@ -267,3 +342,21 @@ class SaverSpy:
 
     def parse_id(self, id):
         return uniqId2Int(id)
+
+
+class VADSpy:
+
+    def __init__(self):
+        self.data = []
+        self.messages = []
+
+    def set_messages(self, messages):
+        self.messages = messages
+
+    def decide(self, pcm):
+        self.data.append(pcm)
+
+        if len(self.messages) > 0:
+            return self.messages.pop(0)
+        else:
+            return True, None, pcm
