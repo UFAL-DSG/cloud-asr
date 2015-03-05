@@ -1,5 +1,10 @@
+import sys
+if 'threading' in sys.modules:
+    del sys.modules['threading']
+import gevent.monkey; gevent.monkey.patch_all()
+import threading
 import unittest
-import zmq
+import zmq.green as zmq
 from poller import Poller
 
 class TestPoller(unittest.TestCase):
@@ -86,6 +91,9 @@ class TestPoller(unittest.TestCase):
         socket = context.socket(zmq.REQ)
         socket.connect(address)
         socket.send_json(message)
+
+        import gevent
+        gevent.sleep(0.05)
 
         return socket
 
