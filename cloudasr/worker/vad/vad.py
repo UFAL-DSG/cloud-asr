@@ -2,10 +2,10 @@ from collections import deque
 import audioop
 import wave
 
-from ffnn import FFNNVAD
-
 
 def create_vad():
+    from ffnn import FFNNVAD
+
     cfg = {
         'sample_rate': 16000,
         'frontend': 'MFCC',

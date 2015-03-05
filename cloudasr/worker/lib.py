@@ -226,6 +226,9 @@ class RemoteSaver:
         self.wav += pcm
 
     def final_hypothesis(self, final_hypothesis):
+        if len(self.wav) == 0:
+            return
+
         self.socket.send(createSaverMessage(self.id, self.part, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
         self.wav = b""
         self.part += 1
