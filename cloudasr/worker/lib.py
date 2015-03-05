@@ -71,6 +71,7 @@ class Worker:
                 if not self.is_online_recognition_running():
                     self.heartbeat.send("WAITING")
                 else:
+                    self.asr.reset()
                     self.end_online_recognition()
                     self.heartbeat.send("FINISHED")
 
@@ -94,13 +95,11 @@ class Worker:
 
         self.asr.recognize_chunk(resampled_pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
-        response = self.create_final_response(final_hypothesis)
+        response = self.send_hypothesis(True, final_hypothesis)
 
         self.saver.new_recognition(request.id)
         self.saver.add_pcm(pcm)
         self.saver.final_hypothesis(final_hypothesis)
-
-        self.poller.send("frontend", response.SerializeToString())
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
@@ -108,35 +107,31 @@ class Worker:
         vad, change, pcm = self.vad.decide(pcm)
 
         if vad:
-            interim_hypothesis = self.asr.recognize_chunk(pcm)
+            is_final = False
+            hypothesis = [self.asr.recognize_chunk(pcm)]
+            self.saver.add_pcm(request.body)
         else:
-            interim_hypothesis = (1.0, "")
+            is_final = False
+            hypothesis = [(1.0, "")]
 
-        if change == "silence":
-            final_hypothesis = self.asr.get_final_hypothesis()
-            response = self.create_final_response(final_hypothesis)
-            self.poller.send("frontend", response.SerializeToString())
-            self.heartbeat.send("WORKING")
-            return
+        if change == "silence" or request.has_next == False:
+            is_final = True
+            hypothesis = self.asr.get_final_hypothesis()
 
-        self.saver.add_pcm(request.body)
+            self.asr.reset()
+            self.saver.final_hypothesis(hypothesis)
 
-        if request.has_next == True:
-            self.send_interim_hypothesis(interim_hypothesis)
+        self.send_hypothesis(is_final, hypothesis)
+
+        if request.has_next:
             self.heartbeat.send("WORKING")
         else:
-            final_hypothesis = self.asr.get_final_hypothesis()
-            self.send_final_hypothesis(final_hypothesis)
-            self.heartbeat.send("FINISHED")
-            self.saver.final_hypothesis(final_hypothesis)
             self.end_online_recognition()
+            self.heartbeat.send("FINISHED")
 
-    def send_interim_hypothesis(self, interim_hypothesis):
-        response = self.create_interim_response(interim_hypothesis)
-        self.poller.send("frontend", response.SerializeToString())
 
-    def send_final_hypothesis(self, final_hypothesis):
-        response = self.create_final_response(final_hypothesis)
+    def send_hypothesis(self, is_final, hypothesis):
+        response = createResultsMessage(is_final, hypothesis)
         self.poller.send("frontend", response.SerializeToString())
 
     def is_online_recognition_running(self):
@@ -151,19 +146,12 @@ class Worker:
 
     def end_online_recognition(self):
         self.current_request_id = None
-        self.asr.reset()
 
     def handle_bad_chunk(self):
         self.poller.send("frontend", createErrorResultsMessage().SerializeToString())
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)
-
-    def create_final_response(self, final_hypothesis):
-        return createResultsMessage(True, final_hypothesis)
-
-    def create_interim_response(self, interim_hypothesis):
-        return createResultsMessage(False, [interim_hypothesis])
 
 
 class Heartbeat:

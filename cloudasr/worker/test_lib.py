@@ -144,7 +144,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"frame_rate": 16000, "pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}
+            1: {"frame_rate": 16000, "chunks": [{"pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}]}
         })
 
     def test_worker_saves_pcm_data_from_online_request_in_original_frame_rate(self):
@@ -156,7 +156,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"frame_rate": 44100, "pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}
+            1: {"frame_rate": 44100, "chunks": [{"pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}]}
         })
 
     def test_worker_forwards_pcm_data_to_vad(self):
@@ -229,6 +229,44 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatHeartbeatsWereSent(["STARTED", "WORKING", "WORKING"])
+
+    def test_worker_resets_asr_when_vad_detects_change_to_silence(self):
+        self.vad.set_messages([
+            (True, None, "resampled speech 1"),
+            (False, "silence", "")
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("silence 1", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        self.assertTrue(self.asr.resetted)
+
+
+    def test_worker_saves_pcm_as_part_of_original_request(self):
+        self.vad.set_messages([
+            (True, None, "resampled speech 1"),
+            (False, "silence", ""),
+            (True, None, "resampled speech 2"),
+            (False, "silence", "")
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("silence 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("speech 2", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("silence 2", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        self.assertThatDataWasStored({
+            1: {"frame_rate": 44100, "chunks": [
+                {"pcm": "speech 1", "hypothesis": [(1.0, "Hello World!")]},
+                {"pcm": "speech 2", "hypothesis": [(1.0, "Hello World!")]}
+            ]}
+        })
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
@@ -332,13 +370,17 @@ class SaverSpy:
 
     def new_recognition(self, id, frame_rate=16000):
         self.id = self.parse_id(id)
-        self.saved_data[self.id] = {"frame_rate": frame_rate, "pcm": "", "hypothesis": ""}
+        self.saved_data[self.id] = {"frame_rate": frame_rate, "chunks": []}
+        self.current_chunk = {"pcm": "", "hypothesis": ""}
 
     def add_pcm(self, pcm):
-        self.saved_data[self.id]["pcm"] += pcm
+        self.current_chunk["pcm"] += pcm
 
     def final_hypothesis(self, final_hypothesis):
-        self.saved_data[self.id]["hypothesis"] = final_hypothesis
+        self.current_chunk["hypothesis"] = final_hypothesis
+        self.saved_data[self.id]["chunks"].append(self.current_chunk)
+
+        self.current_chunk = {"pcm": "", "hypothesis": ""}
 
     def parse_id(self, id):
         return uniqId2Int(id)
