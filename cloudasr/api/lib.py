@@ -47,14 +47,14 @@ class FrontendWorker:
         if response.status == ResultsMessage.ERROR:
             raise WorkerInternalError
 
-        return self.format_interim_response(response)
+        return self.format_online_recognition_response(response)
 
     def end_recognition(self):
         self.send_request_to_worker(b"", "ONLINE", frame_rate = 44100, has_next = False)
         response = self.read_response_from_worker()
         self.worker_socket.disconnect(self.worker_address)
 
-        return self.format_final_response(response)
+        return self.format_online_recognition_response(response)
 
 
     def validate_headers(self, headers):
@@ -82,7 +82,7 @@ class FrontendWorker:
         response = self.read_response_from_worker()
         self.worker_socket.disconnect(self.worker_address)
 
-        return self.format_final_response(response)
+        return self.format_batch_recognition_response(response)
 
     def send_request_to_worker(self, data, type, frame_rate = None, has_next = False):
         request = createRecognitionRequestMessage(type, data, has_next, self.id, frame_rate)
@@ -91,10 +91,9 @@ class FrontendWorker:
 
     def read_response_from_worker(self):
         response = parseResultsMessage(self.worker_socket.recv())
-
         return response
 
-    def format_final_response(self, response):
+    def format_batch_recognition_response(self, response):
         return {
             "result": [
                 {
@@ -106,18 +105,13 @@ class FrontendWorker:
             "request_id": str(self.id)
         }
 
-    def format_interim_response(self, response):
+    def format_online_recognition_response(self, response):
         return {
             'status': 0,
             'result': {
-                'hypotheses': [
-                    {
-                        'transcript': response.alternatives[0].transcript,
-                        'confidence': response.alternatives[0].confidence
-                    }
-                ]
+                'hypotheses': [{"confidence": a.confidence, "transcript": a.transcript} for a in response.alternatives],
             },
-            'final': False,
+            'final': response.final,
             'request_id': str(self.id)
         }
 

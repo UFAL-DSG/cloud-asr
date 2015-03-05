@@ -129,7 +129,7 @@ class TestFrontendWorker(unittest.TestCase):
                     }
                 ]
             },
-            'final': False,
+            'final': True,
             'request_id': '1'
         }
 
@@ -155,19 +155,17 @@ class TestFrontendWorker(unittest.TestCase):
         received_response = self.worker.end_recognition()
 
         expected_response = {
-            "result": [
-                {
-                    "alternative": [
-                        {
-                            "confidence": 1.0,
-                            "transcript": "Hello World!"
-                        },
-                    ],
-                    "final": True,
-                },
-            ],
-            "result_index": 0,
-            "request_id": '1'
+            'status': 0,
+            'result': {
+                'hypotheses': [
+                    {
+                        'transcript': 'Hello World!',
+                        'confidence': 1.0
+                    }
+                ]
+            },
+            'final': True,
+            'request_id': '1'
         }
 
         self.assertEquals(expected_response, received_response)

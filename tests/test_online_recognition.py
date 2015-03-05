@@ -19,9 +19,9 @@ class TestOnlineRecognition(unittest.TestCase):
 
     def test_online_recognition(self):
         self.socketIO.on('result', self.assertMessageHasCorrectSchema)
-        self.socketIO.on('final_result', self.assertFinalResultHasCorrectSchema)
+        self.socketIO.on('final_result', self.assertMessageHasCorrectSchema)
         self.send_chunks()
-        self.assertEquals(self.expected_responses, self.received_responses)
+        self.assertEquals(self.expected_responses + 1, self.received_responses)
 
     def send_chunks(self):
         self.socketIO.emit('begin', {'model': 'en-towninfo'})
@@ -84,42 +84,3 @@ class TestOnlineRecognition(unittest.TestCase):
         validationResult = validate(message, schema)
         self.assertIsNone(validationResult, msg="Message has invalid schema")
         self.received_responses += 1
-
-    def assertFinalResultHasCorrectSchema(self, message):
-        schema = {
-            "type": "object",
-            "properties": {
-                "result": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "alternative": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "confidence": {"type": "number"},
-                                        "transcript": {"type": "string"},
-                                    },
-                                    "required": ["confidence", "transcript"],
-                                    "additionalProperties": False,
-                                },
-                                "minItems": 1,
-                            },
-                            "final": {"type": "boolean"},
-                        },
-                        "required": ["alternative", "final"],
-                        "additionalProperties": False,
-                    },
-                    "minItems": 1,
-                },
-                "result_index": {"type": "number"},
-                "request_id": {"type": "string"},
-            },
-            "required": ["result", "result_index", "request_id"],
-            "additionalProperties": False,
-        }
-
-        validationResult = validate(message, schema)
-        self.assertIsNone(validationResult, msg="Response has invalid schema")
