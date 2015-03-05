@@ -3,6 +3,7 @@ from flask import Flask, flash, render_template, redirect, request, url_for, ses
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
 from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
+from flask.ext.sqlalchemy import SQLAlchemy
 from cloudasr.models import create_db_connection, UsersModel, RecordingsModel, WorkerTypesModel
 
 
@@ -13,6 +14,7 @@ app.config.update(
     GOOGLE_LOGIN_CLIENT_ID = os.environ['GOOGLE_LOGIN_CLIENT_ID'],
     GOOGLE_LOGIN_CLIENT_SECRET = os.environ['GOOGLE_LOGIN_CLIENT_SECRET'],
     GOOGLE_LOGIN_SCOPES = 'https://www.googleapis.com/auth/userinfo.email',
+    SQLALCHEMY_DATABASE_URI = os.environ['CONNECTION_STRING']
 )
 
 login_manager = LoginManager(app)
@@ -21,7 +23,7 @@ google_login = GoogleLogin(app, login_manager)
 principals = Principal(app)
 admin_permission = Permission(RoleNeed('admin'))
 
-db = create_db_connection(os.environ['CONNECTION_STRING'])
+db = SQLAlchemy(app).session
 users_model = UsersModel(db)
 worker_types_model = WorkerTypesModel(db)
 recordings_model = RecordingsModel(db, worker_types_model)
