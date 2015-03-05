@@ -116,7 +116,7 @@ class Worker:
             is_final = False
             hypothesis = [(1.0, "")]
 
-        if change == "silence" or request.has_next == False:
+        if change == "non-speech" or request.has_next == False:
             is_final = True
             hypothesis = self.asr.get_final_hypothesis()
 

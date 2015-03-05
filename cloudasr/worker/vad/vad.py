@@ -7,7 +7,7 @@ from ffnn import FFNNVAD
 
 def create_vad():
     cfg = {
-        'sample_rate': 44100,
+        'sample_rate': 16000,
         'frontend': 'MFCC',
         'framesize': 512,
         'frameshift': 160,
@@ -72,7 +72,6 @@ class VAD:
 
         speech = float(sum(self.detection_window_speech)) / (len(self.detection_window_speech) + 1.0)
         sil = float(sum(self.detection_window_sil)) / (len(self.detection_window_sil) + 1.0)
-        print 'SPEECH: %s SIL: %s' % (speech, sil)
 
         vad = self.last_vad
         change = None

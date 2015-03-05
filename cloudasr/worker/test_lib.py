@@ -202,7 +202,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_final_hypothesis_when_vad_detects_change_to_silence(self):
         self.vad.set_messages([
             (True, None, "resampled speech 1"),
-            (False, "silence", "")
+            (False, "non-speech", "")
         ])
 
         messages = [
@@ -219,7 +219,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_working_heartbeat_when_vad_detects_change_to_silence(self):
         self.vad.set_messages([
             (True, None, "resampled speech 1"),
-            (False, "silence", "")
+            (False, "non-speech", "")
         ])
 
         messages = [
@@ -233,7 +233,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_resets_asr_when_vad_detects_change_to_silence(self):
         self.vad.set_messages([
             (True, None, "resampled speech 1"),
-            (False, "silence", "")
+            (False, "non-speech", "")
         ])
 
         messages = [
@@ -248,9 +248,9 @@ class TestWorker(unittest.TestCase):
     def test_worker_saves_pcm_as_part_of_original_request(self):
         self.vad.set_messages([
             (True, None, "resampled speech 1"),
-            (False, "silence", ""),
+            (False, "non-speech", ""),
             (True, None, "resampled speech 2"),
-            (False, "silence", "")
+            (False, "non-speech", "")
         ])
 
         messages = [
