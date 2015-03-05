@@ -4,6 +4,37 @@ import wave
 
 from ffnn import FFNNVAD
 
+
+def create_vad():
+    cfg = {
+        'sample_rate': 44100,
+        'frontend': 'MFCC',
+        'framesize': 512,
+        'frameshift': 160,
+        'usehamming': True,
+        'preemcoef': 0.97,
+        'numchans': 26,
+        'ceplifter': 22,
+        'numceps': 12,
+        'enormalise': True,
+        'zmeansource': True,
+        'usepower': True,
+        'usec0': False,
+        'usecmn': False,
+        'usedelta': False,
+        'useacc': False,
+        'n_last_frames': 30, # 15,
+        'n_prev_frames': 15,
+        'mel_banks_only': True,
+        'lofreq': 125,
+        'hifreq': 3800,
+        'model': '/opt/models/vad.tffnn',
+        'filter_length': 2,
+    }
+
+    return VAD(FFNNVAD(cfg))
+
+
 class VAD:
 
     decision_frames_speech = 10

@@ -5,6 +5,7 @@ import zmq
 import time
 from StringIO import StringIO
 from asr import create_asr
+from vad import create_vad
 from cloudasr.messages import RecognitionRequestMessage
 from cloudasr.messages.helpers import *
 
@@ -15,9 +16,10 @@ def create_worker(model, hostname, port, master_address, recordings_saver_addres
     asr = create_asr()
     audio = AudioUtils()
     saver = RemoteSaver(create_recordings_saver_socket(recordings_saver_address), model)
+    vad = create_vad()
     run_forever = lambda: True
 
-    return Worker(poller, heartbeat, asr, audio, saver, run_forever)
+    return Worker(poller, heartbeat, asr, audio, saver, vad, run_forever)
 
 def create_poller(frontend_address):
     from cloudasr import Poller
