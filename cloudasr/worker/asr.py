@@ -29,7 +29,6 @@ class ASR:
         self.callbacks.append(callback)
 
     def recognize_chunk(self, chunk):
-        decoded_frames = 0
         self.recogniser.frame_in(chunk)
         dec_t = self.recogniser.decode(max_frames=10)
         while dec_t > 0:
@@ -38,8 +37,11 @@ class ASR:
             self.decoded_frames += dec_t
             dec_t = self.recogniser.decode(max_frames=10)
 
-        interim_result = self.recogniser.get_best_path()
-        return self.to_best_path(interim_result)
+        if self.decoded_frames == 0:
+            return (1.0, '')
+        else:
+            interim_result = self.recogniser.get_best_path()
+            return self.to_best_path(interim_result)
 
     def get_final_hypothesis(self):
         if self.decoded_frames == 0:
