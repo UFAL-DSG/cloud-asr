@@ -22,6 +22,7 @@ class ASR:
         self.recogniser = recogniser
         self.to_nbest = to_nbest
         self.to_best_path = to_best_path
+        self.decoded_frames = 0
         self.callbacks = []
 
     def add_callback(self, callback):
@@ -34,13 +35,16 @@ class ASR:
         while dec_t > 0:
             self.call_callbacks()
 
-            decoded_frames += dec_t
+            self.decoded_frames += dec_t
             dec_t = self.recogniser.decode(max_frames=10)
 
         interim_result = self.recogniser.get_best_path()
         return self.to_best_path(interim_result)
 
     def get_final_hypothesis(self):
+        if self.decoded_frames == 0:
+            return [(1.0, '')]
+
         self.recogniser.finalize_decoding()
         utt_lik, lat = self.recogniser.get_lattice()
         self.reset()
@@ -48,6 +52,7 @@ class ASR:
         return self.to_nbest(lat, 10)
 
     def reset(self):
+        self.decoded_frames = 0
         self.recogniser.reset(reset_pipeline=True)
 
     def call_callbacks(self):

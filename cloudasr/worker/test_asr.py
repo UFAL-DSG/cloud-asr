@@ -9,6 +9,11 @@ class TestASR(unittest.TestCase):
         self.recogniser = DummyRecogniser()
         self.asr = ASR(self.recogniser, dummy_to_nbest, dummy_to_best_path)
 
+
+    def test_asr_returns_empty_final_hypothesis_when_nothing_was_decoded(self):
+        final_hypothesis = self.asr.get_final_hypothesis()
+        self.assertEqual([(1.0, '')], final_hypothesis)
+
     def test_asr_returns_dummy_final_hypothesis(self):
         interim_hypothesis = self.asr.recognize_chunk(self.load_pcm_sample_data())
         final_hypothesis = self.asr.get_final_hypothesis()
