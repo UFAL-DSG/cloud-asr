@@ -2,6 +2,14 @@ body {
     color: black
 }
 
+#result {
+    color: black;
+}
+
+#result .current {
+    color: gray;
+}
+
 .bs-callout {
     padding: 20px;
     margin: 20px 0;

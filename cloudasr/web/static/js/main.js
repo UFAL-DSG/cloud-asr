@@ -6,7 +6,13 @@ $(document).ready(function() {
 
     speechRecognition.onresult = function(result) {
         var transcript = result.result.hypotheses[0].transcript;
-        $result.text(transcript);
+        $('#result .current').text(transcript + " ");
+
+        if(result.final) {
+            $('#result .current').removeClass("current");
+            $('#result').append("<span class='current'></span>");
+        }
+
         $('#request_id').text(result.request_id);
     }
 
@@ -16,6 +22,8 @@ $(document).ready(function() {
         $('#start_recording_text').hide()
         $('#stop_recording_text').show()
         $('#error').hide()
+
+        $('#result').html("<span class='current'></span>");
         $('#request_id').parent().hide()
     }
 
