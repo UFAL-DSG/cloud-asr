@@ -217,14 +217,13 @@ class RemoteSaver:
 
     def new_recognition(self, id, frame_rate=16000):
         self.id = uniqId2Int(id)
+        self.part = 0
         self.frame_rate = frame_rate
 
     def add_pcm(self, pcm):
         self.wav += pcm
 
     def final_hypothesis(self, final_hypothesis):
-        self.socket.send(createSaverMessage(self.id, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
+        self.socket.send(createSaverMessage(self.id, self.part, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
         self.wav = b""
-
-
-
+        self.part += 1

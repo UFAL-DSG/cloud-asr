@@ -14,8 +14,8 @@ class TestRecordingsSaver(unittest.TestCase):
 
     def test_saver_saves_recordings_received_via_socket(self):
         self.run_saver([
-            createSaverMessage(1, 'en-GB', b'body 1', 44100, [(1.0, 'Hello World 1!')]).SerializeToString(),
-            createSaverMessage(2, 'en-GB', b'body 2', 44100, [(1.0, 'Hello World 2!')]).SerializeToString(),
+            createSaverMessage(1, 0, 'en-GB', b'body 1', 44100, [(1.0, 'Hello World 1!')]).SerializeToString(),
+            createSaverMessage(2, 0, 'en-GB', b'body 2', 44100, [(1.0, 'Hello World 2!')]).SerializeToString(),
         ])
 
         self.assertThatSaverSavedRecordings([

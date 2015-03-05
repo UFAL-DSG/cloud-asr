@@ -302,6 +302,7 @@ class RemoteSaverTest(unittest.TestCase):
 
     def setUp(self):
         self.id = 0
+        self.part = 0
         self.final_hypothesis = [(1.0, "Hello World!")]
         self.model = "en-GB"
         self.chunk = b"chunk"
@@ -316,11 +317,23 @@ class RemoteSaverTest(unittest.TestCase):
         self.saver.final_hypothesis(self.final_hypothesis)
 
         message = parseSaverMessage(self.socket.sent_message)
+        self.assertEquals(self.id, uniqId2Int(message.id))
+        self.assertEquals(self.part, message.part)
         self.assertEquals(self.model, message.model)
         self.assertEquals(self.chunk * 2, message.body)
         self.assertEquals(self.frame_rate, message.frame_rate)
-        self.assertEquals(self.id, uniqId2Int(message.id))
         self.assertEquals([{"confidence": self.final_hypothesis[0][0], "transcript": self.final_hypothesis[0][1]}], alternatives2List(message.alternatives))
+
+    def test_saver_sends_all_parts(self):
+        self.saver.new_recognition(createUniqueID(self.id), self.frame_rate)
+        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.final_hypothesis)
+
+        message = parseSaverMessage(self.socket.sent_messages[0])
+        self.assertEquals(0, message.part)
+
+        message = parseSaverMessage(self.socket.sent_messages[1])
+        self.assertEquals(1, message.part)
 
     def test_saver_resets_after_final_hypothesis(self):
         self.saver.new_recognition(createUniqueID(self.id))
