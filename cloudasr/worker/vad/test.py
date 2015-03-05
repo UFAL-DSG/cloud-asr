@@ -24,7 +24,7 @@ class TestVAD(unittest.TestCase):
         wav = wave.open("/opt/resources/test2.wav", "rb")
 
         while True:
-            frames = wav.readframes(256)
+            frames = wav.readframes(512)
             if len(frames) == 0:
                 break
 

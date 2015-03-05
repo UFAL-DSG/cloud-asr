@@ -2,7 +2,7 @@
 
     var Recorder = function(cfg){
         var config = cfg || {};
-        var bufferLen = config.bufferLen || 16384;
+        var bufferLen = config.bufferLen || 512;
         var numChannels = config.numChannels || 1;
         var bufferCallback = config.bufferCallback || function(buffer) { console.log(buffer); };
         var errorCallback = config.errorCallback || function(error) { console.log(error); };
