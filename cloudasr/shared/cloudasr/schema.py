@@ -69,7 +69,9 @@ class WorkerType(Base):
 class Recording(Base):
     __tablename__ = 'recording'
 
-    id = Column(UUID, primary_key = True)
+    id = Column(Integer, primary_key = True, autoincrement=True)
+    uuid = Column(UUID)
+    part = Column(Integer)
     model = Column(String(32), ForeignKey('worker_type.id'))
     path = Column(String(128))
     url = Column(String(128))
@@ -88,7 +90,7 @@ class Hypothesis(Base):
     __tablename__ = 'hypothesis'
 
     id = Column(Integer, primary_key = True)
-    recording_id = Column(UUID, ForeignKey('recording.id'))
+    recording_id = Column(Integer, ForeignKey('recording.id'))
     text = Column(Text)
     confidence = Column(Float)
 
@@ -97,7 +99,7 @@ class Transcription(Base):
     __tablename__ = 'transcription'
 
     id = Column(Integer, primary_key = True)
-    recording_id = Column(UUID, ForeignKey('recording.id'))
+    recording_id = Column(Integer, ForeignKey('recording.id'))
     user_id = Column(UUID, ForeignKey('user.id'), nullable = True)
     text = Column(Text)
     created = Column(DateTime, default = datetime.datetime.utcnow)

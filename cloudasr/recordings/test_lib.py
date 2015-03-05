@@ -19,8 +19,8 @@ class TestRecordingsSaver(unittest.TestCase):
         ])
 
         self.assertThatSaverSavedRecordings([
-            (1, 'en-GB', b'body 1', 44100, [{'confidence': 1.0, 'transcript': 'Hello World 1!'}]),
-            (2, 'en-GB', b'body 2', 44100, [{'confidence': 1.0, 'transcript': 'Hello World 2!'}])
+            (1, 0, 'en-GB', b'body 1', 44100, [{'confidence': 1.0, 'transcript': 'Hello World 1!'}]),
+            (2, 0, 'en-GB', b'body 2', 44100, [{'confidence': 1.0, 'transcript': 'Hello World 2!'}])
         ])
 
     def run_saver(self, messages):
@@ -36,5 +36,5 @@ class RecordingsModelSpy:
     def __init__(self):
         self.saved_recordings = []
 
-    def save_recording(self, id, model, body, frame_rate, alternatives):
-        self.saved_recordings.append((id, model, body, frame_rate, alternatives))
+    def save_recording(self, id, part, model, body, frame_rate, alternatives):
+        self.saved_recordings.append((id, part, model, body, frame_rate, alternatives))

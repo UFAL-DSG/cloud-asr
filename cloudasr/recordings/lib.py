@@ -32,9 +32,10 @@ class RecordingsSaver:
             recording = parseSaverMessage(self.socket.recv())
 
             id = uniqId2Int(recording.id)
+            part = recording.part
             model = recording.model
             body = recording.body
             frame_rate = recording.frame_rate
             alternatives = alternatives2List(recording.alternatives)
 
-            self.model.save_recording(id, model, body, frame_rate, alternatives)
+            self.model.save_recording(id, part, model, body, frame_rate, alternatives)

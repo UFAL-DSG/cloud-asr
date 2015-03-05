@@ -70,15 +70,16 @@ class RecordingsModel:
             .limit(1) \
             .one()
 
-    def save_recording(self, id, model, body, frame_rate, alternatives):
-        (path, url) = self.file_saver.save_wav(id, model, body, frame_rate)
-        self.save_recording_to_db(id, model, path, url, alternatives)
+    def save_recording(self, id, part, model, body, frame_rate, alternatives):
+        (path, url) = self.file_saver.save_wav(id, part, model, body, frame_rate)
+        self.save_recording_to_db(id, part, model, path, url, alternatives)
 
-    def save_recording_to_db(self, id, model, path, url, alternatives):
+    def save_recording_to_db(self, id, part, model, path, url, alternatives):
         worker_type = self.worker_types_model.upsert_worker_type(model)
 
         recording = Recording(
-            id = id,
+            uuid = id,
+            part = part,
             path = path,
             url = self.url + url,
             score = alternatives[0]["confidence"],
@@ -116,9 +117,9 @@ class FileSaver:
     def __init__(self, path):
         self.path = path
 
-    def save_wav(self, id, model, body, frame_rate):
-        path = '%s/%s-%d.wav' % (self.path, model, id)
-        url = '/static/data/%s-%d.wav' % (model, id)
+    def save_wav(self, id, part, model, body, frame_rate):
+        path = '%s/%s-%d-%d.wav' % (self.path, model, id, part)
+        url = '/static/data/%s-%d-%d.wav' % (model, id, part)
 
         wav = wave.open(path, 'w')
         wav.setnchannels(1)
