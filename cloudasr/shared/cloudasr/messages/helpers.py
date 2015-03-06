@@ -1,25 +1,29 @@
 from messages_pb2 import *
 
 def createResultsMessage(final, alternatives):
-    message = ResultsMessage()
-    message.status = ResultsMessage.SUCCESS
-    message.final = final
+    message = ResultsListMessage()
+
+    result = message.results.add()
+    result.status = ResultsMessage.SUCCESS
+    result.final = final
 
     for (confidence, transcript) in alternatives:
-        alternative = message.alternatives.add()
+        alternative = result.alternatives.add()
         alternative.confidence = confidence
         alternative.transcript = transcript
 
     return message
 
 def createErrorResultsMessage():
-    message = ResultsMessage()
-    message.status = ResultsMessage.ERROR
+    message = ResultsListMessage()
+
+    result = message.results.add()
+    result.status = ResultsMessage.ERROR
 
     return message
 
 def parseResultsMessage(string):
-    message = ResultsMessage()
+    message = ResultsListMessage()
     message.ParseFromString(string)
 
     return message

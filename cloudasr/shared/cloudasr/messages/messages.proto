@@ -58,6 +58,10 @@ message Alternative {
 	required float confidence = 2;
 }
 
+message ResultsListMessage {
+	repeated ResultsMessage results = 1;
+}
+
 message ResultsMessage {
 	required Status status = 1;
 	optional bool final = 2;
