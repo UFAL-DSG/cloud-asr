@@ -2,8 +2,8 @@
     "domain": "cloudasr.com",
     "registry": "registry.hub.docker.io",
     "tag": "latest",
-    "marathon_url": "http://147.251.253.234:8080",
-    "master_ip": "147.251.254.245",
+    "marathon_url": "http://127.0.0.1:8080",
+    "master_ip": "127.0.0.1",
     "workers": [
         {"image": "ufaldsg/cloud-asr-worker-en-wiki", "model": "en-wiki", "instances": 4},
         {"image": "ufaldsg/cloud-asr-worker-en-voxforge", "model": "en-voxforge", "instances": 4},
