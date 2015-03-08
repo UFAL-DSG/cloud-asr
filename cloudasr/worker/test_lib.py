@@ -36,7 +36,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message = createResultsMessage(True, [(1.0, "Hello World!")])
+        expected_message = createResultsMessage([(True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_interim_results_after_each_chunk(self):
@@ -46,7 +46,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message = createResultsMessage([(False, [(1.0, "Interim result")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_final_results_after_last_chunk(self):
@@ -56,8 +56,8 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
-        expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
+        expected_message1 = createResultsMessage([(False, [(1.0, "Interim result")])])
+        expected_message2 = createResultsMessage([(True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
     def test_when_worker_receives_chunk_with_bad_id_it_should_return_error_message(self):
@@ -68,9 +68,9 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message1 = createResultsMessage([(False, [(1.0, "Interim result")])])
         expected_message2 = createErrorResultsMessage()
-        expected_message3 = createResultsMessage(True, [(1.0, "Hello World!")])
+        expected_message3 = createResultsMessage([(True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2, expected_message3])
 
     def test_worker_forwards_resampled_pcm_chunks_from_every_message_to_asr(self):
@@ -180,7 +180,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message = createResultsMessage(False, [(1.0, "")])
+        expected_message = createResultsMessage([(False, [(1.0, "")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_hypothesis_when_vad_detects_speech(self):
@@ -196,7 +196,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message = createResultsMessage([(False, [(1.0, "Interim result")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_final_hypothesis_when_vad_detects_change_to_silence(self):
@@ -212,7 +212,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message1 = createResultsMessage(False, [(1.0, "Interim result")])
+        expected_message1 = createResultsMessage(False, [([(1.0, "Interim result")])])
         expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
@@ -267,6 +267,40 @@ class TestWorker(unittest.TestCase):
                 {"pcm": "speech 2", "hypothesis": [(1.0, "Hello World!")]}
             ]}
         })
+
+    def test_worker_sends_interim_result_for_last_speech_in_splitted_chunks(self):
+        self.audio.set_chunks(["chunk 1", "chunk 2"])
+
+        self.vad.set_messages([
+            (True, None, "resampled chunk 1"),
+            (True, None, "resampled chunk 2"),
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        expected_messages = createResultsMessage([(False, [(1.0, "Interim result")])])
+        self.assertThatMessagesWereSendToFrontend([expected_messages])
+
+    def test_worker_sends_final_results_for_each_speech_in_splitted_chunks(self):
+        self.audio.set_chunks(["chunk 1", "chunk 2", "chunk 3", "chunk 4"])
+
+        self.vad.set_messages([
+            (True, None, "resampled chunk 1"),
+            (False, "non-speech", ""),
+            (True, None, "resampled chunk 2"),
+            (False, "non-speech", ""),
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        expected_messages = createResultsMessage([(True, [(1.0, "Hello World!")])] * 2)
+        self.assertThatMessagesWereSendToFrontend([expected_messages])
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
@@ -378,14 +412,24 @@ class ASRSpy:
 
 class DummyAudio:
 
+    def __init__(self):
+        self.splitted_chunks = []
+
     def load_wav_from_string_as_pcm(self, string):
         return "pcm " + string
 
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         return "resampled " + pcm
 
+    def set_chunks(self, splitted_chunks):
+        self.splitted_chunks = splitted_chunks
+
     def chunks(self, pcm, sample_rate):
-        yield pcm, "resampled " + pcm
+        if len(self.splitted_chunks) > 0:
+            for dummy_pcm in self.splitted_chunks:
+                yield dummy_pcm, "resampled" + dummy_pcm
+        else:
+            yield pcm, "resampled " + pcm
 
 class SaverSpy:
 

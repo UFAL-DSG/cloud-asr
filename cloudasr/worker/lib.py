@@ -97,7 +97,7 @@ class Worker:
 
         self.asr.recognize_chunk(resampled_pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
-        response = self.send_hypothesis(True, final_hypothesis)
+        response = self.send_hypotheses([(True, final_hypothesis)])
 
         self.saver.new_recognition(request.id)
         self.saver.add_pcm(pcm)
@@ -105,6 +105,7 @@ class Worker:
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
+        hypotheses = []
         for original_pcm, resampled_pcm in self.audio.chunks(request.body, request.frame_rate):
             vad, change, resampled_pcm = self.vad.decide(resampled_pcm)
 
@@ -123,7 +124,9 @@ class Worker:
                 self.asr.reset()
                 self.saver.final_hypothesis(hypothesis)
 
-        self.send_hypothesis(is_final, hypothesis)
+            hypotheses.append((is_final, hypothesis))
+
+        self.send_hypotheses(hypotheses)
 
         if request.has_next:
             self.heartbeat.send("WORKING")
@@ -131,9 +134,19 @@ class Worker:
             self.end_online_recognition()
             self.heartbeat.send("FINISHED")
 
-    def send_hypothesis(self, is_final, hypothesis):
-        response = createResultsMessage(is_final, hypothesis)
+    def send_hypotheses(self, hypotheses):
+        important_hypotheses = self.filter_out_redundant_hypothese(hypotheses)
+        response = createResultsMessage(important_hypotheses)
         self.poller.send("frontend", response.SerializeToString())
+
+    def filter_out_redundant_hypothese(self, hypotheses):
+        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[0] == True]
+
+        last_hypothesis = hypotheses.pop()
+        if last_hypothesis[0] == False:
+            important_hypotheses.append(last_hypothesis)
+
+        return important_hypotheses
 
     def is_online_recognition_running(self):
         return self.current_request_id is not None

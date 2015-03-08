@@ -1,16 +1,17 @@
 from messages_pb2 import *
 
-def createResultsMessage(final, alternatives):
+def createResultsMessage(results):
     message = ResultsListMessage()
 
-    result = message.results.add()
-    result.status = ResultsMessage.SUCCESS
-    result.final = final
+    for (final, alternatives) in results:
+        result = message.results.add()
+        result.status = ResultsMessage.SUCCESS
+        result.final = final
 
-    for (confidence, transcript) in alternatives:
-        alternative = result.alternatives.add()
-        alternative.confidence = confidence
-        alternative.transcript = transcript
+        for (confidence, transcript) in alternatives:
+            alternative = result.alternatives.add()
+            alternative.confidence = confidence
+            alternative.transcript = transcript
 
     return message
 
