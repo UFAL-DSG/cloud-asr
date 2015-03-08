@@ -105,23 +105,23 @@ class Worker:
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
-        pcm = self.audio.resample_to_default_sample_rate(request.body, request.frame_rate)
-        vad, change, pcm = self.vad.decide(pcm)
+        for original_pcm, resampled_pcm in self.audio.chunks(request.body, request.frame_rate):
+            vad, change, resampled_pcm = self.vad.decide(resampled_pcm)
 
-        if vad:
-            is_final = False
-            hypothesis = [self.asr.recognize_chunk(pcm)]
-            self.saver.add_pcm(request.body)
-        else:
-            is_final = False
-            hypothesis = [(1.0, "")]
+            if vad:
+                is_final = False
+                hypothesis = [self.asr.recognize_chunk(resampled_pcm)]
+                self.saver.add_pcm(original_pcm)
+            else:
+                is_final = False
+                hypothesis = [(1.0, "")]
 
-        if change == "non-speech" or request.has_next == False:
-            is_final = True
-            hypothesis = self.asr.get_final_hypothesis()
+            if change == "non-speech" or request.has_next == False:
+                is_final = True
+                hypothesis = self.asr.get_final_hypothesis()
 
-            self.asr.reset()
-            self.saver.final_hypothesis(hypothesis)
+                self.asr.reset()
+                self.saver.final_hypothesis(hypothesis)
 
         self.send_hypothesis(is_final, hypothesis)
 
@@ -130,7 +130,6 @@ class Worker:
         else:
             self.end_online_recognition()
             self.heartbeat.send("FINISHED")
-
 
     def send_hypothesis(self, is_final, hypothesis):
         response = createResultsMessage(is_final, hypothesis)
@@ -172,6 +171,7 @@ class AudioUtils:
 
     default_sample_width = 2
     default_sample_rate = 16000
+    buffer_length = 512
 
     def load_wav_from_string_as_pcm(self, string):
         return self.load_wav_from_file_as_pcm(StringIO(string))
@@ -201,6 +201,14 @@ class AudioUtils:
             return self.resample_to_default_sample_rate(pcm, wav.getframerate())
         except EOFError:
             raise Exception('Input PCM is corrupted: End of file.')
+
+    def chunks(self, pcm, sample_rate):
+        state = None
+        for i in xrange(0, len(pcm), self.buffer_length):
+            original_pcm = pcm[i:i+self.buffer_length]
+            resampled_pcm, state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, state)
+
+            yield original_pcm, resampled_pcm
 
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         if sample_rate != self.default_sample_rate:

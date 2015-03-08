@@ -384,6 +384,9 @@ class DummyAudio:
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         return "resampled " + pcm
 
+    def chunks(self, pcm, sample_rate):
+        yield pcm, "resampled " + pcm
+
 class SaverSpy:
 
     def __init__(self):
