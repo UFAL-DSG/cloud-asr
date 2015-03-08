@@ -77,7 +77,7 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
         "env": {
             "CONNECTION_STRING": connection_string,
             "STORAGE_PATH": "/opt/app/static/data",
-            "DOMAIN": "recordings." + domain
+            "DOMAIN": "http://recordings." + domain
         },
         "uris": ["/root/.dockercfg"],
         "constraints": [["hostname", "LIKE", master_ip]]
