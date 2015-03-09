@@ -12,8 +12,8 @@ class TestVAD(unittest.TestCase):
         vad = create_vad()
 
         utterances = 0
-        for chunk in self.chunks():
-            _, change, _ = vad.decide(chunk)
+        for original_chunk, resampled_chunk in self.chunks():
+            _, change, _, _ = vad.decide(original_chunk, resampled_chunk)
 
             if change == 'speech':
                utterances += 1
@@ -28,7 +28,7 @@ class TestVAD(unittest.TestCase):
             if len(frames) == 0:
                 break
 
-            yield self.resample_to_default_sample_rate(frames)
+            yield frames, self.resample_to_default_sample_rate(frames)
 
     def resample_to_default_sample_rate(self, pcm):
         pcm, state = audioop.ratecv(pcm, 2, 1, 44100, 16000, None)

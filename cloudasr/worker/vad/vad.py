@@ -37,8 +37,8 @@ def create_vad():
 
 class VAD:
 
-    decision_frames_speech = 10
-    decision_frames_sil = 10
+    decision_frames_speech = 15
+    decision_frames_sil = 15
     speech_buffer_frames = 100
 
     decision_speech_threshold = 0.7
@@ -47,24 +47,29 @@ class VAD:
     def __init__(self, vad_engine):
         self.detection_window_speech = deque(maxlen=self.decision_frames_speech)
         self.detection_window_sil = deque(maxlen=self.decision_frames_sil)
-        self.frames = deque(maxlen=self.speech_buffer_frames)
+        self.resampled_frames = deque(maxlen=self.speech_buffer_frames)
+        self.original_frames = deque(maxlen=self.speech_buffer_frames)
         self.last_vad = False
 
         self.vad_engine = vad_engine
 
     def reset(self):
+        self.vad_engine.reset()
         self.detection_window_speech.clear()
         self.detection_window_sil.clear()
-        self.frames.clear()
+        self.original_frames.clear()
+        self.resampled_frames.clear()
         self.last_vad = False
 
-    def decide(self, frames):
-        self.frames.append(frames)
+    def decide(self, original_frames, resampled_frames):
+        self.original_frames.append(original_frames)
+        self.resampled_frames.append(resampled_frames)
 
-        decision = self.vad_engine.decide(frames)
+        decision = self.vad_engine.decide(resampled_frames)
         vad, change = self.smoothe_decision(decision)
+        (original_frames, resampled_frames) = self.flush_frames(vad)
 
-        return vad, change, self.flush_frames(vad)
+        return vad, change, original_frames, resampled_frames
 
     def smoothe_decision(self, decision):
         self.detection_window_speech.append(decision)
@@ -90,9 +95,12 @@ class VAD:
 
     def flush_frames(self, vad):
         if vad:
-            frames = b''.join(self.frames)
-            self.frames.clear()
+            original_frames = b''.join(self.original_frames)
+            resampled_frames = b''.join(self.resampled_frames)
+            self.original_frames.clear()
+            self.resampled_frames.clear()
         else:
-            frames = b''
+            original_frames = b''
+            resampled_frames = b''
 
-        return frames
+        return (original_frames, resampled_frames)

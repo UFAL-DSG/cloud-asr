@@ -73,8 +73,7 @@ class Worker:
                 if not self.is_online_recognition_running():
                     self.heartbeat.send("WAITING")
                 else:
-                    self.asr.reset()
-                    self.end_online_recognition()
+                    self.end_recognition()
                     self.heartbeat.send("FINISHED")
 
     def handle_request(self, message):
@@ -97,7 +96,8 @@ class Worker:
 
         self.asr.recognize_chunk(resampled_pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
-        response = self.send_hypotheses([(True, final_hypothesis)])
+        self.send_hypotheses([(True, final_hypothesis)])
+        self.end_recognition()
 
         self.saver.new_recognition(request.id)
         self.saver.add_pcm(pcm)
@@ -107,7 +107,7 @@ class Worker:
     def handle_online_request(self, request):
         hypotheses = []
         for original_pcm, resampled_pcm in self.audio.chunks(request.body, request.frame_rate):
-            vad, change, resampled_pcm = self.vad.decide(resampled_pcm)
+            vad, change, original_pcm, resampled_pcm = self.vad.decide(original_pcm, resampled_pcm)
 
             if vad:
                 is_final = False
@@ -131,7 +131,7 @@ class Worker:
         if request.has_next:
             self.heartbeat.send("WORKING")
         else:
-            self.end_online_recognition()
+            self.end_recognition()
             self.heartbeat.send("FINISHED")
 
     def send_hypotheses(self, hypotheses):
@@ -159,7 +159,9 @@ class Worker:
         self.current_request_id = request.id
         self.saver.new_recognition(self.current_request_id, request.frame_rate)
 
-    def end_online_recognition(self):
+    def end_recognition(self):
+        self.asr.reset()
+        self.vad.reset()
         self.current_request_id = None
 
     def handle_bad_chunk(self):

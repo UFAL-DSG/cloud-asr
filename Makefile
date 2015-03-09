@@ -164,7 +164,7 @@ unit-test:
 	nosetests cloudasr/shared/cloudasr
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/api
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory -e vad cloudasr/worker
+	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory -e test_vad cloudasr/worker
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/monitor
 	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/recordings
 

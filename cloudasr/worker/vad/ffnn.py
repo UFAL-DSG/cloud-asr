@@ -49,6 +49,10 @@ class FFNNVAD():
         else:
             raise ASRException('Unsupported frontend: %s' % (self.cfg['frontend'], ))
 
+    def reset(self):
+        self.log_probs_speech.clear()
+        self.log_probs_sil.clear()
+
     def decide(self, data):
         """Processes the input frame whether the input segment is speech or non speech.
 

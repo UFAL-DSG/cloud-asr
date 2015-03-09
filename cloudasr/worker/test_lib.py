@@ -12,7 +12,7 @@ class TestWorker(unittest.TestCase):
         self.worker_address = "tcp://127.0.0.1:5678"
         self.master_socket = SocketSpy()
         self.saver = SaverSpy()
-        self.vad = VADSpy()
+        self.vad = VADDummy()
 
         self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
         self.poller = PollerSpy()
@@ -165,12 +165,12 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        self.assertThatVadReceivedChunks(["resampled message 1"])
+        self.assertThatVadReceivedChunks([("message 1", "resampled message 1")])
 
     def test_worker_sends_empty_hypothesis_when_vad_detects_silence(self):
         self.vad.set_messages([
-            (False, None, ""),
-            (False, None, ""),
+            (False, None, "", ""),
+            (False, None, "", ""),
         ])
 
         messages = [
@@ -185,8 +185,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_hypothesis_when_vad_detects_speech(self):
         self.vad.set_messages([
-            (True, None, "resampled message 1"),
-            (True, None, "resampled message 2")
+            (True, None, "message 1", "resampled message 1"),
+            (True, None, "message 2", "resampled message 2")
         ])
 
         messages = [
@@ -201,8 +201,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_sends_final_hypothesis_when_vad_detects_change_to_silence(self):
         self.vad.set_messages([
-            (True, None, "resampled speech 1"),
-            (False, "non-speech", "")
+            (True, None, "speech 1", "resampled speech 1"),
+            (False, "non-speech", "", "")
         ])
 
         messages = [
@@ -212,14 +212,14 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message1 = createResultsMessage(False, [([(1.0, "Interim result")])])
-        expected_message2 = createResultsMessage(True, [(1.0, "Hello World!")])
+        expected_message1 = createResultsMessage([(False, [(1.0, "Interim result")])])
+        expected_message2 = createResultsMessage([(True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
     def test_worker_sends_working_heartbeat_when_vad_detects_change_to_silence(self):
         self.vad.set_messages([
-            (True, None, "resampled speech 1"),
-            (False, "non-speech", "")
+            (True, None, "speech 1", "resampled speech 1"),
+            (False, "non-speech", "", "")
         ])
 
         messages = [
@@ -232,8 +232,8 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_resets_asr_when_vad_detects_change_to_silence(self):
         self.vad.set_messages([
-            (True, None, "resampled speech 1"),
-            (False, "non-speech", "")
+            (True, None, "speech 1", "resampled speech 1"),
+            (False, "non-speech", "", "")
         ])
 
         messages = [
@@ -247,10 +247,10 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_saves_pcm_as_part_of_original_request(self):
         self.vad.set_messages([
-            (True, None, "resampled speech 1"),
-            (False, "non-speech", ""),
-            (True, None, "resampled speech 2"),
-            (False, "non-speech", "")
+            (True, None, "speech 1", "resampled speech 1"),
+            (False, "non-speech", "", ""),
+            (True, None, "speech 2", "resampled speech 2"),
+            (False, "non-speech", "", "")
         ])
 
         messages = [
@@ -272,8 +272,8 @@ class TestWorker(unittest.TestCase):
         self.audio.set_chunks(["chunk 1", "chunk 2"])
 
         self.vad.set_messages([
-            (True, None, "resampled chunk 1"),
-            (True, None, "resampled chunk 2"),
+            (True, None, "chunk 1", "resampled chunk 1"),
+            (True, None, "chunk 2", "resampled chunk 2"),
         ])
 
         messages = [
@@ -288,10 +288,10 @@ class TestWorker(unittest.TestCase):
         self.audio.set_chunks(["chunk 1", "chunk 2", "chunk 3", "chunk 4"])
 
         self.vad.set_messages([
-            (True, None, "resampled chunk 1"),
-            (False, "non-speech", ""),
-            (True, None, "resampled chunk 2"),
-            (False, "non-speech", ""),
+            (True, None, "chunk 1", "resampled chunk 1"),
+            (False, "non-speech", "", ""),
+            (True, None, "chunk 2", "resampled chunk 2"),
+            (False, "non-speech", "", ""),
         ])
 
         messages = [
@@ -301,6 +301,33 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         expected_messages = createResultsMessage([(True, [(1.0, "Hello World!")])] * 2)
         self.assertThatMessagesWereSendToFrontend([expected_messages])
+
+    def test_worker_sends_buffered_chunks_to_saver_when_speech_is_detected(self):
+        self.vad.set_messages([
+            (True, "speech", "buffered chunk", "resampled buffered chunk"),
+            (False, "non-speech", "", "")
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+            {"frontend": self.make_frontend_request("speech 2", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        self.assertThatDataWasStored({
+            1: {"frame_rate": 44100, "chunks": [
+                {"pcm": "buffered chunk", "hypothesis": [(1.0, "Hello World!")]},
+            ]}
+        })
+
+    def test_worker_resets_vad_at_the_end_of_recognition(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = False)}
+        ]
+
+        self.run_worker(messages)
+        print self.vad.resetted
+        self.assertTrue(self.vad.resetted)
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
@@ -454,19 +481,24 @@ class SaverSpy:
         return uniqId2Int(id)
 
 
-class VADSpy:
+class VADDummy:
 
     def __init__(self):
         self.data = []
         self.messages = []
+        self.resetted = False
 
     def set_messages(self, messages):
         self.messages = messages
 
-    def decide(self, pcm):
-        self.data.append(pcm)
+    def decide(self, original_pcm, resampled_pcm):
+        self.data.append((original_pcm, resampled_pcm))
 
         if len(self.messages) > 0:
             return self.messages.pop(0)
         else:
-            return True, None, pcm
+            return True, None, original_pcm, resampled_pcm
+
+    def reset(self):
+        print "RESTARTING VAD"
+        self.resetted = True
