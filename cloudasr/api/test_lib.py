@@ -50,17 +50,17 @@ class TestFrontendWorker(unittest.TestCase):
     def test_recognize_batch_sends_data_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
         expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, frame_rate=16000)
-        self.assertThatMessagesWasSendToWorker([expected_message])
+        self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_recognize_batch_sends_data_with_unique_id_to_worker(self):
         self.id_generator.set_id([1])
         self.worker.recognize_batch(self.request_data, self.request_headers)
         expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, id = 1, frame_rate=16000)
-        self.assertThatMessagesWasSendToWorker([expected_message])
+        self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_recognize_batch_reads_response_from_worker(self):
         self.id_generator.set_id([1])
-        expected_response = {
+        expected_response = [{
             "result": [
                 {
                     "alternative": [
@@ -74,8 +74,8 @@ class TestFrontendWorker(unittest.TestCase):
             ],
             "result_index": 0,
             "request_id": '1'
-        }
-        received_response = self.worker.recognize_batch(self.request_data, self.request_headers)
+        }]
+        received_response = list(self.worker.recognize_batch(self.request_data, self.request_headers))
 
         self.assertEquals(expected_response, received_response)
 
@@ -103,7 +103,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100)
-        self.assertThatMessagesWasSendToWorker([expected_message])
+        self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_recognize_chunk_sends_data_with_unique_id_to_worker(self):
         self.id_generator.set_id([1, 2])
@@ -112,14 +112,14 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100, id=1)
-        self.assertThatMessagesWasSendToWorker([expected_message, expected_message])
+        self.assertThatMessagesWereSentToWorker([expected_message, expected_message])
 
     def test_recognize_chunk_reads_response_from_worker(self):
         self.id_generator.set_id([1])
         self.worker.connect_to_worker("en-GB")
-        received_response = self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
+        received_response = list(self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100))
 
-        expected_response = {
+        expected_response = [{
             'status': 0,
             'result': {
                 'hypotheses': [
@@ -131,7 +131,7 @@ class TestFrontendWorker(unittest.TestCase):
             },
             'final': True,
             'request_id': '1'
-        }
+        }]
 
         self.assertEquals(expected_response, received_response)
 
@@ -147,14 +147,14 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker.end_recognition()
 
         expected_message = createRecognitionRequestMessage("ONLINE", b"", False, frame_rate = 44100)
-        self.assertThatMessagesWasSendToWorker([expected_message])
+        self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_end_recognition_reads_response_from_worker(self):
         self.id_generator.set_id([1])
         self.worker.connect_to_worker("en-GB")
-        received_response = self.worker.end_recognition()
+        received_response = list(self.worker.end_recognition())
 
-        expected_response = {
+        expected_response = [{
             'status': 0,
             'result': {
                 'hypotheses': [
@@ -166,7 +166,7 @@ class TestFrontendWorker(unittest.TestCase):
             },
             'final': True,
             'request_id': '1'
-        }
+        }]
 
         self.assertEquals(expected_response, received_response)
 
@@ -185,7 +185,7 @@ class TestFrontendWorker(unittest.TestCase):
     def assertThatFrontendDisconnectedFromWorker(self):
         self.assertTrue(self.worker_socket.is_disconnected)
 
-    def assertThatMessagesWasSendToWorker(self, messages):
+    def assertThatMessagesWereSentToWorker(self, messages):
         sent_messages = [parseRecognitionRequestMessage(message) for message in self.worker_socket.sent_messages]
         self.assertEquals(messages, sent_messages)
 

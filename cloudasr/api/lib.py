@@ -44,17 +44,20 @@ class FrontendWorker:
         self.send_request_to_worker(chunk, "ONLINE", frame_rate, has_next = True)
         response = self.read_response_from_worker()
 
-        if response.results[0].status == ResultsMessage.ERROR:
+        return self.format_response(response.results, self.format_online_recognition_response)
+
+    def format_response(self, results, formatter):
+        if any([result.status == ResultsMessage.ERROR for result in results]):
             raise WorkerInternalError
 
-        return self.format_online_recognition_response(response.results[0])
+        return [formatter(result) for result in results]
 
     def end_recognition(self):
         self.send_request_to_worker(b"", "ONLINE", frame_rate = 44100, has_next = False)
         response = self.read_response_from_worker()
         self.worker_socket.disconnect(self.worker_address)
 
-        return self.format_online_recognition_response(response.results[0])
+        return self.format_response(response.results, self.format_online_recognition_response)
 
 
     def validate_headers(self, headers):
@@ -82,12 +85,11 @@ class FrontendWorker:
         response = self.read_response_from_worker()
         self.worker_socket.disconnect(self.worker_address)
 
-        return self.format_batch_recognition_response(response.results[0])
+        return self.format_response(response.results, self.format_batch_recognition_response)
 
     def send_request_to_worker(self, data, type, frame_rate = None, has_next = False):
         request = createRecognitionRequestMessage(type, data, has_next, self.id, frame_rate)
         self.worker_socket.send(request.SerializeToString())
-
 
     def read_response_from_worker(self):
         response = parseResultsMessage(self.worker_socket.recv())

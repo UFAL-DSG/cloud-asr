@@ -14,7 +14,6 @@ def create_sockets(server, port, n):
     for i in range(0, n):
         socket = SocketIO(server, port)
         socket.on('result', print_result(i))
-        socket.on('final_result', print_final_result(i))
         socket.on('server_error', print_server_error(i))
 
         sockets.append(socket)
@@ -26,12 +25,6 @@ def print_result(i):
         log("Socket %d received result: %s" % (i, result))
 
     return print_result_for_socket
-
-def print_final_result(i):
-    def print_final_result_for_socket(result):
-        log("Socket %d received final result: %s" % (i, result))
-
-    return print_final_result_for_socket
 
 def print_server_error(i):
     def print_server_error_for_socket(error):

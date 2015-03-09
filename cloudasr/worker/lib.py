@@ -142,9 +142,10 @@ class Worker:
     def filter_out_redundant_hypothese(self, hypotheses):
         important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[0] == True]
 
-        last_hypothesis = hypotheses.pop()
-        if last_hypothesis[0] == False:
-            important_hypotheses.append(last_hypothesis)
+        if len(hypotheses) > 0:
+            last_hypothesis = hypotheses.pop()
+            if last_hypothesis[0] == False:
+                important_hypotheses.append(last_hypothesis)
 
         return important_hypotheses
 
@@ -216,12 +217,15 @@ class AudioUtils:
             raise Exception('Input PCM is corrupted: End of file.')
 
     def chunks(self, pcm, sample_rate):
-        state = None
-        for i in xrange(0, len(pcm), self.buffer_length):
-            original_pcm = pcm[i:i+self.buffer_length]
-            resampled_pcm, state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, state)
+        if len(pcm) == 0:
+            yield b"", b""
+        else:
+            state = None
+            for i in xrange(0, len(pcm), self.buffer_length):
+                original_pcm = pcm[i:i+self.buffer_length]
+                resampled_pcm, state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, state)
 
-            yield original_pcm, resampled_pcm
+                yield original_pcm, resampled_pcm
 
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         if sample_rate != self.default_sample_rate:

@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, Response, request, jsonify, stream_with_context
 from flask.ext.socketio import SocketIO, emit, session
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 import os
+import json
 app = Flask(__name__)
 app.secret_key = "12345"
 app.config['DEBUG'] = True
@@ -15,9 +16,17 @@ def recognize_batch():
         "wav": request.data
     }
 
+    def generate(master_addr, data, headers):
+        worker = create_frontend_worker(master_addr)
+        response = worker.recognize_batch(data, headers)
+
+        for result in response:
+            yield json.dumps(result)
+
     try:
-        worker = create_frontend_worker(os.environ['MASTER_ADDR'])
-        return jsonify(worker.recognize_batch(data, request.headers))
+        generator = generate(os.environ['MASTER_ADDR'], data, request.headers)
+
+        return Response(stream_with_context(generator))
     except MissingHeaderError:
         return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
     except NoWorkerAvailableError:
@@ -40,8 +49,9 @@ def recognize_chunk(message):
             emit('server_error', {"status": "error", "message": "No worker available"})
             return
 
-        response = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
-        emit('result', response)
+        results = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
+        for result in results:
+            emit('result', result)
     except WorkerInternalError:
         emit('server_error', {"status": "error", "message": "Internal error"})
         del session["worker"]
@@ -52,9 +62,10 @@ def end_recognition(message):
         emit('server_error', {"status": "error", "message": "No worker available"})
         return
 
-    response = session["worker"].end_recognition()
+    results = session["worker"].end_recognition()
+    for result in results:
+        emit('result', result)
     del session["worker"]
-    emit('final_result', response)
 
 if __name__ == "__main__":
     socketio.run(app, host="0.0.0.0", port=80)
