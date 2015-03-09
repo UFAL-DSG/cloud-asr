@@ -56,7 +56,7 @@ def chunks():
     wav = wave.open("%s/../resources/test.wav" % basedir, "rb")
 
     while True:
-        frames = wav.readframes(4096)
+        frames = wav.readframes(16384)
         if len(frames) == 0:
             break
 

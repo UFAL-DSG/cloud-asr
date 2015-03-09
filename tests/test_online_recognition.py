@@ -38,7 +38,7 @@ class TestOnlineRecognition(unittest.TestCase):
         wav = wave.open("%s/../resources/test.wav" % basedir, "rb")
 
         while True:
-            frames = wav.readframes(512)
+            frames = wav.readframes(16384)
             if len(frames) == 0:
                 break
 
