@@ -18,7 +18,7 @@ class TestFrontendWorker(unittest.TestCase):
 
     def setUp(self):
         master_response = createMasterResponseMessage("SUCCESS", self.background_worker_socket)
-        worker_response = createResultsMessage([(True, [(1.0, "Hello World!")])])
+        worker_response = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
 
         self.master_socket = SocketSpy()
         self.master_socket.set_messages([master_response.SerializeToString()] * 2)

@@ -64,8 +64,9 @@ message ResultsListMessage {
 
 message ResultsMessage {
 	required Status status = 1;
-	optional bool final = 2;
-	repeated Alternative alternatives = 3;
+	optional UniqueID id = 2;
+	optional bool final = 3;
+	repeated Alternative alternatives = 4;
 
 	enum Status {
 		SUCCESS = 0;

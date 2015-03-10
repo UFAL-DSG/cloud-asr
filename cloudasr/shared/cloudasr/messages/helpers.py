@@ -3,8 +3,10 @@ from messages_pb2 import *
 def createResultsMessage(results):
     message = ResultsListMessage()
 
-    for (final, alternatives) in results:
+    for (id, final, alternatives) in results:
         result = message.results.add()
+        result.id.upper = id >> 64
+        result.id.lower = id & ((1<<64)-1)
         result.status = ResultsMessage.SUCCESS
         result.final = final
 

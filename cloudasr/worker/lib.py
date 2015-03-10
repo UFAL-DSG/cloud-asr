@@ -3,6 +3,7 @@ import wave
 import json
 import zmq
 import time
+import uuid
 from StringIO import StringIO
 from asr import create_asr
 from vad import create_vad
@@ -17,9 +18,10 @@ def create_worker(model, hostname, port, master_address, recordings_saver_addres
     audio = AudioUtils()
     saver = RemoteSaver(create_recordings_saver_socket(recordings_saver_address), model)
     vad = create_vad()
+    id_generator = lambda: uuid.uuid4().int
     run_forever = lambda: True
 
-    return Worker(poller, heartbeat, asr, audio, saver, vad, run_forever)
+    return Worker(poller, heartbeat, asr, audio, saver, vad, id_generator, run_forever)
 
 def create_poller(frontend_address):
     from cloudasr import Poller
@@ -51,7 +53,7 @@ def create_heartbeat(model, address, master_address):
 
 class Worker:
 
-    def __init__(self, poller, heartbeat, asr, audio, saver, vad, should_continue):
+    def __init__(self, poller, heartbeat, asr, audio, saver, vad, id_generator, should_continue):
         self.poller = poller
         self.heartbeat = heartbeat
         self.asr = asr
@@ -59,7 +61,9 @@ class Worker:
         self.saver = saver
         self.vad = vad
         self.should_continue = should_continue
+        self.id_generator = id_generator
         self.current_request_id = None
+        self.current_chunk_id = None
 
     def run(self):
         self.heartbeat.send("STARTED")
@@ -96,7 +100,7 @@ class Worker:
 
         self.asr.recognize_chunk(resampled_pcm)
         final_hypothesis = self.asr.get_final_hypothesis()
-        self.send_hypotheses([(True, final_hypothesis)])
+        self.send_hypotheses([(self.id_generator(), True, final_hypothesis)])
         self.end_recognition()
 
         self.saver.new_recognition(request.id)
@@ -108,6 +112,7 @@ class Worker:
         hypotheses = []
         for original_pcm, resampled_pcm in self.audio.chunks(request.body, request.frame_rate):
             vad, change, original_pcm, resampled_pcm = self.vad.decide(original_pcm, resampled_pcm)
+            current_chunk_id = self.current_chunk_id
 
             if vad:
                 is_final = False
@@ -123,8 +128,9 @@ class Worker:
 
                 self.asr.reset()
                 self.saver.final_hypothesis(hypothesis)
+                self.current_chunk_id = self.id_generator()
 
-            hypotheses.append((is_final, hypothesis))
+            hypotheses.append((current_chunk_id, is_final, hypothesis))
 
         self.send_hypotheses(hypotheses)
 
@@ -140,11 +146,11 @@ class Worker:
         self.poller.send("frontend", response.SerializeToString())
 
     def filter_out_redundant_hypothese(self, hypotheses):
-        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[0] == True]
+        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[1] == True]
 
         if len(hypotheses) > 0:
             last_hypothesis = hypotheses.pop()
-            if last_hypothesis[0] == False:
+            if last_hypothesis[1] == False:
                 important_hypotheses.append(last_hypothesis)
 
         return important_hypotheses
@@ -157,6 +163,7 @@ class Worker:
 
     def begin_online_recognition(self, request):
         self.current_request_id = request.id
+        self.current_chunk_id = self.id_generator()
         self.saver.new_recognition(self.current_request_id, request.frame_rate)
 
     def end_recognition(self):

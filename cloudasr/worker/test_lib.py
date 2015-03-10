@@ -13,12 +13,13 @@ class TestWorker(unittest.TestCase):
         self.master_socket = SocketSpy()
         self.saver = SaverSpy()
         self.vad = VADDummy()
+        self.id_generator = IDGeneratorDummy()
 
         self.heartbeat = Heartbeat(self.model, self.worker_address, self.master_socket)
         self.poller = PollerSpy()
         self.asr = ASRSpy([(1.0, "Hello World!")], (1.0, "Interim result"))
         self.audio = DummyAudio()
-        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.saver, self.vad, self.poller.has_next_message)
+        self.worker = Worker(self.poller, self.heartbeat, self.asr, self.audio, self.saver, self.vad, self.id_generator, self.poller.has_next_message)
 
     def test_worker_forwards_resampled_wav_from_every_message_to_asr_as_pcm(self):
         messages = [
@@ -36,7 +37,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message = createResultsMessage([(True, [(1.0, "Hello World!")])])
+        expected_message = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_interim_results_after_each_chunk(self):
@@ -46,7 +47,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message = createResultsMessage([(False, [(1.0, "Interim result")])])
+        expected_message = createResultsMessage([(0, False, [(1.0, "Interim result")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_final_results_after_last_chunk(self):
@@ -56,8 +57,8 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message1 = createResultsMessage([(False, [(1.0, "Interim result")])])
-        expected_message2 = createResultsMessage([(True, [(1.0, "Hello World!")])])
+        expected_message1 = createResultsMessage([(0, False, [(1.0, "Interim result")])])
+        expected_message2 = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
     def test_when_worker_receives_chunk_with_bad_id_it_should_return_error_message(self):
@@ -68,9 +69,9 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_message1 = createResultsMessage([(False, [(1.0, "Interim result")])])
+        expected_message1 = createResultsMessage([(0, False, [(1.0, "Interim result")])])
         expected_message2 = createErrorResultsMessage()
-        expected_message3 = createResultsMessage([(True, [(1.0, "Hello World!")])])
+        expected_message3 = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2, expected_message3])
 
     def test_worker_forwards_resampled_pcm_chunks_from_every_message_to_asr(self):
@@ -180,7 +181,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message = createResultsMessage([(False, [(1.0, "")])])
+        expected_message = createResultsMessage([(0, False, [(1.0, "")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_hypothesis_when_vad_detects_speech(self):
@@ -196,7 +197,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message = createResultsMessage([(False, [(1.0, "Interim result")])])
+        expected_message = createResultsMessage([(0, False, [(1.0, "Interim result")])])
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
     def test_worker_sends_final_hypothesis_when_vad_detects_change_to_silence(self):
@@ -212,8 +213,8 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
 
-        expected_message1 = createResultsMessage([(False, [(1.0, "Interim result")])])
-        expected_message2 = createResultsMessage([(True, [(1.0, "Hello World!")])])
+        expected_message1 = createResultsMessage([(0, False, [(1.0, "Interim result")])])
+        expected_message2 = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
         self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
     def test_worker_sends_working_heartbeat_when_vad_detects_change_to_silence(self):
@@ -281,12 +282,11 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_messages = createResultsMessage([(False, [(1.0, "Interim result")])])
+        expected_messages = createResultsMessage([(0, False, [(1.0, "Interim result")])])
         self.assertThatMessagesWereSendToFrontend([expected_messages])
 
     def test_worker_sends_final_results_for_each_speech_in_splitted_chunks(self):
         self.audio.set_chunks(["chunk 1", "chunk 2", "chunk 3", "chunk 4"])
-
         self.vad.set_messages([
             (True, None, "chunk 1", "resampled chunk 1"),
             (False, "non-speech", "", ""),
@@ -299,7 +299,7 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        expected_messages = createResultsMessage([(True, [(1.0, "Hello World!")])] * 2)
+        expected_messages = createResultsMessage([(0, True, [(1.0, "Hello World!")])] * 2)
         self.assertThatMessagesWereSendToFrontend([expected_messages])
 
     def test_worker_sends_buffered_chunks_to_saver_when_speech_is_detected(self):
@@ -328,6 +328,36 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         print self.vad.resetted
         self.assertTrue(self.vad.resetted)
+
+    def test_worker_assings_unique_id_to_each_chunk(self):
+        self.id_generator.set_ids([0,1])
+        self.audio.set_chunks(["chunk 1", "chunk 2", "chunk 3", "chunk 4"])
+        self.vad.set_messages([
+            (True, None, "chunk 1", "resampled chunk 1"),
+            (False, "non-speech", "", ""),
+            (True, None, "chunk 2", "resampled chunk 2"),
+            (False, "non-speech", "", ""),
+        ])
+
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "ONLINE", id = 1, has_next = True)},
+        ]
+
+        self.run_worker(messages)
+        expected_messages = createResultsMessage([(0, True, [(1.0, "Hello World!")]), (1, True, [(1.0, "Hello World!")])])
+        self.assertThatMessagesWereSendToFrontend([expected_messages])
+
+    def test_worker_assings_unique_id_to_each_batch_request(self):
+        self.id_generator.set_ids([0,1])
+        messages = [
+            {"frontend": self.make_frontend_request("speech 1", "BATCH", id = 1, has_next = False)},
+            {"frontend": self.make_frontend_request("speech 2", "BATCH", id = 1, has_next = False)},
+        ]
+
+        self.run_worker(messages)
+        expected_message1 = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
+        expected_message2 = createResultsMessage([(1, True, [(1.0, "Hello World!")])])
+        self.assertThatMessagesWereSendToFrontend([expected_message1, expected_message2])
 
     def run_worker(self, messages):
         self.poller.add_messages(messages)
@@ -500,5 +530,19 @@ class VADDummy:
             return True, None, original_pcm, resampled_pcm
 
     def reset(self):
-        print "RESTARTING VAD"
         self.resetted = True
+
+
+class IDGeneratorDummy:
+
+    def __init__(self):
+        self.ids = []
+
+    def set_ids(self, ids):
+        self.ids = ids
+
+    def __call__(self):
+        if len(self.ids) > 0:
+            return self.ids.pop(0)
+        else:
+            return 0
