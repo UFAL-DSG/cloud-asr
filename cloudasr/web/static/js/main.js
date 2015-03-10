@@ -6,11 +6,36 @@ $(document).ready(function() {
 
     speechRecognition.onresult = function(result) {
         var transcript = result.result.hypotheses[0].transcript;
+        if(transcript == '') {
+            return;
+        }
+
         $('#result .current').text(transcript + " ");
 
         if(result.final) {
+            var $vote = $('<div class="text-right pull-right"></div>');
+            var $right = $('<a href="#" class="btn btn-xs btn-success"><span class="glyphicon glyphicon-ok"></span></a>');
+            $right.click(function() {
+                var request_data = JSON.stringify({
+                    "user_id": user_id,
+                    "recording_id": result.chunk_id,
+                    "transcription": transcript
+                });
+
+                $.post(apiUrl + "/transcribe", request_data, function(data) {
+                    $vote.html("<strong>Thank you!</strong>");
+                });
+            });
+
+            var $wrong = $('<a href="#" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>');
+            $wrong.click(function() {
+                $vote.html("<strong>Thank you!</strong>");
+            });
+            $vote.append($right, "<span> </span>", $wrong);
+
+            $('#result .current').prepend($vote);
             $('#result .current').removeClass("current");
-            $('#result').append("<span class='current'></span>");
+            $('#result').append("<div class='current transcription-result'></div>");
         }
 
         $('#request_id').text(result.request_id);
@@ -23,7 +48,7 @@ $(document).ready(function() {
         $('#stop_recording_text').show()
         $('#error').hide()
 
-        $('#result').html("<span class='current'></span>");
+        $('#result').html("<div class='current transcription-result'></div>");
         $('#request_id').parent().hide()
     }
 

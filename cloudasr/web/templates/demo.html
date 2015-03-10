@@ -11,6 +11,11 @@
 var apiUrl = "{{ api_url }}";
 var availableWorkersUrl = "{{ url_for('available_workers') }}";
 var model = "{{ model }}";
+{% if current_user.is_authenticated() %}
+    var user_id = "{{ current_user.get_id() }}";
+{% else %}
+    var user_id = null;
+{% endif %}
 </script>
 
 
