@@ -148,7 +148,7 @@ run_web:
 	docker run ${WEB_OPTS} -i -t --rm ufaldsg/cloud-asr-web python run.py
 
 run_api:
-	docker run ${API_OPTS} -i -t --rm ufaldsg/cloud-asr-api
+	docker run ${API_OPTS} -i -t --rm ufaldsg/cloud-asr-api python run.py
 
 run_master:
 	docker run ${MASTER_OPTS} -i -t --rm ufaldsg/cloud-asr-master

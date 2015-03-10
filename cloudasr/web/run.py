@@ -68,7 +68,7 @@ def save_transcription():
     flash('Recording was successfully transcribed')
 
     recordings_model.add_transcription(
-        current_user,
+        current_user.get_id(),
         request.form['id'],
         request.form['transcription'],
         'native_speaker' in request.form,

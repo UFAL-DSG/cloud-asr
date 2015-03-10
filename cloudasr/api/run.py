@@ -1,9 +1,11 @@
 import os
 import json
 from flask import Flask, Response, request, jsonify, stream_with_context
+from flask.ext.cors import CORS
 from flask.ext.socketio import SocketIO, emit, session
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 from cloudasr.schema import db
+from cloudasr.models import UsersModel, RecordingsModel, WorkerTypesModel
 
 
 app = Flask(__name__)
@@ -12,9 +14,11 @@ app.config.update(
     DEBUG = 'DEBUG' in os.environ,
     SQLALCHEMY_DATABASE_URI = os.environ['CONNECTION_STRING']
 )
+cors = CORS(app)
 socketio = SocketIO(app)
 db.init_app(app)
-
+worker_types_model = WorkerTypesModel(db.session)
+recordings_model = RecordingsModel(db.session, worker_types_model)
 
 @app.route("/recognize", methods=['POST'])
 def recognize_batch():
@@ -38,6 +42,23 @@ def recognize_batch():
         return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
     except NoWorkerAvailableError:
         return jsonify({"status": "error", "message": "No worker available"}), 503
+
+
+@app.route("/transcribe", methods=['POST'])
+def transcribe():
+    try:
+        data = request.get_json(force=True)
+        user_id = data.get("user_id", None)
+        recording_id = data["recording_id"]
+        transcription = data["transcription"]
+
+        result = recordings_model.add_transcription(user_id, recording_id, transcription)
+        if result == True:
+            return jsonify({"status": "success"})
+        else:
+            return jsonify({"status": "error", "message": "Recording with id %s not found" % str(recording_id)}), 404
+    except KeyError as e:
+        return jsonify({"status": "error", "message": "Missing item %s" % e.args[0]}), 400
 
 @socketio.on('begin')
 def begin_online_recognition(message):

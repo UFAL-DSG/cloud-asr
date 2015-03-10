@@ -95,9 +95,9 @@ class RecordingsModel:
         self.db.add(recording)
         self.db.commit()
 
-    def add_transcription(self, user, id, transcription, native_speaker, offensive_language, not_a_speech):
+    def add_transcription(self, user_id, id, transcription, native_speaker = None, offensive_language = None, not_a_speech = None):
         transcription = Transcription(
-            user_id = user.get_id(),
+            user_id = user_id,
             text = transcription,
             native_speaker = native_speaker,
             offensive_language = offensive_language,
@@ -105,9 +105,14 @@ class RecordingsModel:
         )
 
         recording = self.get_recording(id)
+        if recording == None:
+            return False
+
         recording.transcriptions.append(transcription)
         recording.update_score()
         self.db.commit()
+
+        return True
 
 
 class FileSaver:
