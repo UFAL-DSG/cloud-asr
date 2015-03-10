@@ -83,7 +83,7 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def api_spec(domain, master_ip, registry, tag):
+def api_spec(domain, master_ip, registry, tag, connection_string):
     return {
         "id": "api",
         "container": {
@@ -100,6 +100,7 @@ def api_spec(domain, master_ip, registry, tag):
         "cpus": "0.25",
         "mem": "256",
         "env": {
+            "CONNECTION_STRING": connection_string,
             "MASTER_ADDR": "tcp://%s:31101" % master_ip,
         },
         "uris": ["/root/.dockercfg"],
@@ -189,7 +190,7 @@ def app_spec(config):
             master_spec(domain, master_ip, registry, tag),
             monitor_spec(domain, master_ip, registry, tag),
             recordings_spec(domain, master_ip, registry, tag, connection_string),
-            api_spec(domain, master_ip, registry, tag),
+            api_spec(domain, master_ip, registry, tag, connection_string),
             web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id),
         ] + [
             worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]

@@ -58,6 +58,8 @@ API_VOLUMES=-v ${CURDIR}/cloudasr/api:/opt/app -v ${SHARED_VOLUME}
 API_OPTS=--name api \
 	-p ${API_HOST_PORT}:80 \
 	-e MASTER_ADDR=${MASTER_TO_API_ADDR} \
+	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
+	-e DEBUG=1 \
 	${API_VOLUMES}
 
 MONITOR_VOLUMES=-v ${CURDIR}/cloudasr/monitor:/opt/app -v ${SHARED_VOLUME}
@@ -85,6 +87,7 @@ RECORDINGS_OPTS=--name recordings \
 	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e STORAGE_PATH=/opt/app/static/data \
 	-e DOMAIN=http://localhost:8002 \
+	-e DEBUG=1 \
 	${RECORDINGS_VOLUMES}
 
 build:

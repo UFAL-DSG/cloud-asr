@@ -4,7 +4,8 @@ from flask.ext.login import LoginManager, login_user, logout_user, login_require
 from flask.ext.googlelogin import GoogleLogin
 from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
 from flask.ext.sqlalchemy import SQLAlchemy
-from cloudasr.models import create_db_connection, UsersModel, RecordingsModel, WorkerTypesModel
+from cloudasr.schema import db
+from cloudasr.models import UsersModel, RecordingsModel, WorkerTypesModel
 
 
 app = Flask(__name__)
@@ -23,10 +24,10 @@ google_login = GoogleLogin(app, login_manager)
 principals = Principal(app)
 admin_permission = Permission(RoleNeed('admin'))
 
-db = SQLAlchemy(app).session
-users_model = UsersModel(db)
-worker_types_model = WorkerTypesModel(db)
-recordings_model = RecordingsModel(db, worker_types_model)
+db.init_app(app)
+users_model = UsersModel(db.session)
+worker_types_model = WorkerTypesModel(db.session)
+recordings_model = RecordingsModel(db.session, worker_types_model)
 
 @app.route('/')
 def index():

@@ -1,12 +1,19 @@
+import os
+import json
 from flask import Flask, Response, request, jsonify, stream_with_context
 from flask.ext.socketio import SocketIO, emit, session
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
-import os
-import json
+from cloudasr.schema import db
+
+
 app = Flask(__name__)
-app.secret_key = "12345"
-app.config['DEBUG'] = True
+app.config.update(
+    SECRET_KEY = '12345',
+    DEBUG = 'DEBUG' in os.environ,
+    SQLALCHEMY_DATABASE_URI = os.environ['CONNECTION_STRING']
+)
 socketio = SocketIO(app)
+db.init_app(app)
 
 
 @app.route("/recognize", methods=['POST'])

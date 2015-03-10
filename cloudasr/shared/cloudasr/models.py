@@ -1,9 +1,6 @@
 import json
 import wave
-from cloudasr.schema import create_db_session, WorkerType, User, Recording, Hypothesis, Transcription
-
-def create_db_connection(connection_string):
-    return create_db_session(connection_string)
+from cloudasr.schema import WorkerType, User, Recording, Hypothesis, Transcription
 
 
 class WorkerTypesModel:

@@ -1,12 +1,13 @@
 import random
 import struct
 import datetime
+from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, String, Text, Integer, Float, DateTime, Boolean, ForeignKey, create_engine, types
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.mysql.base import MSBinary
 
-Base = declarative_base()
+db = SQLAlchemy()
 
 class UUID(types.TypeDecorator):
     impl = MSBinary
@@ -33,7 +34,7 @@ class UUID(types.TypeDecorator):
         return False
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'user'
 
     id = Column(UUID, primary_key = True)
@@ -56,7 +57,7 @@ class User(Base):
         return unicode(self.id)
 
 
-class WorkerType(Base):
+class WorkerType(db.Model):
     __tablename__ = 'worker_type'
 
     id = Column(String(32), primary_key = True)
@@ -66,7 +67,7 @@ class WorkerType(Base):
     recordings = relationship('Recording')
 
 
-class Recording(Base):
+class Recording(db.Model):
     __tablename__ = 'recording'
 
     id = Column(UUID, primary_key = True)
@@ -86,7 +87,7 @@ class Recording(Base):
         self.rand_score += random.uniform(-0.5, 0.5)
 
 
-class Hypothesis(Base):
+class Hypothesis(db.Model):
     __tablename__ = 'hypothesis'
 
     id = Column(Integer, primary_key = True)
@@ -95,7 +96,7 @@ class Hypothesis(Base):
     confidence = Column(Float)
 
 
-class Transcription(Base):
+class Transcription(db.Model):
     __tablename__ = 'transcription'
 
     id = Column(Integer, primary_key = True)
@@ -108,11 +109,3 @@ class Transcription(Base):
     offensive_language = Column(Boolean)
     not_a_speech = Column(Boolean)
 
-
-def create_db_session(connection_string):
-    engine = create_engine(connection_string, pool_recycle=3600)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    Base.metadata.create_all(engine)
-
-    return session

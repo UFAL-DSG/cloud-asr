@@ -2,7 +2,7 @@ import os
 import re
 import uuid
 import zmq.green as zmq
-from cloudasr.models import create_db_connection, UsersModel, RecordingsModel
+from cloudasr.models import UsersModel, RecordingsModel
 from cloudasr.messages.helpers import *
 
 def create_recordings_saver(address, model):
