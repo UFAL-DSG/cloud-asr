@@ -145,7 +145,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"frame_rate": 16000, "chunks": [{"pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}]}
+            1: {"frame_rate": 16000, "chunks": [{"chunk_id": 0, "pcm": "pcm message", "hypothesis": [(1.0, "Hello World!")]}]}
         })
 
     def test_worker_saves_pcm_data_from_online_request_in_original_frame_rate(self):
@@ -157,7 +157,7 @@ class TestWorker(unittest.TestCase):
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"frame_rate": 44100, "chunks": [{"pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}]}
+            1: {"frame_rate": 44100, "chunks": [{"chunk_id": 0, "pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}]}
         })
 
     def test_worker_forwards_pcm_data_to_vad(self):
@@ -264,8 +264,8 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         self.assertThatDataWasStored({
             1: {"frame_rate": 44100, "chunks": [
-                {"pcm": "speech 1", "hypothesis": [(1.0, "Hello World!")]},
-                {"pcm": "speech 2", "hypothesis": [(1.0, "Hello World!")]}
+                {"chunk_id": 0, "pcm": "speech 1", "hypothesis": [(1.0, "Hello World!")]},
+                {"chunk_id": 0, "pcm": "speech 2", "hypothesis": [(1.0, "Hello World!")]}
             ]}
         })
 
@@ -316,7 +316,7 @@ class TestWorker(unittest.TestCase):
         self.run_worker(messages)
         self.assertThatDataWasStored({
             1: {"frame_rate": 44100, "chunks": [
-                {"pcm": "buffered chunk", "hypothesis": [(1.0, "Hello World!")]},
+                {"chunk_id": 0, "pcm": "buffered chunk", "hypothesis": [(1.0, "Hello World!")]},
             ]}
         })
 
@@ -393,6 +393,7 @@ class RemoteSaverTest(unittest.TestCase):
 
     def setUp(self):
         self.id = 0
+        self.chunk_id = 0
         self.part = 0
         self.final_hypothesis = [(1.0, "Hello World!")]
         self.model = "en-GB"
@@ -405,7 +406,7 @@ class RemoteSaverTest(unittest.TestCase):
         self.saver.new_recognition(createUniqueID(self.id), self.frame_rate)
         self.saver.add_pcm(self.chunk)
         self.saver.add_pcm(self.chunk)
-        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.chunk_id, self.final_hypothesis)
 
         message = parseSaverMessage(self.socket.sent_message)
         self.assertEquals(self.id, uniqId2Int(message.id))
@@ -418,9 +419,9 @@ class RemoteSaverTest(unittest.TestCase):
     def test_saver_sends_all_parts(self):
         self.saver.new_recognition(createUniqueID(self.id), self.frame_rate)
         self.saver.add_pcm(self.chunk)
-        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.chunk_id, self.final_hypothesis)
         self.saver.add_pcm(self.chunk)
-        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.chunk_id, self.final_hypothesis)
 
         message = parseSaverMessage(self.socket.sent_messages[0])
         self.assertEquals(0, message.part)
@@ -431,10 +432,10 @@ class RemoteSaverTest(unittest.TestCase):
     def test_saver_resets_after_final_hypothesis(self):
         self.saver.new_recognition(createUniqueID(self.id))
         self.saver.add_pcm(self.chunk)
-        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.chunk_id, self.final_hypothesis)
         self.saver.new_recognition(createUniqueID(self.id + 1))
         self.saver.add_pcm(self.chunk)
-        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.chunk_id, self.final_hypothesis)
 
         message = parseSaverMessage(self.socket.sent_message)
         self.assertEquals(self.id + 1, uniqId2Int(message.id))
@@ -442,7 +443,7 @@ class RemoteSaverTest(unittest.TestCase):
 
     def test_saver_doesnt_save_anything_when_wav_is_empty(self):
         self.saver.new_recognition(createUniqueID(self.id))
-        self.saver.final_hypothesis(self.final_hypothesis)
+        self.saver.final_hypothesis(self.chunk_id, self.final_hypothesis)
 
         self.assertEquals(self.socket.sent_message, None)
 
@@ -496,16 +497,17 @@ class SaverSpy:
     def new_recognition(self, id, frame_rate=16000):
         self.id = self.parse_id(id)
         self.saved_data[self.id] = {"frame_rate": frame_rate, "chunks": []}
-        self.current_chunk = {"pcm": "", "hypothesis": ""}
+        self.current_chunk = {"chunk_id": "", "pcm": "", "hypothesis": ""}
 
     def add_pcm(self, pcm):
         self.current_chunk["pcm"] += pcm
 
-    def final_hypothesis(self, final_hypothesis):
+    def final_hypothesis(self, chunk_id, final_hypothesis):
+        self.current_chunk["chunk_id"] = chunk_id
         self.current_chunk["hypothesis"] = final_hypothesis
         self.saved_data[self.id]["chunks"].append(self.current_chunk)
 
-        self.current_chunk = {"pcm": "", "hypothesis": ""}
+        self.current_chunk = {"chunk_id": "", "pcm": "", "hypothesis": ""}
 
     def parse_id(self, id):
         return uniqId2Int(id)

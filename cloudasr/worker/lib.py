@@ -99,13 +99,14 @@ class Worker:
         resampled_pcm = self.audio.resample_to_default_sample_rate(pcm, request.frame_rate)
 
         self.asr.recognize_chunk(resampled_pcm)
+        current_chunk_id = self.id_generator()
         final_hypothesis = self.asr.get_final_hypothesis()
-        self.send_hypotheses([(self.id_generator(), True, final_hypothesis)])
+        self.send_hypotheses([(current_chunk_id, True, final_hypothesis)])
         self.end_recognition()
 
         self.saver.new_recognition(request.id)
         self.saver.add_pcm(pcm)
-        self.saver.final_hypothesis(final_hypothesis)
+        self.saver.final_hypothesis(current_chunk_id, final_hypothesis)
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
@@ -127,7 +128,7 @@ class Worker:
                 hypothesis = self.asr.get_final_hypothesis()
 
                 self.asr.reset()
-                self.saver.final_hypothesis(hypothesis)
+                self.saver.final_hypothesis(current_chunk_id, hypothesis)
                 self.current_chunk_id = self.id_generator()
 
             hypotheses.append((current_chunk_id, is_final, hypothesis))
@@ -259,10 +260,10 @@ class RemoteSaver:
     def add_pcm(self, pcm):
         self.wav += pcm
 
-    def final_hypothesis(self, final_hypothesis):
+    def final_hypothesis(self, chunk_id, final_hypothesis):
         if len(self.wav) == 0:
             return
 
-        self.socket.send(createSaverMessage(self.id, self.part, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
+        self.socket.send(createSaverMessage(self.id, self.part, chunk_id, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
         self.wav = b""
         self.part += 1

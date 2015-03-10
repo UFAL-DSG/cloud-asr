@@ -127,11 +127,13 @@ def parseWorkerStatusMessage(string):
 
     return message
 
-def createSaverMessage(id, part, model, body, frame_rate, alternatives):
+def createSaverMessage(id, part, chunk_id, model, body, frame_rate, alternatives):
     message = SaverMessage()
     message.id.upper = id >> 64
     message.id.lower = id & ((1<<64)-1)
     message.part = part
+    message.chunk_id.upper = chunk_id >> 64
+    message.chunk_id.lower = chunk_id & ((1<<64)-1)
     message.model = model
     message.body = body
     message.frame_rate = frame_rate

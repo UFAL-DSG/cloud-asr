@@ -33,9 +33,10 @@ class RecordingsSaver:
 
             id = uniqId2Int(recording.id)
             part = recording.part
+            chunk_id = uniqId2Int(recording.chunk_id)
             model = recording.model
             body = recording.body
             frame_rate = recording.frame_rate
             alternatives = alternatives2List(recording.alternatives)
 
-            self.model.save_recording(id, part, model, body, frame_rate, alternatives)
+            self.model.save_recording(id, part, chunk_id, model, body, frame_rate, alternatives)

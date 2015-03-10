@@ -82,8 +82,9 @@ message UniqueID {
 message SaverMessage {
 	required UniqueID id = 1;
 	required int32 part = 2;
-	required string model = 3;
-	required bytes body = 4;
-	required int32 frame_rate = 5;
-	repeated Alternative alternatives = 6;
+	required UniqueID chunk_id = 3;
+	required string model = 4;
+	required bytes body = 5;
+	required int32 frame_rate = 6;
+	repeated Alternative alternatives = 7;
 }
