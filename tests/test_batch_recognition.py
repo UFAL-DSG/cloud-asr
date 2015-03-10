@@ -59,6 +59,7 @@ class TestBatchRecognition(unittest.TestCase):
                     "minItems": 1,
                 },
                 "result_index": {"type": "number"},
+                "chunk_id": {"type": "string"},
                 "request_id": {"type": "string"},
             },
             "required": ["result", "result_index", "request_id"],

@@ -104,6 +104,7 @@ class FrontendWorker:
                 },
             ],
             "result_index": 0,
+            "chunk_id": str(uniqId2Int(response.id)),
             "request_id": str(self.id)
         }
 
@@ -114,6 +115,7 @@ class FrontendWorker:
                 'hypotheses': [{"confidence": a.confidence, "transcript": a.transcript} for a in response.alternatives],
             },
             'final': response.final,
+            'chunk_id': str(uniqId2Int(response.id)),
             'request_id': str(self.id)
         }
 

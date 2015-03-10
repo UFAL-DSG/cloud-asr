@@ -54,6 +54,7 @@ class TestOnlineRecognition(unittest.TestCase):
             "properties": {
                 "status": {"type": "number"},
                 "final": {"type": "boolean"},
+                "chunk_id": {"type": "string"},
                 "request_id": {"type": "string"},
                 "result": {
                     "type": "object",

@@ -73,6 +73,7 @@ class TestFrontendWorker(unittest.TestCase):
                 },
             ],
             "result_index": 0,
+            "chunk_id": '0',
             "request_id": '1'
         }]
         received_response = list(self.worker.recognize_batch(self.request_data, self.request_headers))
@@ -130,6 +131,7 @@ class TestFrontendWorker(unittest.TestCase):
                 ]
             },
             'final': True,
+            'chunk_id': '0',
             'request_id': '1'
         }]
 
@@ -165,6 +167,7 @@ class TestFrontendWorker(unittest.TestCase):
                 ]
             },
             'final': True,
+            'chunk_id': '0',
             'request_id': '1'
         }]
 
