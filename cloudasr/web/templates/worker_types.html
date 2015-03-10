@@ -23,7 +23,7 @@
 
         {% if current_user.admin %}
             <div class="btn-group">
-                <a href="{{ url_for('recordings', model=worker_type["id"]) }}" class="btn btn-default">View Recordings</a>
+                <a href="{{ url_for('recordings', model=worker_type["id"], page=1) }}" class="btn btn-default">View Recordings</a>
                 <a href="{{ url_for('edit_worker', model=worker_type["id"]) }}" class="btn btn-default">Edit Description</a>
             </div>
         {% endif %}

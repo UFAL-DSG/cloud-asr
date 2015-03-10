@@ -10,26 +10,55 @@
 <table class="table table-bordered">
     <thead>
         <tr>
-            <th class="col-md-3">UUID - Part</th>
-            <th class="col-md-6">Hypothesis</th>
+            <th class="col-md-5">Information</th>
+            <th class="col-md-5">Hypothesis</th>
             <th class="col-md-1"></th>
         </tr>
     </thead>
     <tbody>
         {% for recording in recordings %}
             <tr>
-                <td class="col-md-3">{{ recording["uuid"] }} - {{ recording["part"] }}</td>
+                <td>
+                    <dl class="dl-horizontal">
+                        <dt>Recording ID:</dt>
+                        <dd>{{ recording["uuid"] }}</dd>
+                        <dt>Chunk ID:</dt>
+                        <dd>{{ recording["id"] }}</dd>
+                        <dt>Part:</dt>
+                        <dd>{{ recording["part"] }}</dd>
+                        <dt>Created:</dt>
+                        <dd>{{ recording["created"].strftime('%d.%m.%Y %H:%m') }}</dd>
+                    </dl>
+                </td>
                 <td>
                     {{ recording["hypotheses"][0]["text"] }}<br />
                     <audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
                 </td>
                 <td>
-                    <a href="{{ url_for('transcribe', id=recording["id"]) }}">transcribe</a>
-                    <a href="{{ url_for('transcriptions', id=recording["id"]) }}">transcriptions</a>
+                    <div class="btn-group-vertical">
+                        <a href="{{ url_for('transcribe', id=recording["id"]) }}" class="btn btn-default btn-sm btn-block">transcribe</a>
+                        <a href="{{ url_for('transcriptions', id=recording["id"]) }}" class="btn btn-default btn-sm btn-block">transcriptions ({{ recording["transcriptions"] | length}})</a>
+                    </div>
                 </td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
+
+<div class="text-center">
+    <div class="btn-group">
+        {%- for page in pagination.iter_pages() %}
+            {% if page %}
+                {% if page != pagination.page %}
+                    <a href="{{ url_for("recordings", model=model, page=page) }}" class="btn btn-default">{{ page }}</a>
+                {% else %}
+                    <span class="btn btn-success">{{ page }}</span>
+                {% endif %}
+            {% else %}
+                <span class="btn btn-default">…</span>
+            {% endif %}
+        {%- endfor %}
+    </div>
+</div>
 
 {% endblock %}

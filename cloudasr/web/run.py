@@ -78,10 +78,14 @@ def save_transcription():
 
     return redirect(request.form['backlink'])
 
-@app.route('/recordings/<model>')
+@app.route('/recordings/<model>/<int:page>')
 @admin_permission.require()
-def recordings(model):
-    return render_template('recordings.html', recordings=recordings_model.get_recordings(model), model=model)
+def recordings(model, page):
+    pagination = recordings_model.get_recordings(model).paginate(page, 10)
+    recordings = pagination.items
+
+
+    return render_template('recordings.html', recordings=recordings, model=model, pagination=pagination)
 
 @app.route('/transcriptions/<id>')
 @admin_permission.require()
