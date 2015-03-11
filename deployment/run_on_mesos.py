@@ -128,7 +128,7 @@ def web_spec(domain, master_ip, registry, tag, connection_string, google_login_c
             "GOOGLE_LOGIN_CLIENT_ID": google_login_client_id,
             "GOOGLE_LOGIN_CLIENT_SECRET": google_login_client_secret,
             "GA_TRACKING_ID": ga_tracking_id,
-            "API_URL": "api." + domain,
+            "API_URL": "http://api." + domain,
         },
         "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/master" % domain]
