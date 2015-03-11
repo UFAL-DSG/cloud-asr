@@ -29,7 +29,7 @@ $(document).ready(function() {
 
             var $wrong = $('<a href="#" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>');
             $wrong.click(function() {
-                $vote.html("<strong>Thank you!</strong>");
+                $vote.html("<a href='/transcribe/" + result.chunk_id + "'>Add your transcription</a>");
             });
             $vote.append($right, "<span> </span>", $wrong);
 
