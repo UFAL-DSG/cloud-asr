@@ -10,7 +10,8 @@ $(document).ready(function() {
             return;
         }
 
-        $('#result .current').text(transcript + " ");
+        $('#result-evaluation .current').text(transcript + " ");
+        $('#result-dictation .current').text(transcript + " ");
 
         if(result.final) {
             var $vote = $('<div class="text-right pull-right"></div>');
@@ -33,9 +34,12 @@ $(document).ready(function() {
             });
             $vote.append($right, "<span> </span>", $wrong);
 
-            $('#result .current').prepend($vote);
-            $('#result .current').removeClass("current");
-            $('#result').append("<div class='current transcription-result'></div>");
+            $('#result-evaluation .current').prepend($vote);
+
+            $('#result-evaluation .current').removeClass("current");
+            $('#result-evaluation').append("<div class='current transcription-result'></div>");
+            $('#result-dictation .current').removeClass("current");
+            $('#result-dictation').append("<span class='current transcription-result'></span>");
         }
 
         $('#request_id').text(result.request_id);
@@ -48,7 +52,8 @@ $(document).ready(function() {
         $('#stop_recording_text').show()
         $('#error').hide()
 
-        $('#result').html("<div class='current transcription-result'></div>");
+        $('#result-dictation').html("<span class='current transcription-result'></span>");
+        $('#result-evaluation').html("<div class='current transcription-result'></div>");
         $('#request_id').parent().hide()
     }
 
@@ -72,6 +77,22 @@ $(document).ready(function() {
 
     $('#stop_recording').click(function() {
         speechRecognition.stop();
+    });
+
+    $('#dictation').click(function() {
+        $('#evaluation').parent().removeClass('active');
+        $('#dictation').parent().addClass('active');
+
+        $('#result-evaluation').hide();
+        $('#result-dictation').show();
+    });
+
+    $('#evaluation').click(function() {
+        $('#dictation').parent().removeClass('active');
+        $('#evaluation').parent().addClass('active');
+
+        $('#result-dictation').hide();
+        $('#result-evaluation').show();
     });
 
     var modelSelect = $('#language-model');

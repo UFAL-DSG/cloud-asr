@@ -2,15 +2,15 @@ body {
     color: black
 }
 
-#result {
+#result-evaluation, #result-dictation {
     color: black;
 }
 
-#result .current {
+.current {
     color: gray;
 }
 
-#result .transcription-result {
+#result-evaluation .transcription-result {
     margin-top: 5px;
 }
 

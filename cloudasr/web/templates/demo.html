@@ -36,8 +36,17 @@ var model = "{{ model }}";
 
 <div id="error" class="alert alert-danger text-center" role="alert" style="display: none"></div>
 
+
+<ul class="nav nav-pills nav-justified">
+    <li class="active"><a href="#" id="dictation">Dictation Mode</a></li>
+    <li><a href="#" id="evaluation">Evaluation Mode</a></li>
+</ul>
+
+<br>
+
 <div class="well well-lg">
-    <div id="result"></div>
+    <div id="result-evaluation" style="display: none"></div>
+    <div id="result-dictation"></div>
     <div class="text-right" style="color: #777; display: none"><small id="request_id"></small></div>
 </div>
 
