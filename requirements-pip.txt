@@ -1,6 +1,6 @@
 nose
 jsonschema
-socketIO-client
+socketIO-client==0.5.3
 pyzmq
 protobuf
 grequests
