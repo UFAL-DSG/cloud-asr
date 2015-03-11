@@ -204,6 +204,9 @@ if __name__ == "__main__":
 
     config = json.load(open(sys.argv[1]))
     headers = {'Content-Type': 'application/json'}
+    login = config.get("marathon_login", None)
+    password = config.get("marathon_password", None)
+
     print app_spec(config)
-    r = requests.put(config["marathon_url"] + "/v2/groups", data=json.dumps(app_spec(config)), headers=headers)
+    r = requests.put(config["marathon_url"] + "/v2/groups", data=json.dumps(app_spec(config)), headers=headers, auth=(login, password))
     print r.json()
