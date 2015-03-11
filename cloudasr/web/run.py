@@ -55,7 +55,7 @@ def worker_types():
 def transcribe(id = None, model = None):
     if id is not None:
         recording = recordings_model.get_recording(id)
-        backlink = url_for('recordings', model = recording.model)
+        backlink = url_for('recordings', model = recording.model, page = 1)
 
     if model is not None:
         recording = recordings_model.get_random_recording(model)
