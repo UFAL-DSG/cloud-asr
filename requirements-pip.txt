@@ -4,4 +4,4 @@ socketIO-client
 pyzmq
 protobuf
 grequests
-sqlalchemy
+flask-sqlalchemy
