@@ -36,7 +36,7 @@
                 </td>
                 <td>
                     <div class="btn-group-vertical">
-                        <a href="{{ url_for('transcribe', id=recording["id"]) }}" class="btn btn-default btn-sm btn-block">transcribe</a>
+                        <a href="{{ url_for('transcribe', id=recording["id"], next=url_for('recordings', model=model, page=pagination.page)) }}" class="btn btn-default btn-sm btn-block">transcribe</a>
                         <a href="{{ url_for('transcriptions', id=recording["id"]) }}" class="btn btn-default btn-sm btn-block">transcriptions ({{ recording["transcriptions"] | length}})</a>
                     </div>
                 </td>
