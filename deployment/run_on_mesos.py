@@ -149,7 +149,7 @@ def worker_spec(domain, master_ip, image, model, instances, registry, tag):
         },
         "instances": instances,
         "cpus": "0.25",
-        "mem": "256",
+        "mem": "512",
         "env": {
             "MASTER_ADDR": "tcp://%s:31100" % master_ip,
             "RECORDINGS_SAVER_ADDR": "tcp://%s:31105" % master_ip,
