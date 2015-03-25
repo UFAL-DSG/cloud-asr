@@ -34,12 +34,15 @@ def recognize_batch():
     try:
         worker = create_frontend_worker(os.environ['MASTER_ADDR'])
         response = worker.recognize_batch(data, request.headers)
+        worker.close()
 
         return Response(stream_with_context(generate(response)))
     except MissingHeaderError:
         return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
     except NoWorkerAvailableError:
         return jsonify({"status": "error", "message": "No worker available"}), 503
+    finally:
+        worker.close()
 
 
 @app.route("/transcribe", methods=['POST'])
@@ -67,6 +70,7 @@ def begin_online_recognition(message):
         session["worker"] = worker
     except NoWorkerAvailableError:
         emit('server_error', {"status": "error", "message": "No worker available"})
+        worker.close()
 
 @socketio.on('chunk')
 def recognize_chunk(message):
@@ -80,6 +84,7 @@ def recognize_chunk(message):
             emit('result', result)
     except WorkerInternalError:
         emit('server_error', {"status": "error", "message": "Internal error"})
+        session["worker"].close()
         del session["worker"]
 
 @socketio.on('end')
@@ -91,6 +96,8 @@ def end_recognition(message):
     results = session["worker"].end_recognition()
     for result in results:
         emit('result', result)
+
+    session["worker"].close()
     del session["worker"]
 
 if __name__ == "__main__":

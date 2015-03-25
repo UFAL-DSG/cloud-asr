@@ -25,6 +25,10 @@ class FrontendWorker:
         self.id_generator = id_generator
         self.id = None
 
+    def close(self):
+        self.master_socket.close()
+        self.worker_socket.close()
+
     def recognize_batch(self, data, headers):
         self.validate_headers(headers)
         self.connect_to_worker(data["model"])
