@@ -27,17 +27,15 @@ def recognize_batch():
         "wav": request.data
     }
 
-    def generate(master_addr, data, headers):
-        worker = create_frontend_worker(master_addr)
-        response = worker.recognize_batch(data, headers)
-
+    def generate(response):
         for result in response:
             yield json.dumps(result)
 
     try:
-        generator = generate(os.environ['MASTER_ADDR'], data, request.headers)
+        worker = create_frontend_worker(os.environ['MASTER_ADDR'])
+        response = worker.recognize_batch(data, request.headers)
 
-        return Response(stream_with_context(generator))
+        return Response(stream_with_context(generate(response)))
     except MissingHeaderError:
         return jsonify({"status": "error", "message": "Missing header Content-Type"}), 400
     except NoWorkerAvailableError:
