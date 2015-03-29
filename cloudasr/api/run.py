@@ -97,6 +97,8 @@ def end_recognition(message):
     for result in results:
         emit('result', result)
 
+    emit('end', results[-1])
+
     session["worker"].close()
     del session["worker"]
 
