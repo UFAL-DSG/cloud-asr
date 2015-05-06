@@ -45,7 +45,7 @@ WORKER_OPTS=--name worker \
 
 WEB_VOLUMES=-v ${CURDIR}/cloudasr/web:/opt/app -v ${SHARED_VOLUME}
 WEB_OPTS=--name web \
-	-p 8004:80 \
+	-p 8003:80 \
 	-e CONNECTION_STRING=${MYSQL_CONNECTION_STRING} \
 	-e GOOGLE_LOGIN_CLIENT_ID=${CLOUDASR_GOOGLE_LOGIN_CLIENT_ID} \
 	-e GOOGLE_LOGIN_CLIENT_SECRET=${CLOUDASR_GOOGLE_LOGIN_CLIENT_SECRET} \
@@ -129,7 +129,7 @@ mysql_data:
 	docker run ${MYSQL_OPTS} -d mysql
 	docker stop mysql && docker rm mysql
 
-run_locally: mysql_data
+run: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
 	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
 	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
@@ -137,6 +137,9 @@ run_locally: mysql_data
 	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 	docker run ${RECORDINGS_OPTS} -d ufaldsg/cloud-asr-recordings
+
+run_locally: mysql_data
+	python ${CURDIR}/deployment/run_locally.py ${CURDIR}/deployment/mesos.json | bash
 
 run_mesos:
 	python ${CURDIR}/deployment/run_on_mesos.py ${CURDIR}/deployment/mesos.json
