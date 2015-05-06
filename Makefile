@@ -127,7 +127,10 @@ pull:
 mysql_data:
 	echo "PREPARING MySQL DATABASE"
 	docker run ${MYSQL_OPTS} -d mysql
+	sleep 10
+	mysql --host=${MYSQL_IP} --user=${MYSQL_USER} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE} < ${CURDIR}/deployment/schema.sql
 	docker stop mysql && docker rm mysql
+
 
 run: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
