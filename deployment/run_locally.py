@@ -100,6 +100,7 @@ def run_recordings_saver(config):
         "--link %s:mysql" % format_name(config['domain'], 'mysql'),
         "-e CONNECTION_STRING='%s'" % config['connection_string'],
         "-e STORAGE_PATH=/opt/app/static/data",
+        "-v %s/recordings:/opt/app/static/data" % CURDIR,
         "-e DOMAIN=http://localhost:%d" % RECORDINGS_HOST_PORT,
     ]
 
