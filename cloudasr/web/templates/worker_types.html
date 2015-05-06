@@ -5,6 +5,12 @@
 <div class="pull-right btn-group">
     <a href="{{ url_for('new_worker') }}" class="btn btn-default">New</a>
 </div>
+
+{% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
 {% endif %}
 
 {% for worker_type in worker_types %}
