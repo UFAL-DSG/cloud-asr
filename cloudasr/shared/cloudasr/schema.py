@@ -76,15 +76,14 @@ class Recording(db.Model):
     model = Column(String(32), ForeignKey('worker_type.id'))
     path = Column(String(128))
     url = Column(String(128))
+    best_transcription = Column(Text)
     score = Column(Float)
-    rand_score = Column(Float)
     created = Column(DateTime, default = datetime.datetime.utcnow)
     hypotheses = relationship('Hypothesis')
     transcriptions = relationship('Transcription')
 
     def update_score(self):
         self.score += 1
-        self.rand_score += random.uniform(-0.5, 0.5)
 
 
 class Hypothesis(db.Model):

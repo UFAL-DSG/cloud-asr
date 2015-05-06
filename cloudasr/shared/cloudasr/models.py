@@ -63,7 +63,8 @@ class RecordingsModel:
         from sqlalchemy import func
         return self.db.query(Recording) \
             .filter(Recording.model == model) \
-            .order_by(Recording.rand_score) \
+            .filter(Recording.score < 0.8) \
+            .order_by(func.rand()) \
             .limit(1) \
             .one()
 
@@ -81,7 +82,6 @@ class RecordingsModel:
             path = path,
             url = self.url + url,
             score = alternatives[0]["confidence"],
-            rand_score = alternatives[0]["confidence"]
         )
 
         worker_type.recordings.append(recording)
