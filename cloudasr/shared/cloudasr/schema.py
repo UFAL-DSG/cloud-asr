@@ -82,9 +82,6 @@ class Recording(db.Model):
     hypotheses = relationship('Hypothesis')
     transcriptions = relationship('Transcription')
 
-    def update_score(self):
-        self.score += 1
-
 
 class Hypothesis(db.Model):
     __tablename__ = 'hypothesis'

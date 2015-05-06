@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<h1>CloudASR <small>Upload results from CrowdFlower</small></h1>
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+
+<form action="{{ url_for('upload_results_file') }}" method="post" enctype="multipart/form-data">
+    <div class="control-group">
+        <label for="file">File with results from CrowdFlower</label>
+        <div class="controls">
+            <input type="file" name="file" id="file" class="form-control">
+        </div>
+    </div>
+
+    <div class="control-group">
+        <input type="submit" value="Upload Results" name="submit" class="btn btn-default">
+    </div>
+</form>
+
+
+{% endblock %}

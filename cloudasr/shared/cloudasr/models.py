@@ -1,3 +1,5 @@
+import re
+import csv
 import json
 import wave
 from cloudasr.schema import WorkerType, User, Recording, Hypothesis, Transcription
@@ -98,6 +100,29 @@ class RecordingsModel:
         self.db.add(recording)
         self.db.commit()
 
+    def load_transcriptions(self, csv_file):
+        try:
+            csv_reader = csv.reader(csv_file, delimiter = ',')
+
+            headers = csv_reader.next()
+            transcribed_text_index = headers.index('transcribed_text')
+            url_index = headers.index('url')
+            id_matcher = re.compile('.*-(\d+)\.wav')
+
+            transcriptions = []
+            for row in csv_reader:
+                id =  int(id_matcher.match(row[url_index]).group(1))
+                transcription = row[transcribed_text_index]
+
+                transcriptions.append(({"recording_id": id, "text": transcription}))
+
+            self.db.execute(Transcription.__table__.insert(), transcriptions)
+            self.db.commit()
+
+            return True
+        except Exception, e:
+            return False
+
     def add_transcription(self, user_id, id, transcription, native_speaker = None, offensive_language = None, not_a_speech = None):
         transcription = Transcription(
             user_id = user_id,
@@ -112,7 +137,6 @@ class RecordingsModel:
             return False
 
         recording.transcriptions.append(transcription)
-        recording.update_score()
         self.db.commit()
 
         return True

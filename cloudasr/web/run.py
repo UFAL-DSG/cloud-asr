@@ -98,6 +98,20 @@ def accept_transcription(recording, transcription):
     recordings_model.set_transcription(recording, transcription)
     return redirect(url_for('transcriptions', id = recording))
 
+@app.route('/upload-results')
+def upload_results():
+    return render_template('upload_results.html')
+
+@app.route('/upload-results-file', methods=['POST'])
+def upload_results_file():
+    if recordings_model.load_transcriptions(request.files['file']):
+        flash('Results were uploaded successfully.', 'success')
+    else:
+        flash('There was an error during the results upload.', 'danger')
+
+    return redirect(url_for('upload_results'))
+
+
 @app.route('/new-worker')
 @admin_permission.require()
 def new_worker():
