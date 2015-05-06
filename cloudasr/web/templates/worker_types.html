@@ -19,7 +19,7 @@
         <div class="btn-group">
             <a href="{{ url_for('demo', model=worker_type["id"]) }}" class="btn btn-default">Try it out!</a>
             <a href="{{ url_for('transcribe', model=worker_type["id"]) }}" class="btn btn-default">Transcribe</a>
-            <a href="{{ url_for('upload_results') }}" class="btn btn-default">Create CrowdFlower Job</a>
+            <a href="{{ url_for('crowdflower', model=worker_type["id"]) }}" class="btn btn-default">Create CrowdFlower Job</a>
             <a href="{{ url_for('upload_results') }}" class="btn btn-default">Upload Results</a>
         </div>
 

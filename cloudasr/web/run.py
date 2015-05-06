@@ -1,5 +1,5 @@
 import os
-from flask import Flask, flash, render_template, redirect, request, url_for, session, jsonify
+from flask import Flask, Response, flash, render_template, redirect, request, url_for, session, jsonify, stream_with_context
 from flask.ext.login import LoginManager, login_user, logout_user, login_required, current_user
 from flask.ext.googlelogin import GoogleLogin
 from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
@@ -97,6 +97,19 @@ def transcriptions(id):
 def accept_transcription(recording, transcription):
     recordings_model.set_transcription(recording, transcription)
     return redirect(url_for('transcriptions', id = recording))
+
+@app.route('/crowdflower/<model>')
+def crowdflower(model):
+    return render_template('crowdflower.html', model = model)
+
+@app.route('/crowdflower-export/<model>.csv')
+def crowdflower_export(model):
+    def generate():
+        yield "url\n"
+        for row in recordings_model.get_random_recordings(model):
+            yield "%s\n" % row.url
+
+    return Response(stream_with_context(generate()), mimetype='text/csv')
 
 @app.route('/upload-results')
 def upload_results():

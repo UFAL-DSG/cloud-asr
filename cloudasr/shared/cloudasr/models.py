@@ -73,6 +73,18 @@ class RecordingsModel:
         except Exception:
             return None
 
+    def get_random_recordings(self, model):
+        try:
+            from sqlalchemy import func
+            return self.db.query(Recording) \
+                .filter(Recording.model == model) \
+                .filter(Recording.score < 0.8) \
+                .order_by(func.rand()) \
+                .limit(100) \
+                .all()
+        except Exception:
+            return []
+
     def save_recording(self, id, part, chunk_id, model, body, frame_rate, alternatives):
         (path, url) = self.file_saver.save_wav(chunk_id, model, body, frame_rate)
         self.save_recording_to_db(id, part, chunk_id, model, path, url, alternatives)
