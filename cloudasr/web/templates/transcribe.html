@@ -132,48 +132,52 @@
 </div>
 
 <div class="col-xs-6">
-    <h2>Transcribe recording</h2>
+    {% if recording is not none %}
+        <h2>Transcribe recording</h2>
 
-    <form action="{{ url_for('save_transcription') }}" method="POST">
-        <audio id="audio" controls src="{{ recording["url"] }}"></audio>
+        <form action="{{ url_for('save_transcription') }}" method="POST">
+            <audio id="audio" controls src="{{ recording["url"] }}"></audio>
 
-        <div class="control-group">
-            <label for="transcription">Transcription:</label>
-            <div class="controls">
-                <textarea name="transcription" class="form-control" rows=3></textarea>
+            <div class="control-group">
+                <label for="transcription">Transcription:</label>
+                <div class="controls">
+                    <textarea name="transcription" class="form-control" rows=3></textarea>
+                </div>
             </div>
-        </div>
 
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="not_a_speech" />It's not a speech
-            </label>
-        </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="not_a_speech" />It's not a speech
+                </label>
+            </div>
 
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="native_speaker" />Speaker is native
-            </label>
-        </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="native_speaker" />Speaker is native
+                </label>
+            </div>
 
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="offensive_language" />Language is offensive
-            </label>
-        </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" name="offensive_language" />Language is offensive
+                </label>
+            </div>
 
-        <div class="control-group">
-            <button type="submit" class="btn btn-primary" id="submit" disabled />Save</button>
-            <input type="hidden" name="id" value="{{ recording["id"] }}" />
-            <input type="hidden" name="model" value="{{ recording["model"] }}" />
-            <input type="hidden" name="backlink" value="{{ backlink }}" />
-        </div>
-    </form>
+            <div class="control-group">
+                <button type="submit" class="btn btn-primary" id="submit" disabled />Save</button>
+                <input type="hidden" name="id" value="{{ recording["id"] }}" />
+                <input type="hidden" name="model" value="{{ recording["model"] }}" />
+                <input type="hidden" name="backlink" value="{{ backlink }}" />
+            </div>
+        </form>
 
-    <script type="text/javascript">
-        document.getElementById("audio").addEventListener("ended", function() {
-            document.getElementById("submit").disabled = false;
-        });
-    </script>
+        <script type="text/javascript">
+            document.getElementById("audio").addEventListener("ended", function() {
+                document.getElementById("submit").disabled = false;
+            });
+        </script>
+    {% else %}
+        <h2>We are sorry, there is nothing to transcribe.</h2>
+    {% endif %}
 </div>
 {% endblock %}

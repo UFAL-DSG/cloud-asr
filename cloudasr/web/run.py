@@ -59,7 +59,7 @@ def transcribe(id = None, model = None):
 
     if model is not None:
         recording = recordings_model.get_random_recording(model)
-        backlink = url_for('transcribe', model = recording.model)
+        backlink = url_for('transcribe', model = model)
 
     return render_template('transcribe.html', recording=recording, backlink=backlink)
 
