@@ -117,6 +117,14 @@ class RecordingsModel:
 
         return True
 
+    def set_transcription(self, id, transcription):
+        recording = self.get_recording(id)
+        recording.score = 1.0
+        recording.best_transcription = transcription
+        self.db.commit()
+
+        return True
+
 
 class FileSaver:
 

@@ -92,6 +92,12 @@ def recordings(model, page):
 def transcriptions(id):
     return render_template('transcriptions.html', recording=recordings_model.get_recording(id))
 
+@app.route('/accept-transcription/<int:recording>/<transcription>', methods=['GET'])
+@admin_permission.require()
+def accept_transcription(recording, transcription):
+    recordings_model.set_transcription(recording, transcription)
+    return redirect(url_for('transcriptions', id = recording))
+
 @app.route('/new-worker')
 @admin_permission.require()
 def new_worker():
