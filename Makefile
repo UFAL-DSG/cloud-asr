@@ -77,6 +77,12 @@ MYSQL_OPTS=--name mysql \
 	-v ${CURDIR}/mysql_data:/var/lib/mysql \
 	-v ${CURDIR}/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf
 
+MYSQL_SCHEMA_OPTS=-i --rm \
+	--link mysql:mysql_address \
+	-a stdin
+
+MYSQL_SCHEMA_CMD=mysql -v --host=mysql_address --user=${MYSQL_PASSWORD} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
+
 RECORDINGS_VOLUMES=-v ${CURDIR}/cloudasr/recordings:/opt/app \
 	-v ${CURDIR}/cloudasr/recordings/static/data:/opt/app/static/data \
 	-v ${SHARED_VOLUME}
@@ -128,9 +134,9 @@ mysql_data:
 	echo "PREPARING MySQL DATABASE"
 	docker run ${MYSQL_OPTS} -d mysql
 	sleep 10
-	mysql --host=${MYSQL_IP} --user=${MYSQL_USER} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE} < ${CURDIR}/deployment/schema.sql
+	cat ${CURDIR}/deployment/schema.sql | \
+		docker run ${MYSQL_SCHEMA_OPTS}	mysql ${MYSQL_SCHEMA_CMD}
 	docker stop mysql && docker rm mysql
-
 
 run: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
