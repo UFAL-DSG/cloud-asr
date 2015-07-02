@@ -112,6 +112,19 @@ class TestMaster(unittest.TestCase):
         expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
         self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
 
+    def test_when_worker_did_not_receive_first_chunk_for_10_secs_it_should_be_available_again(self):
+        messages1 = [
+            {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "STARTED")},
+            {"frontend": self.make_frontend_request()}
+        ]
+
+        messages2 = [{"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "WAITING")}] * 10
+        messages3 = [{"frontend": self.make_frontend_request()}]
+
+        self.run_master(messages1 + messages2 + messages3)
+        expected_message = self.make_frontend_successfull_response("tcp://127.0.0.1:1")
+        self.assertThatMessagesWereSendToFrontend([expected_message, expected_message])
+
     def test_when_worker_sent_running_heartbeat_master_informs_monitor_that_the_worker_has_been_started(self):
         messages = [
             {"worker": self.make_heartbeat_request("tcp://127.0.0.1:1", "en-GB", "STARTED")},

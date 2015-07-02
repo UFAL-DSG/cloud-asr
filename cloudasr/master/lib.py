@@ -81,7 +81,7 @@ class Master:
 class WorkerPool:
 
     def __init__(self, monitor):
-        self.workers_status = defaultdict(lambda: {"status": "STARTED", "last_heartbeat": 0})
+        self.workers_status = defaultdict(lambda: {"status": "STARTED", "last_heartbeat": 0, "waiting_for_first_chunk_secs": 0})
         self.available_workers = defaultdict(list)
         self.monitor = monitor
 
@@ -116,6 +116,13 @@ class WorkerPool:
 
             if status == "WORKING":
                 self.update_worker_status(model, address, "WORKING", time)
+
+            if status == "WAITING":
+                self.workers_status[address]["waiting_for_first_chunk_secs"] += 1
+
+                if self.workers_status[address]["waiting_for_first_chunk_secs"] == 10:
+                    self.available_workers[model].append(address)
+                    self.update_worker_status(model, address, "WAITING", time)
         elif worker_status == "STARTED":
             self.available_workers[model].append(address)
             self.update_worker_status(model, address, "STARTED", time)
@@ -125,7 +132,8 @@ class WorkerPool:
     def update_worker_status(self, model, worker, status, time):
         self.workers_status[worker] = {
             "status": "WAITING" if status == "STARTED" else status,
-            "last_heartbeat": time
+            "last_heartbeat": time,
+            "waiting_for_first_chunk_secs": 0
         }
 
         worker_status = createWorkerStatusMessage(worker, model, status, int(time))
