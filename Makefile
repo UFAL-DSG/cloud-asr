@@ -197,4 +197,4 @@ compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
 
 mysql-console:
-	mysql --host=${MYSQL_IP} --user=${MYSQL_USER} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
+	docker run --link mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
