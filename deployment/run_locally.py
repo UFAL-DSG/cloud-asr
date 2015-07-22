@@ -115,7 +115,7 @@ def run_worker(config, worker_config):
 
         opts = [
             "--name %s" % format_name(config['domain'], 'worker-%s-%d' % (worker_config["model"], i)),
-            "-p %d:%d" % (port, port),
+            "-p %d:%d" % (port, 5678),
             "-e HOST=%s" % IP,
             "-e PORT0=%d" % port,
             "-e MASTER_ADDR=tcp://%s:%d" % (IP, MASTER_TO_WORKER_PORT),
