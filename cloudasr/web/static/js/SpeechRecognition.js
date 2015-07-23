@@ -7,6 +7,7 @@
         this.onresult = function(event) {};
         this.onerror = function(event) {};
         this.onend = function() {};
+        this.volumeCallback = function(volume) {};
         this.isRecording = false;
 
         var recognizer = this;
@@ -73,7 +74,8 @@
         function createRecorder() {
             recorder = new Recorder({
                 bufferCallback: handleChunk,
-                errorCallback: handleError
+                errorCallback: handleError,
+                volumeCallback: handleVolume,
             });
             recorder.init();
 
@@ -109,6 +111,14 @@
 
             return btoa(chars.join(""));
         }
+
+        function handleVolume(volume) {
+            if(volume == 0) {
+                return handleError("Microphone is not working!");
+            }
+
+            recognizer.volumeCallback(volume);
+        };
 
     }
 

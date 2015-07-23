@@ -6,6 +6,7 @@
         var numChannels = config.numChannels || 1;
         var bufferCallback = config.bufferCallback || function(buffer) { console.log(buffer); };
         var errorCallback = config.errorCallback || function(error) { console.log(error); };
+        var volumeCallback = config.volumeCallback || function(average) { console.log(average); };
         var recording = false;
         var sourceProcessor = null;
 
@@ -54,6 +55,10 @@
             source.context.createScriptProcessor = source.context.createScriptProcessor || source.context.createJavaScriptNode;
             sourceProcessor = source.context.createScriptProcessor(bufferLen, numChannels, numChannels);
 
+            analyser = audio_context.createAnalyser();
+            analyser.smoothingTimeConstant = 0.3;
+            analyser.fftSize = 1024;
+
             sourceProcessor.onaudioprocess = function(e){
                 if (!recording) return;
                 var buffer = [];
@@ -62,13 +67,31 @@
                 }
 
                 bufferCallback(buffer);
+
+                var values =  new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(values);
+                var average = getAverageVolume(values);
+                volumeCallback(average);
             }
 
+            source.connect(analyser);
             source.connect(sourceProcessor);
+            analyser.connect(sourceProcessor);
             sourceProcessor.connect(source.context.destination);
             console.log('Input connected to audio context destination.');
         }
 
+
+        function getAverageVolume(array) {
+            var sum = 0;
+            var length = array.length;
+
+            for (var i = 0; i < length; i++) {
+                sum += array[i];
+            }
+
+            return sum / length;
+        }
     };
 
     window.Recorder = Recorder;
