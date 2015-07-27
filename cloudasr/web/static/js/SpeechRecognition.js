@@ -7,6 +7,7 @@
         this.onresult = function(event) {};
         this.onerror = function(event) {};
         this.onend = function() {};
+        this.onchunk = function(chunk) {};
         this.volumeCallback = function(volume) {};
         this.isRecording = false;
 
@@ -84,6 +85,7 @@
 
         function handleChunk(chunk) {
             socket.emit("chunk", {chunk: encode16BitPcmToBase64(floatTo16BitPcm(chunk[0])), frame_rate: 44100});
+            recognizer.onchunk(chunk);
         }
 
         function floatTo16BitPcm(chunk) {

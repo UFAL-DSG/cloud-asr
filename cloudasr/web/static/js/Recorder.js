@@ -57,7 +57,7 @@
 
             analyser = audio_context.createAnalyser();
             analyser.smoothingTimeConstant = 0.3;
-            analyser.fftSize = 1024;
+            analyser.fftSize = 512;
 
             sourceProcessor.onaudioprocess = function(e){
                 if (!recording) return;
@@ -80,7 +80,6 @@
             sourceProcessor.connect(source.context.destination);
             console.log('Input connected to audio context destination.');
         }
-
 
         function getAverageVolume(array) {
             var sum = 0;

@@ -55,6 +55,7 @@ $(document).ready(function() {
         $('#result-dictation').html("<span class='current transcription-result'></span>");
         $('#result-evaluation').html("<div class='current transcription-result'></div>");
         $('#request_id').parent().hide()
+        $('#canvas').show();
     }
 
     speechRecognition.onend = function(e) {
@@ -63,11 +64,104 @@ $(document).ready(function() {
         $('#start_recording_text').show()
         $('#stop_recording_text').hide()
         $('#request_id').parent().show()
+        $('#canvas').hide();
     }
 
     speechRecognition.onerror = function(e) {
         speechRecognition.stop()
         $('#error').html("<strong>" + e + "</strong> Please try again later.").show()
+    }
+
+    speechRecognition.onchunk = function(chunk) {
+        var peaks = getPeaks(chunk, 256);
+        drawPeaks(peaks);
+    }
+
+    function getPeaks(channels, length) {
+        var sampleSize = channels[0].length / length;
+        var sampleStep = ~~(sampleSize / 10) || 1;
+        var mergedPeaks = [];
+
+        for (var c = 0; c < channels.length; c++) {
+            var peaks = [];
+            var chan = channels[c];
+
+            for (var i = 0; i < length; i++) {
+                var start = ~~(i * sampleSize);
+                var end = ~~(start + sampleSize);
+                var min = chan[start];
+                var max = chan[start];
+
+                for (var j = start; j < end; j += sampleStep) {
+                    var value = chan[j];
+
+                    if (value > max) {
+                        max = value;
+                    }
+
+                    if (value < min) {
+                        min = value;
+                    }
+                }
+
+                var floatToInt16 = function(x) {
+                    return Math.round(x < 0 ? x * 0x8000 : x * 0x7FFF);
+                }
+
+                max = floatToInt16(max);
+                min = floatToInt16(min);
+                peaks[2 * i] = max;
+                peaks[2 * i + 1] = min;
+
+                if (c == 0 || max > mergedPeaks[2 * i]) {
+                    mergedPeaks[2 * i] = max;
+                }
+
+                if (c == 0 || min < mergedPeaks[2 * i + 1]) {
+                    mergedPeaks[2 * i + 1] = min;
+                }
+            }
+        }
+
+        return mergedPeaks;
+    }
+
+    function drawPeaks(peaks) {
+        var canvasEl = document.getElementById('canvas');
+        var canvas = canvasEl.getContext('2d');
+        var params_height = canvasEl.height;
+        var params_width = canvasEl.width;
+        var params_waveColor = "black";
+
+        var $ = 0.5;
+        var height = params_height;
+        var halfH = height / 2
+        var length = ~~(peaks.length / 2);
+        var scale = params_width / length ;
+        var absmax = 2 << 15;
+
+        canvas.clearRect(0, 0, params_width, params_height);
+        canvas.fillStyle = params_waveColor;
+
+        canvas.beginPath();
+        canvas.moveTo($, halfH);
+
+        for (var i = 0; i < length; i++) {
+            var h = Math.round(peaks[2 * i] / absmax * halfH);
+            canvas.lineTo(i * scale + $, halfH - h);
+        }
+
+        for (var i = length - 1; i >= 0; i--) {
+            var h = Math.round(peaks[2 * i + 1] / absmax * halfH);
+            canvas.lineTo(i * scale + $, halfH - h);
+        }
+
+        canvas.closePath();
+        canvas.fill();
+
+        canvas.fillRect(0, 0, params_width, $/2);
+        canvas.fillRect(0, height - $/2, params_width, $/2);
+        canvas.fillRect(0, halfH - $, params_width, $);
     }
 
     $('#start_recording').click(function() {
