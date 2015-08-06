@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`ip addr show docker0 | grep -Po 'inet \K[\d.]+'`
+IP=`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 API_HOST_PORT=8000
 MONITOR_HOST_PORT=8001

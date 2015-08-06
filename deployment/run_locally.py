@@ -1,7 +1,7 @@
 import sys
 import json
 
-IP = "`ip addr show docker0 | grep -Po 'inet \K[\d.]+'`"
+IP = "`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`"
 CURDIR = "`pwd`"
 
 API_HOST_PORT = 8000
