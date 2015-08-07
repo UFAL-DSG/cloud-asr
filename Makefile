@@ -20,6 +20,7 @@ MYSQL_USER=cloudasr
 MYSQL_PASSWORD=cloudasr
 MYSQL_DATABASE=cloudasr
 MYSQL_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql`
+MYSQL_PATH=`(boot2docker ssh 'mkdir /home/docker/mysql_data ; echo /home/docker/mysql_data') 2> /dev/null || echo ${CURDIR}/mysql_data`
 MYSQL_CONNECTION_STRING="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_IP}/${MYSQL_DATABASE}?charset=utf8"
 
 SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-packages/cloudasr
@@ -74,12 +75,12 @@ MYSQL_OPTS=--name mysql \
 	-e MYSQL_USER=${MYSQL_USER} \
 	-e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
 	-e MYSQL_DATABASE=${MYSQL_DATABASE} \
-	-v ${CURDIR}/mysql_data:/var/lib/mysql \
+	-v ${MYSQL_PATH}:/var/lib/mysql \
 	-v ${CURDIR}/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf
 
 MYSQL_SCHEMA_OPTS=-i --rm \
 	--link mysql:mysql_address \
-	-a stdin
+	-a stdin -a stdout
 
 MYSQL_SCHEMA_CMD=mysql -v --host=mysql_address --user=${MYSQL_PASSWORD} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
 
@@ -135,8 +136,9 @@ mysql_data:
 	docker run ${MYSQL_OPTS} -d mysql
 	sleep 10
 	cat ${CURDIR}/deployment/schema.sql | \
-		docker run ${MYSQL_SCHEMA_OPTS}	mysql ${MYSQL_SCHEMA_CMD}
+		docker run ${MYSQL_SCHEMA_OPTS} mysql ${MYSQL_SCHEMA_CMD}
 	docker stop mysql && docker rm mysql
+	touch mysql_data 2> /dev/null || echo "MYSQL PREPARED"
 
 run: mysql_data
 	docker run ${MYSQL_OPTS} -d mysql
