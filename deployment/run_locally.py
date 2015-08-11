@@ -1,8 +1,9 @@
+import os
 import sys
 import json
 
 IP = "`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`"
-CURDIR = "`pwd`"
+CURDIR = os.getcwd()
 
 API_HOST_PORT = 8000
 MONITOR_HOST_PORT = 8001
@@ -19,6 +20,7 @@ MYSQL_ROOT_PASSWORD=123456
 MYSQL_USER="cloudasr"
 MYSQL_PASSWORD="cloudasr"
 MYSQL_DATABASE="cloudasr"
+MYSQL_PATH="`(boot2docker ssh 'mkdir /home/docker/mysql_data ; echo /home/docker/mysql_data') 2> /dev/null || echo %s/mysql_data`" % CURDIR
 
 def format_name(domain, name):
     return "%s-%s" % (domain.replace('.', '-'), name)
@@ -37,7 +39,7 @@ def run_mysql(config):
         "-e MYSQL_USER=%s" % MYSQL_USER,
         "-e MYSQL_PASSWORD=%s" % MYSQL_PASSWORD,
         "-e MYSQL_DATABASE=%s" % MYSQL_DATABASE,
-        "-v %s/mysql_data:/var/lib/mysql" % CURDIR,
+        "-v %s:/var/lib/mysql" % MYSQL_PATH,
         "-v %s/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf" % CURDIR,
     ]
 

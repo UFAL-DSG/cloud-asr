@@ -150,7 +150,7 @@ run: mysql_data
 	docker run ${RECORDINGS_OPTS} -d ufaldsg/cloud-asr-recordings
 
 run_locally: mysql_data
-	python ${CURDIR}/deployment/run_locally.py ${CURDIR}/cloudasr.json | bash
+	bash <( python ${CURDIR}/deployment/run_locally.py ${CURDIR}/cloudasr.json )
 
 run_mesos:
 	python ${CURDIR}/deployment/run_on_mesos.py ${CURDIR}/cloudasr.json
