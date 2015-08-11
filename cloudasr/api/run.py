@@ -87,6 +87,21 @@ def recognize_chunk(message):
         session["worker"].close()
         del session["worker"]
 
+@socketio.on('change_lm')
+def change_lm(message):
+    try:
+        if "worker" not in session:
+            emit('server_error', {"status": "error", "message": "No worker available"})
+            return
+
+        results = session["worker"].change_lm(message["new_lm"])
+        for result in results:
+            emit('result', result)
+    except WorkerInternalError:
+        emit('server_error', {"status": "error", "message": "Internal error"})
+        session["worker"].close()
+        del session["worker"]
+
 @socketio.on('end')
 def end_recognition(message):
     if "worker" not in session:
