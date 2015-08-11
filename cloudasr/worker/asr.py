@@ -53,6 +53,9 @@ class ASR:
 
         return self.to_nbest(lat, 10)
 
+    def change_lm(self, lm):
+        pass
+
     def reset(self):
         self.decoded_frames = 0
         self.recogniser.reset(reset_pipeline=True)

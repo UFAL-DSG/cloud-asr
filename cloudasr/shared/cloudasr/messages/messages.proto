@@ -46,6 +46,7 @@ message RecognitionRequestMessage {
 	required bytes body = 3;
 	optional bool has_next = 4;
 	optional int32 frame_rate = 5;
+	optional string new_lm = 6;
 
 	enum Type {
 		BATCH = 0;

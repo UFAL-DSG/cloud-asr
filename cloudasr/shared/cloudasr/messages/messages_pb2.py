@@ -18,7 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='cloudasr/shared/cloudasr/messages/messages.proto',
   package='cloudasr.messages',
-  serialized_pb=_b('\n0cloudasr/shared/cloudasr/messages/messages.proto\x12\x11\x63loudasr.messages\"\xad\x01\n\x10HeartbeatMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12:\n\x06status\x18\x03 \x02(\x0e\x32*.cloudasr.messages.HeartbeatMessage.Status\"=\n\x06Status\x12\x0b\n\x07STARTED\x10\x00\x12\x0b\n\x07WAITING\x10\x01\x12\x0b\n\x07WORKING\x10\x02\x12\x0c\n\x08\x46INISHED\x10\x03\"\xb3\x01\n\x13WorkerStatusMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12=\n\x06status\x18\x03 \x02(\x0e\x32-.cloudasr.messages.WorkerStatusMessage.Status\x12\x0c\n\x04time\x18\x04 \x02(\x05\"/\n\x06Status\x12\x0b\n\x07STARTED\x10\x00\x12\x0b\n\x07WAITING\x10\x01\x12\x0b\n\x07WORKING\x10\x02\"%\n\x14WorkerRequestMessage\x12\r\n\x05model\x18\x01 \x02(\t\"\x8b\x01\n\x15MasterResponseMessage\x12?\n\x06status\x18\x01 \x02(\x0e\x32/.cloudasr.messages.MasterResponseMessage.Status\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"\xd8\x01\n\x19RecognitionRequestMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12?\n\x04type\x18\x02 \x02(\x0e\x32\x31.cloudasr.messages.RecognitionRequestMessage.Type\x12\x0c\n\x04\x62ody\x18\x03 \x02(\x0c\x12\x10\n\x08has_next\x18\x04 \x01(\x08\x12\x12\n\nframe_rate\x18\x05 \x01(\x05\"\x1d\n\x04Type\x12\t\n\x05\x42\x41TCH\x10\x00\x12\n\n\x06ONLINE\x10\x01\"5\n\x0b\x41lternative\x12\x12\n\ntranscript\x18\x01 \x02(\t\x12\x12\n\nconfidence\x18\x02 \x02(\x02\"H\n\x12ResultsListMessage\x12\x32\n\x07results\x18\x01 \x03(\x0b\x32!.cloudasr.messages.ResultsMessage\"\xda\x01\n\x0eResultsMessage\x12\x38\n\x06status\x18\x01 \x02(\x0e\x32(.cloudasr.messages.ResultsMessage.Status\x12\'\n\x02id\x18\x02 \x01(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12\r\n\x05\x66inal\x18\x03 \x01(\x08\x12\x34\n\x0c\x61lternatives\x18\x04 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"(\n\x08UniqueID\x12\r\n\x05lower\x18\x01 \x02(\x04\x12\r\n\x05upper\x18\x02 \x02(\x04\"\xdb\x01\n\x0cSaverMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12\x0c\n\x04part\x18\x02 \x02(\x05\x12-\n\x08\x63hunk_id\x18\x03 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12\r\n\x05model\x18\x04 \x02(\t\x12\x0c\n\x04\x62ody\x18\x05 \x02(\x0c\x12\x12\n\nframe_rate\x18\x06 \x02(\x05\x12\x34\n\x0c\x61lternatives\x18\x07 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative')
+  serialized_pb=_b('\n0cloudasr/shared/cloudasr/messages/messages.proto\x12\x11\x63loudasr.messages\"\xad\x01\n\x10HeartbeatMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12:\n\x06status\x18\x03 \x02(\x0e\x32*.cloudasr.messages.HeartbeatMessage.Status\"=\n\x06Status\x12\x0b\n\x07STARTED\x10\x00\x12\x0b\n\x07WAITING\x10\x01\x12\x0b\n\x07WORKING\x10\x02\x12\x0c\n\x08\x46INISHED\x10\x03\"\xb3\x01\n\x13WorkerStatusMessage\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\t\x12\r\n\x05model\x18\x02 \x02(\t\x12=\n\x06status\x18\x03 \x02(\x0e\x32-.cloudasr.messages.WorkerStatusMessage.Status\x12\x0c\n\x04time\x18\x04 \x02(\x05\"/\n\x06Status\x12\x0b\n\x07STARTED\x10\x00\x12\x0b\n\x07WAITING\x10\x01\x12\x0b\n\x07WORKING\x10\x02\"%\n\x14WorkerRequestMessage\x12\r\n\x05model\x18\x01 \x02(\t\"\x8b\x01\n\x15MasterResponseMessage\x12?\n\x06status\x18\x01 \x02(\x0e\x32/.cloudasr.messages.MasterResponseMessage.Status\x12\x0f\n\x07\x61\x64\x64ress\x18\x02 \x01(\t\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"\xe8\x01\n\x19RecognitionRequestMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12?\n\x04type\x18\x02 \x02(\x0e\x32\x31.cloudasr.messages.RecognitionRequestMessage.Type\x12\x0c\n\x04\x62ody\x18\x03 \x02(\x0c\x12\x10\n\x08has_next\x18\x04 \x01(\x08\x12\x12\n\nframe_rate\x18\x05 \x01(\x05\x12\x0e\n\x06new_lm\x18\x06 \x01(\t\"\x1d\n\x04Type\x12\t\n\x05\x42\x41TCH\x10\x00\x12\n\n\x06ONLINE\x10\x01\"5\n\x0b\x41lternative\x12\x12\n\ntranscript\x18\x01 \x02(\t\x12\x12\n\nconfidence\x18\x02 \x02(\x02\"H\n\x12ResultsListMessage\x12\x32\n\x07results\x18\x01 \x03(\x0b\x32!.cloudasr.messages.ResultsMessage\"\xda\x01\n\x0eResultsMessage\x12\x38\n\x06status\x18\x01 \x02(\x0e\x32(.cloudasr.messages.ResultsMessage.Status\x12\'\n\x02id\x18\x02 \x01(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12\r\n\x05\x66inal\x18\x03 \x01(\x08\x12\x34\n\x0c\x61lternatives\x18\x04 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative\" \n\x06Status\x12\x0b\n\x07SUCCESS\x10\x00\x12\t\n\x05\x45RROR\x10\x01\"(\n\x08UniqueID\x12\r\n\x05lower\x18\x01 \x02(\x04\x12\r\n\x05upper\x18\x02 \x02(\x04\"\xdb\x01\n\x0cSaverMessage\x12\'\n\x02id\x18\x01 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12\x0c\n\x04part\x18\x02 \x02(\x05\x12-\n\x08\x63hunk_id\x18\x03 \x02(\x0b\x32\x1b.cloudasr.messages.UniqueID\x12\r\n\x05model\x18\x04 \x02(\t\x12\x0c\n\x04\x62ody\x18\x05 \x02(\x0c\x12\x12\n\nframe_rate\x18\x06 \x02(\x05\x12\x34\n\x0c\x61lternatives\x18\x07 \x03(\x0b\x32\x1e.cloudasr.messages.Alternative')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -119,8 +119,8 @@ _RECOGNITIONREQUESTMESSAGE_TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=798,
-  serialized_end=827,
+  serialized_start=814,
+  serialized_end=843,
 )
 _sym_db.RegisterEnumDescriptor(_RECOGNITIONREQUESTMESSAGE_TYPE)
 
@@ -354,6 +354,13 @@ _RECOGNITIONREQUESTMESSAGE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
+    _descriptor.FieldDescriptor(
+      name='new_lm', full_name='cloudasr.messages.RecognitionRequestMessage.new_lm', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
   ],
   extensions=[
   ],
@@ -367,7 +374,7 @@ _RECOGNITIONREQUESTMESSAGE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=611,
-  serialized_end=827,
+  serialized_end=843,
 )
 
 
@@ -403,8 +410,8 @@ _ALTERNATIVE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=829,
-  serialized_end=882,
+  serialized_start=845,
+  serialized_end=898,
 )
 
 
@@ -433,8 +440,8 @@ _RESULTSLISTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=884,
-  serialized_end=956,
+  serialized_start=900,
+  serialized_end=972,
 )
 
 
@@ -485,8 +492,8 @@ _RESULTSMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=959,
-  serialized_end=1177,
+  serialized_start=975,
+  serialized_end=1193,
 )
 
 
@@ -522,8 +529,8 @@ _UNIQUEID = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1179,
-  serialized_end=1219,
+  serialized_start=1195,
+  serialized_end=1235,
 )
 
 
@@ -594,8 +601,8 @@ _SAVERMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1222,
-  serialized_end=1441,
+  serialized_start=1238,
+  serialized_end=1457,
 )
 
 _HEARTBEATMESSAGE.fields_by_name['status'].enum_type = _HEARTBEATMESSAGE_STATUS

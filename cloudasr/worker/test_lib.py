@@ -329,6 +329,32 @@ class TestWorker(unittest.TestCase):
         print self.vad.resetted
         self.assertTrue(self.vad.resetted)
 
+    def test_worker_change_lm_when_new_lm_is_set(self):
+        messages = [
+            {"frontend": self.make_frontend_request("", "ONLINE", new_lm = "new_lm")}
+        ]
+
+        self.run_worker(messages)
+        self.assertEquals("new_lm", self.asr.lm)
+
+    def test_worker_sends_final_result_when_lm_is_changed(self):
+        self.audio.set_chunks([])
+        messages = [
+            {"frontend": self.make_frontend_request("", "ONLINE", new_lm = "new_lm")}
+        ]
+
+        self.run_worker(messages)
+        expected_messages = createResultsMessage([(0, True, [(1.0, "Hello World!")])])
+        self.assertThatMessagesWereSendToFrontend([expected_messages])
+
+    def test_worker_sets_lm_to_default_at_the_end_of_recognition(self):
+        messages = [
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False)}
+        ]
+
+        self.run_worker(messages)
+        self.assertEquals("default", self.asr.lm)
+
     def test_worker_assings_unique_id_to_each_chunk(self):
         self.id_generator.set_ids([0,1])
         self.audio.set_chunks(["chunk 1", "chunk 2", "chunk 3", "chunk 4"])
@@ -382,8 +408,8 @@ class TestWorker(unittest.TestCase):
     def assertThatVadReceivedChunks(self, data):
         self.assertEquals(data, self.vad.data)
 
-    def make_frontend_request(self, message, type = "BATCH", has_next = True, id = 0):
-        return createRecognitionRequestMessage(type, message, has_next, id, 44100).SerializeToString()
+    def make_frontend_request(self, message, type = "BATCH", has_next = True, id = 0, new_lm = ""):
+        return createRecognitionRequestMessage(type, message, has_next, id, 44100, new_lm).SerializeToString()
 
     def make_heartbeat(self, status):
         return createHeartbeatMessage(self.worker_address, self.model, status)
@@ -455,6 +481,7 @@ class ASRSpy:
         self.final_hypothesis = final_hypothesis
         self.interim_hypothesis = interim_hypothesis
         self.resetted = False
+        self.lm = None
 
     def recognize_chunk(self, chunk):
         self.processed_chunks.append(chunk)
@@ -463,6 +490,9 @@ class ASRSpy:
 
     def get_final_hypothesis(self):
         return self.final_hypothesis
+
+    def change_lm(self, lm):
+        self.lm = lm
 
     def reset(self):
         self.resetted = True
