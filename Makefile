@@ -128,6 +128,7 @@ remove-images:
 
 pull:
 	docker pull mysql
+	docker pull ufaldsg/cloud-asr-web
 	docker pull ufaldsg/cloud-asr-api
 	docker pull ufaldsg/cloud-asr-worker
 	docker pull ufaldsg/cloud-asr-master
