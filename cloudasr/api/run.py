@@ -68,6 +68,7 @@ def begin_online_recognition(message):
         worker.connect_to_worker(message["model"])
 
         session["worker"] = worker
+        session["connected"] = True
     except NoWorkerAvailableError:
         emit('server_error', {"status": "error", "message": "No worker available"})
         worker.close()
@@ -75,7 +76,7 @@ def begin_online_recognition(message):
 @socketio.on('chunk')
 def recognize_chunk(message):
     try:
-        if "worker" not in session:
+        if not session.get("connected", False):
             emit('server_error', {"status": "error", "message": "No worker available"})
             return
 
@@ -90,7 +91,7 @@ def recognize_chunk(message):
 @socketio.on('change_lm')
 def change_lm(message):
     try:
-        if "worker" not in session:
+        if not session.get("connected", False):
             emit('server_error', {"status": "error", "message": "No worker available"})
             return
 
@@ -104,7 +105,7 @@ def change_lm(message):
 
 @socketio.on('end')
 def end_recognition(message):
-    if "worker" not in session:
+    if not session.get("connected", False):
         emit('server_error', {"status": "error", "message": "No worker available"})
         return
 
@@ -115,6 +116,7 @@ def end_recognition(message):
     emit('end', results[-1])
 
     session["worker"].close()
+    session["connected"] = False
     del session["worker"]
 
 if __name__ == "__main__":
