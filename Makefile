@@ -123,6 +123,9 @@ build_local:
 	rm -rf cloudasr/monitor/cloudasr
 	rm -rf cloudasr/recordings/cloudasr
 
+remove-images:
+	docker images | grep "ufaldsg/" | awk '{print $$3}' | xargs docker rmi
+
 pull:
 	docker pull mysql
 	docker pull ufaldsg/cloud-asr-api
