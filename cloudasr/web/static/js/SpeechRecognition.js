@@ -36,7 +36,9 @@
 
         var handleError = function(error) {
             recognizer.onerror(error);
-            recognizer.stop();
+            recognizer.onend();
+            recognizer.isRecording = false;
+            recorder.stop();
         };
 
         var handleEnd = function() {
