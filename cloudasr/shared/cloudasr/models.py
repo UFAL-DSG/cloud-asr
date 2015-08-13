@@ -20,7 +20,8 @@ class WorkerTypesModel:
             workers.append({
                 'id': worker.id,
                 'name': worker.name,
-                'description': worker.description
+                'description': worker.description,
+                'language_models': [{"key": lm.key, "name": lm.name} for lm in worker.language_models]
             })
 
         return workers

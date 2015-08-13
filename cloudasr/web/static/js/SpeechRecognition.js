@@ -30,6 +30,11 @@
             this.onend();
         };
 
+        this.changeLM = function(newLM) {
+            console.log(newLM);
+            socket.emit('change_lm', {'new_lm': newLM});
+        }
+
         var handleResult = function(results) {
             recognizer.onresult(results);
         };

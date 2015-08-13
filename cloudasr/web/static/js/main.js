@@ -164,8 +164,9 @@ $(document).ready(function() {
     }
 
     $('#start_recording').click(function() {
-        lang = $('#language-model').val()
+        lang = $('#acoustic-model').val()
         speechRecognition.start(lang);
+        speechRecognition.changeLM($('#language-model').val());
     });
 
     $('#stop_recording').click(function() {
@@ -188,23 +189,40 @@ $(document).ready(function() {
         $('#result-evaluation').show();
     });
 
-    var modelSelect = $('#language-model');
+    var acousticModelSelect = $('#acoustic-model');
+    var languageModelSelect = $('#language-model');
     var models = [];
+
+    acousticModelSelect.change(function() {
+        $('.lang-name').text(models[acousticModelSelect.val()]["name"]);
+        $('.lang-description').html(models[acousticModelSelect.val()]["description"]);
+
+        languageModelSelect.empty();
+        var languageModels = models[acousticModelSelect.val()]["language_models"];
+        if(languageModels.length == 0) {
+            languageModelSelect.hide();
+        } else {
+            $.each(languageModels, function(i, model) {
+                languageModelSelect.append($("<option></option>").attr("value", model["key"]).text(model["name"]));
+            });
+            languageModelSelect.show();
+        }
+    });
+
+    languageModelSelect.change(function(event) {
+        if(speechRecognition.isRecording) {
+            speechRecognition.changeLM(languageModelSelect.val());
+        }
+    });
 
     $.get(availableWorkersUrl, function(data) {
         $.each(data["workers"], function(key, value) {
             models[value["id"]] = value;
-            modelSelect.append($("<option></option>").attr("value", value["id"]).text(value["name"]));
+            acousticModelSelect.append($("<option></option>").attr("value", value["id"]).text(value["name"]));
         });
 
-        modelSelect.val(model);
-        $('.lang-name').text(models[modelSelect.val()]["name"]);
-        $('.lang-description').html(models[modelSelect.val()]["description"]);
-    });
-
-    modelSelect.change(function(elem) {
-        $('.lang-name').text(models[modelSelect.val()]["name"]);
-        $('.lang-description').html(models[modelSelect.val()]["description"]);
+        acousticModelSelect.val(model);
+        acousticModelSelect.trigger('change');
     });
 
 });
