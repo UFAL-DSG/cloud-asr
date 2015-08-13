@@ -95,7 +95,7 @@ def change_lm(message):
             emit('server_error', {"status": "error", "message": "No worker available"})
             return
 
-        results = session["worker"].change_lm(message["new_lm"])
+        results = session["worker"].change_lm(str(message["new_lm"]))
         for result in results:
             emit('result', result)
     except WorkerInternalError:
