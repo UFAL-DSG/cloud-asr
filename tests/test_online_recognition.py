@@ -1,9 +1,10 @@
 import os
+import time
+import wave
+import struct
 import base64
 import urllib2
 import unittest
-import wave
-import struct
 from jsonschema import validate
 from socketIO_client import SocketIO
 
@@ -14,15 +15,15 @@ class TestOnlineRecognition(unittest.TestCase):
         self.socketIO = SocketIO('localhost', 8000)
         self.received_responses = 0
         self.expected_responses = 0
+        time.sleep(1)
 
     def test_online_recognition(self):
         self.socketIO.on('result', self.assertMessageHasCorrectSchema)
-        self.socketIO.on('final_result', self.assertFinalResultHasCorrectSchema)
         self.send_chunks()
-        self.assertEquals(self.expected_responses, self.received_responses)
+        self.assertEquals(self.expected_responses + 1, self.received_responses)
 
     def send_chunks(self):
-        self.socketIO.emit('begin', {'model': 'en-GB'})
+        self.socketIO.emit('begin', {'model': 'en-towninfo'})
 
         for chunk in self.chunks():
             self.socketIO.emit('chunk', {'chunk': chunk, 'frame_rate': 16000})
@@ -42,10 +43,10 @@ class TestOnlineRecognition(unittest.TestCase):
                 break
 
             self.expected_responses += 1
-            yield self.frames_to_pcm_array(frames)
+            yield self.frames_to_base64(frames)
 
-    def frames_to_pcm_array(self, frames):
-        return [struct.unpack('h', frames[i:i+2])[0] for i in range(0, len(frames), 2)]
+    def frames_to_base64(self, frames):
+        return base64.b64encode(frames)
 
     def assertMessageHasCorrectSchema(self, message):
         schema = {
@@ -53,6 +54,8 @@ class TestOnlineRecognition(unittest.TestCase):
             "properties": {
                 "status": {"type": "number"},
                 "final": {"type": "boolean"},
+                "chunk_id": {"type": "string"},
+                "request_id": {"type": "string"},
                 "result": {
                     "type": "object",
                     "properties": {
@@ -61,7 +64,8 @@ class TestOnlineRecognition(unittest.TestCase):
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "transcript": {"type": "string"}
+                                    "transcript": {"type": "string"},
+                                    "confidence": {"type": "number"}
                                 },
                                 "required": ["transcript"],
                                 "additionalProperties": False,
@@ -73,48 +77,10 @@ class TestOnlineRecognition(unittest.TestCase):
                 },
 
             },
-            "required": ["status", "result", "final"],
+            "required": ["status", "result", "final", "request_id"],
             "additionalProperties": False,
         }
 
         validationResult = validate(message, schema)
         self.assertIsNone(validationResult, msg="Message has invalid schema")
         self.received_responses += 1
-
-    def assertFinalResultHasCorrectSchema(self, message):
-        schema = {
-            "type": "object",
-            "properties": {
-                "result": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "alternative": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "confidence": {"type": "number"},
-                                        "transcript": {"type": "string"},
-                                    },
-                                    "required": ["confidence", "transcript"],
-                                    "additionalProperties": False,
-                                },
-                                "minItems": 1,
-                            },
-                            "final": {"type": "boolean"},
-                        },
-                        "required": ["alternative", "final"],
-                        "additionalProperties": False,
-                    },
-                    "minItems": 1,
-                },
-                "result_index": {"type": "number"},
-            },
-            "required": ["result", "result_index"],
-            "additionalProperties": False,
-        }
-
-        validationResult = validate(message, schema)
-        self.assertIsNone(validationResult, msg="Response has invalid schema")

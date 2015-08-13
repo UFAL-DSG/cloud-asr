@@ -6,14 +6,19 @@ import os
 app = Flask(__name__)
 app.config['DEBUG'] = True
 socketio = SocketIO(app)
-
+monitor = create_monitor(os.environ["MONITOR_ADDR"], socketio)
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-def callback(message):
-    socketio.emit("status_update", message)
+@app.route('/statuses')
+def statuses():
+    return jsonify({"statuses": monitor.get_statuses()})
+
+@app.route('/available-workers')
+def available_workers():
+    return jsonify(monitor.get_available_workers_per_model())
 
 @socketio.on("stream_statuses")
 def start(message):
@@ -23,7 +28,5 @@ if __name__ == "__main__":
     from gevent import monkey
     monkey.patch_all()
 
-    monitor = create_monitor(os.environ["MONITOR_ADDR"], callback)
     gevent.spawn(monitor.run)
-
     socketio.run(app, host="0.0.0.0", port=80)

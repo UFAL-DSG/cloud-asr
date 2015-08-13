@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% if current_user.admin %}
+<div class="pull-right btn-group">
+    <a href="{{ url_for('new_worker') }}" class="btn btn-default">New</a>
+</div>
+
+{% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
+{% endif %}
+
+{% for worker_type in worker_types %}
+        <h3>
+            <a href="{{ url_for('transcribe', model=worker_type["id"]) }}">
+                {{ worker_type["name"] }} <small>{{ worker_type["id"] }}</small>
+            </a>
+        </h3>
+
+        <div>{{ worker_type["description"] | safe }}</div>
+
+        <div class="btn-group">
+            <a href="{{ url_for('demo', model=worker_type["id"]) }}" class="btn btn-default">Try it out!</a>
+            <a href="{{ url_for('transcribe', model=worker_type["id"]) }}" class="btn btn-default">Transcribe</a>
+            <a href="{{ url_for('crowdflower', model=worker_type["id"]) }}" class="btn btn-default">Create CrowdFlower Job</a>
+            <a href="{{ url_for('upload_results') }}" class="btn btn-default">Upload Results</a>
+        </div>
+
+        {% if current_user.admin %}
+            <div class="btn-group">
+                <a href="{{ url_for('recordings', model=worker_type["id"], page=1) }}" class="btn btn-default">View Recordings</a>
+                <a href="{{ url_for('edit_worker', model=worker_type["id"]) }}" class="btn btn-default">Edit Description</a>
+            </div>
+        {% endif %}
+{% endfor %}
+
+{% endblock %}

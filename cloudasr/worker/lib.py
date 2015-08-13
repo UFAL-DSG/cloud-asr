@@ -1,21 +1,27 @@
 import audioop
 import wave
+import json
 import zmq
 import time
+import uuid
 from StringIO import StringIO
 from asr import create_asr
+from vad import create_vad
 from cloudasr.messages import RecognitionRequestMessage
 from cloudasr.messages.helpers import *
 
 
-def create_worker(model, hostname, port, master_address):
+def create_worker(model, hostname, port, master_address, recordings_saver_address):
     poller = create_poller("tcp://0.0.0.0:5678")
     heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
     audio = AudioUtils()
+    saver = RemoteSaver(create_recordings_saver_socket(recordings_saver_address), model)
+    vad = create_vad()
+    id_generator = lambda: uuid.uuid4().int
     run_forever = lambda: True
 
-    return Worker(poller, heartbeat, asr, audio, run_forever)
+    return Worker(poller, heartbeat, asr, audio, saver, vad, id_generator, run_forever)
 
 def create_poller(frontend_address):
     from cloudasr import Poller
@@ -30,6 +36,13 @@ def create_poller(frontend_address):
 
     return Poller(sockets, time_func)
 
+def create_recordings_saver_socket(address):
+    context = zmq.Context()
+    socket = context.socket(zmq.PUSH)
+    socket.connect(address)
+
+    return socket
+
 def create_heartbeat(model, address, master_address):
     context = zmq.Context()
     master_socket = context.socket(zmq.PUSH)
@@ -40,15 +53,20 @@ def create_heartbeat(model, address, master_address):
 
 class Worker:
 
-    def __init__(self, poller, heartbeat, asr, audio, should_continue):
+    def __init__(self, poller, heartbeat, asr, audio, saver, vad, id_generator, should_continue):
         self.poller = poller
         self.heartbeat = heartbeat
         self.asr = asr
         self.audio = audio
+        self.saver = saver
+        self.vad = vad
         self.should_continue = should_continue
+        self.id_generator = id_generator
+        self.current_request_id = None
+        self.current_chunk_id = None
 
     def run(self):
-        self.heartbeat.send("RUNNING")
+        self.heartbeat.send("STARTED")
 
         while self.should_continue():
             messages, time = self.poller.poll(1000)
@@ -56,7 +74,11 @@ class Worker:
             if "frontend" in messages:
                 self.handle_request(messages["frontend"])
             else:
-                self.heartbeat.send("READY")
+                if not self.is_online_recognition_running():
+                    self.heartbeat.send("WAITING")
+                else:
+                    self.end_recognition()
+                    self.heartbeat.send("FINISHED")
 
     def handle_request(self, message):
         request = parseRecognitionRequestMessage(message)
@@ -64,62 +86,97 @@ class Worker:
         if request.type == RecognitionRequestMessage.BATCH:
             self.handle_batch_request(request)
         else:
-            request_id = request.id
-            has_next = True
+            if not self.is_online_recognition_running():
+                self.begin_online_recognition(request)
 
-            while True:
-                if request_id == request.id:
-                    has_next = self.handle_online_request(request)
-                else:
-                    self.handle_bad_chunk()
+            if self.is_bad_chunk(request):
+                return self.handle_bad_chunk()
 
-                if not has_next:
-                    break
-
-                messages, time = self.poller.poll(10000)
-                if "frontend" in messages:
-                    request = parseRecognitionRequestMessage(messages["frontend"])
-                else:
-                    self.heartbeat.send("FINISHED")
-                    break
-
+            self.handle_online_request(request)
 
     def handle_batch_request(self, request):
         pcm = self.get_pcm_from_message(request.body)
-        self.asr.recognize_chunk(pcm)
-        final_hypothesis = self.asr.get_final_hypothesis()
-        response = self.create_final_response(final_hypothesis)
+        resampled_pcm = self.audio.resample_to_default_sample_rate(pcm, request.frame_rate)
 
-        self.poller.send("frontend", response.SerializeToString())
+        self.asr.recognize_chunk(resampled_pcm)
+        current_chunk_id = self.id_generator()
+        final_hypothesis = self.asr.get_final_hypothesis()
+        self.send_hypotheses([(current_chunk_id, True, final_hypothesis)])
+        self.end_recognition()
+
+        self.saver.new_recognition(request.id)
+        self.saver.add_pcm(pcm)
+        self.saver.final_hypothesis(current_chunk_id, final_hypothesis)
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
-        pcm = self.audio.resample_to_default_sample_rate(request.body, request.frame_rate)
-        interim_hypothesis = self.asr.recognize_chunk(pcm)
+        hypotheses = []
+        for original_pcm, resampled_pcm in self.audio.chunks(request.body, request.frame_rate):
+            vad, change, original_pcm, resampled_pcm = self.vad.decide(original_pcm, resampled_pcm)
+            current_chunk_id = self.current_chunk_id
 
-        if request.has_next == True:
-            response = self.create_interim_response(interim_hypothesis)
-            self.poller.send("frontend", response.SerializeToString())
+            if vad:
+                is_final = False
+                hypothesis = [self.asr.recognize_chunk(resampled_pcm)]
+                self.saver.add_pcm(original_pcm)
+            else:
+                is_final = False
+                hypothesis = [(1.0, "")]
+
+            if change == "non-speech" or request.has_next == False:
+                is_final = True
+                hypothesis = self.asr.get_final_hypothesis()
+
+                self.asr.reset()
+                self.saver.final_hypothesis(current_chunk_id, hypothesis)
+                self.current_chunk_id = self.id_generator()
+
+            hypotheses.append((current_chunk_id, is_final, hypothesis))
+
+        self.send_hypotheses(hypotheses)
+
+        if request.has_next:
             self.heartbeat.send("WORKING")
-            return True
         else:
-            final_hypothesis = self.asr.get_final_hypothesis()
-            response = self.create_final_response(final_hypothesis)
-            self.poller.send("frontend", response.SerializeToString())
+            self.end_recognition()
             self.heartbeat.send("FINISHED")
-            return False
+
+    def send_hypotheses(self, hypotheses):
+        important_hypotheses = self.filter_out_redundant_hypothese(hypotheses)
+        response = createResultsMessage(important_hypotheses)
+        self.poller.send("frontend", response.SerializeToString())
+
+    def filter_out_redundant_hypothese(self, hypotheses):
+        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[1] == True]
+
+        if len(hypotheses) > 0:
+            last_hypothesis = hypotheses.pop()
+            if last_hypothesis[1] == False:
+                important_hypotheses.append(last_hypothesis)
+
+        return important_hypotheses
+
+    def is_online_recognition_running(self):
+        return self.current_request_id is not None
+
+    def is_bad_chunk(self, request):
+        return self.current_request_id != request.id
+
+    def begin_online_recognition(self, request):
+        self.current_request_id = request.id
+        self.current_chunk_id = self.id_generator()
+        self.saver.new_recognition(self.current_request_id, request.frame_rate)
+
+    def end_recognition(self):
+        self.asr.reset()
+        self.vad.reset()
+        self.current_request_id = None
 
     def handle_bad_chunk(self):
         self.poller.send("frontend", createErrorResultsMessage().SerializeToString())
 
     def get_pcm_from_message(self, message):
         return self.audio.load_wav_from_string_as_pcm(message)
-
-    def create_final_response(self, final_hypothesis):
-        return createResultsMessage(True, final_hypothesis)
-
-    def create_interim_response(self, interim_hypothesis):
-        return createResultsMessage(False, [interim_hypothesis])
 
 
 class Heartbeat:
@@ -138,6 +195,7 @@ class AudioUtils:
 
     default_sample_width = 2
     default_sample_rate = 16000
+    buffer_length = 512
 
     def load_wav_from_string_as_pcm(self, string):
         return self.load_wav_from_file_as_pcm(StringIO(string))
@@ -168,8 +226,44 @@ class AudioUtils:
         except EOFError:
             raise Exception('Input PCM is corrupted: End of file.')
 
+    def chunks(self, pcm, sample_rate):
+        if len(pcm) == 0:
+            yield b"", b""
+        else:
+            state = None
+            for i in xrange(0, len(pcm), self.buffer_length):
+                original_pcm = pcm[i:i+self.buffer_length]
+                resampled_pcm, state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, state)
+
+                yield original_pcm, resampled_pcm
+
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         if sample_rate != self.default_sample_rate:
             pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, self.default_sample_rate, None)
 
         return pcm
+
+
+class RemoteSaver:
+
+    def __init__(self, socket, model):
+        self.socket = socket
+        self.model = model
+        self.id = None
+        self.wav = b""
+
+    def new_recognition(self, id, frame_rate=16000):
+        self.id = uniqId2Int(id)
+        self.part = 0
+        self.frame_rate = frame_rate
+
+    def add_pcm(self, pcm):
+        self.wav += pcm
+
+    def final_hypothesis(self, chunk_id, final_hypothesis):
+        if len(self.wav) == 0:
+            return
+
+        self.socket.send(createSaverMessage(self.id, self.part, chunk_id, self.model, self.wav, self.frame_rate, final_hypothesis).SerializeToString())
+        self.wav = b""
+        self.part += 1

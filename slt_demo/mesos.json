@@ -1,0 +1,12 @@
+{
+    "domain": "cloudasr.com",
+    "marathon_url": "http://127.0.0.1:8080",
+    "master_ip": "127.0.0.1",
+    "workers": [
+        {"image": "ufaldsg/cloud-asr-worker-en-wiki", "model": "en-wiki", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-en-voxforge", "model": "en-voxforge", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "model": "en-towninfo", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-cs", "model": "cs", "instances": 1},
+        {"image": "ufaldsg/cloud-asr-worker-cs-alex", "model": "cs-alex", "instances": 1}
+    ]
+}

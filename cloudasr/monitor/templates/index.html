@@ -1,10 +1,10 @@
 <!doctype html>
 <html ng-app="monitorApp">
 <head>
-    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='bootstrap-theme.min.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.24/angular.min.js"></script>
+    <script src="{{ url_for('static', filename='js/angular.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
@@ -21,7 +21,7 @@
         <h2>Running workers:</h2>
 
         <table class="table table-bordered">
-            <tr ng-repeat="container in containers" ng-class="{danger: container.status == 'NOT RESPONDING', success: container.status == 'WAITING', warning: container.status == 'WORKING'}">
+            <tr ng-repeat="container in containers" ng-class="{danger: container.status == 'NOT RESPONDING', success: container.status == 'WAITING' || container.status == 'STARTED', warning: container.status == 'WORKING'}">
                 <td class="col-md-1">[[container.model]]</td>
                 <td>[[container.address]]</td>
                 <td class="col-md-3">[[container.status]]</td>

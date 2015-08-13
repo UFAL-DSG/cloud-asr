@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Transcriptions of the recording:</h2>
+
+<audio id="audio-{{ recording["id"] }}" controls src="{{ recording["url"] }}"></audio>
+
+<h3>Best transcription:</h3>
+{% if recording["best_transcription"] %}
+    <div class="alert alert-success">{{ recording["best_transcription"] }}</div>
+{% else %}
+    <div class="alert alert-warning">No manual transcription has been accepted yet.</div>
+{% endif %}
+
+
+<h3>Suggested Transcriptions:</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th class="col-md-2">User</th>
+            <th>Transcription</th>
+            <th class="col-md-1">Speech?</th>
+            <th class="col-md-1">Native?</th>
+            <th class="col-md-1">Offensive?</th>
+            <th class="col-md-2"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for transcription in recording.transcriptions %}
+        <tr>
+            <td>
+                {% if transcription["user"] is not none %}
+                    {{ transcription["user"]["name"] }}
+                {% else %}
+                    Anonymous
+                {% endif %}
+
+                <br>
+                {{ transcription["created"].strftime('%d.%m.%Y %H:%m')}}
+            </td>
+            <td>{{ transcription["text"] }}</td>
+            <td>{{ not transcription["not_a_speech"] }}</td>
+            <td>{{ transcription["native_speaker"] }}</td>
+            <td>{{ transcription["offensive_language"] }}</td>
+            <td><a href="{{ url_for('accept_transcription', recording = recording.id, transcription = transcription["text"]) }}" class="btn btn-default">Accept this transcription</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

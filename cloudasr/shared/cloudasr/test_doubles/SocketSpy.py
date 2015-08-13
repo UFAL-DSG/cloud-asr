@@ -6,6 +6,7 @@ class SocketSpy:
         self.sent_messages = []
         self.connected_to = None
         self.is_disconnected = None
+        self.closed = None
 
     def set_messages(self, messages):
         self.messages = messages
@@ -17,6 +18,9 @@ class SocketSpy:
     def disconnect(self, address):
         if address == self.connected_to:
             self.is_disconnected = True
+
+    def close(self):
+        self.closed = True
 
     def send(self, message):
         self.sent_messages.append(message)

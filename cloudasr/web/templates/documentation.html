@@ -1,0 +1,321 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<h1>CloudASR <small>Documentation</small></h1>
+
+
+<div id="row" style="position: relative">
+    <div class="col-md-2 well" style="position: fixed">
+        <ul class="nav nav-sidebar">
+            <li>
+                <h4>User Documentation</h4>
+                <ul class="nav nav-sidebar">
+                    <li><a href="#tryout-demo">Try Out the Demo</a></li>
+                    <li><a href="#transcribe-recording">Transcribe a Recording</a></li>
+                    <li><a href="#create-crowdflower-job">Create a CrowdFlower Job</a></li>
+                    <li><a href="#select-best-manual-transcription">Select the Best Transcription</a></li>
+                    <li><a href="#manage-running-workers">Manage Running Workers</a></li>
+                </ul>
+            </li>
+
+            <li>
+                <h4>Programmer Documentation</h4>
+                <ul class="nav nav-sidebar">
+                    <li><a href="#cloudasr-installation">Installation</a></li>
+                    <li><a href="#deployment">Deployment</a></li>
+                    <li><a href="#batch-api">Batch API Usage</a></li>
+                    <li><a href="#online-api">Online API Usage</a></li>
+                    <li><a href="#using-speechrecognition">SpeechRecognition.js Usage</a>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-md-9 col-md-offset-3">
+        <h2>User Documentation</h2>
+
+        <h3 id="tryout-demo">Try Out the Demo</h3>
+            Users that want to try the CloudASR demo can do that in Google Chrome web browser.
+
+            <ol>
+                <li>Click on the <a href="{{ url_for('demo') }}">Demo</a> link in the top menu.
+                <li>Allow the demo to use your microphone.
+                <li>Select a language that you want to use.
+                <li>Click on the microphone icon to start recording.
+                <li>At the end, click on the microphone to stop recording.
+                <li>
+                    During recording, you can switch between the <strong>Dictation Mode</strong> and the <strong>Evaluation Mode</strong>.
+                    In the Evaluation Mode you can confirm correctness of the transcription or you can add your own transcription.
+            </ol>
+
+
+        <h3 id="transcribe-recording">Transcribe a Recording</h3>
+            Users that want to help us by transcribing some of the submitted recordings can do so by the following steps:
+
+            <ol>
+                <li>Click on the <a href="{{ url_for('worker_types') }}">Transcribe</a> link in the top menu.
+                <li>Select a language that you want to transcribe and click on the corresponding <a href="{{ url_for('transcribe', model='cs') }}">Transcribe</a> button.
+                <li>Listen to the recording and add your own transcription.</li>
+                <li>After you submit your transcription, you can continue with a next recording.</li>
+            </ol>
+
+        <h3 id="create-crowdflower-job">Create a CrowdFlower Job</h3>
+            Users can also help us by creating a transcription job on CrowdFlower.
+
+            <ol>
+                <li>Click on the <a href="{{ url_for('worker_types') }}">Transcribe</a> link in the top menu.
+                <li>Select a language, for which you want create a CrowdFlower job.
+                <li>Click on the corresponding <a href="{{ url_for('crowdflower', model='cs') }}">Create CrowdFlower Job</a> button.
+                <li>Follow the instructions on that page.
+                <li>Submit the obtained transcriptions on the <a href="{{ url_for('upload_results') }}">Upload Results</a> page.
+            </ol>
+
+        <h3 id="select-best-manual-transcription">Select the Best Transcription</a></h3>
+            Administrators can choose the best manual transcription with the following procedure:
+
+            <ol>
+                <li>Click on the <a href="{{ url_for('worker_types') }}">Transcribe</a> link in the top menu.
+                <li>Select a language that you want to manage and click on the corresponding <a href="#">Recordings</a> button.
+                <li>Find a recording, for which you want to select the best manual transcription.
+                <li>Click on the corresponding <a href="#">Transcriptions</a> button.
+                <li>Select the best transcription and click on the <a href="#">Accept this transcription</a> button.
+            </ol>
+
+
+        <h3 id="manage-running-workers">Manage Running Workers</h3>
+            Administrators can manage labels of the running workers in the following way:
+
+            <ol>
+                <li>Click on the <a href="{{ url_for('worker_types') }}">Transcribe</a> link in the top menu.
+                <li>Select a worker that you want to manage and click on the corresponding <a href="#">Edit description</a> button.
+                <li>
+                    Fill in the name and description of the worker.
+                    Note that you can use html in the description.
+                    You can check your description on a preview at the bottom of the page.
+                <li>Save the description with the <a href="#">Save</a> button.
+            </ol>
+
+
+        <h2>Programmer Documentation</h2>
+
+        <h3 id="cloudasr-installation">Installation</h3>
+        <p>
+            Docker has to be installed in order to be able to run CloudASR locally.
+            You can follow the install instructions for your distribution at <a href="http://docs.docker.com/installation/">http://docs.docker.com/installation/</a>.
+            Additionally, if you want to develop CloudASR, it is neccessary to install python requirements for testing via <code>pip install requirements-pip.txt</code> command.
+        </p>
+
+        <p>
+            To be able to run CloudASR on multiple machines, a Mesos cluster has to be installed.
+            The install instructions can be found <a href="https://www.digitalocean.com/community/tutorials/how-to-configure-a-production-ready-mesosphere-cluster-on-ubuntu-14-04">here</a>.
+        </p>
+
+
+        <h3 id="deployment">Deployment</h3>
+        <p>
+            CloudASR deployment can be configured in the <code>cloudasr.json</code> file.
+            In this file, you can specify:
+        </p>
+
+        <ul>
+            <li>Tag and source of the CloudASR Docker images
+            <li>Workers that you want to run
+            <li>Address of the Marathon and Master server
+            <li>Address of the MySQL server
+            <li>Credentials for Google Analytics
+        </ul>
+
+
+        <pre>{
+    "domain": "cloudasr.com",
+    "registry": "registry.hub.docker.io",
+    "tag": "latest",
+    "marathon_url": "http://127.0.0.1:8080",
+    "master_ip": "127.0.0.1",
+    "connection_string": "<mysql connection string>",
+    "google_login_client_id": "<google login client id>",
+    "google_login_client_secret": "<google login client secret>",
+    "ga_tracking_id": "",
+    "workers": [
+        {"image": "ufaldsg/cloud-asr-worker-en-wiki", "model": "en-wiki", "instances": 4},
+        {"image": "ufaldsg/cloud-asr-worker-en-voxforge", "model": "en-voxforge", "instances": 4},
+        {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "model": "en-towninfo", "instances": 4},
+        {"image": "ufaldsg/cloud-asr-worker-cs", "model": "cs", "instances": 4},
+        {"image": "ufaldsg/cloud-asr-worker-cs-alex", "model": "cs-alex", "instances": 4}
+    ]
+}</pre>
+
+        <p>
+            With this configuration file you can run CloudASR on your machine with <code>make run_locally</code> command.
+            After that, you can use CloudASR API at <a href="http://localhost:8000">http://localhost:8000</a>,
+                view running workers at <a href="http://localhost:8001">http://localhost:8001</a>
+                and open the CloudASR website at <a href="http://localhost:8003">http://localhost:8003</a>.
+        </p>
+
+        <p>
+            Also, you can use this configuration file to run CloudASR on a Mesos cluster with <code>make run_on_mesos</code> command.
+            After that, it is neccessary to start a load-balancer on a server associated with the domain specified in the configuration.
+            You can do that by typing:
+        </p>
+
+        <pre>docker run -p 80:80 -e MARATHON_URL=localhost:8080 -e MARATHON_LOGIN=login -e MARATHON_PASSWORD=password -d choko/haproxy</pre>
+
+        <p>
+            After that you can use CloudASR API at <a href="http://api.cloudasr.com">http://api.cloudasr.com</a>,
+                view running workers at <a href="http://monitor.cloudasr.com">http://monitor.cloudasr.com</a>
+                and open the CloudASR website on <a href="http://www.cloudasr.com">http://www.cloudasr.com</a>.
+        </p>
+
+
+    <h3 id="batch-api">Batch API Usage</h3>
+
+    <p>
+        Batch API is compatible with Google Speech API, but it supports only wav files and json output at this moment.
+        Users can use parameter <code>lang</code> to specify which language they want to use for speech recognition.
+        Currently, these models are available now:
+    </p>
+
+    <ul>
+        <li>
+            <strong>en-towninfo</strong> - English (VYSTADIAL TownInfo AM+LM)
+        </li>
+        <li>
+            <strong>en-wiki</strong> - English (TED AM+Wikipedia LM)
+        </li>
+        <li>
+            <strong>cs</strong> - Czech (VYSTADIAL AM + Wikipedia LM)
+        </li>
+        <li>
+            <strong>cs-alex</strong> - Czech (VYSTADIAL AM + PTIcs LM)
+        </li>
+    </ul>
+
+    <p>
+        For example, if you want to transcribe English speech in a <code>recording.wav</code> file you can send the following curl request:
+    </p>
+
+    <pre>curl -X POST --data-binary @recording.wav --header 'Content-Type: audio/x-wav; rate=16000;' 'http://localhost:8000/recognize?lang=en-towninfo'</pre>
+
+    <p>
+        and you should get a response similar to this:
+    </p>
+
+    <pre>{
+    "result": [
+      {
+        "alternative": [
+          {
+            "confidence": 0.5549500584602356,
+            "transcript": "I'M LOOKING FOR A BAR"
+          },
+          {
+            "confidence": 0.14846260845661163,
+            "transcript": "I AM LOOKING FOR A BAR"
+          },
+          {
+            "confidence": 0.08276544511318207,
+            "transcript": "I'M LOOKING FOR A RESTAURANT"
+          },
+          {
+            "confidence": 0.06668572872877121,
+            "transcript": "I AM LOOKING FOR A RESTAURANT"
+          }
+        ],
+        "final": true
+      }
+    ],
+    "result_index": 0
+    }</pre>
+
+
+    <h3 id="online-api">Online API Usage</h3>
+
+    <p>
+        Online API uses Socket.io library to transfer PCM chunks to the CloudASR server.
+        Messages have following format:
+    </p>
+
+    <h4>From Client to Server</h4>
+
+    <ul>
+        <li>
+            First, you have to start recognition by sending information about used language.
+            <pre>socketio.emit('begin', {'lang': 'en-GB'})</pre>
+        </li>
+        <li>
+            After that, you can send PCM chunks to the server. Every chunk is a Base64 encoded 16 bit PCM string.
+            <pre>socketio.emit('chunk',  {'chunk': 'base64 encoded string', 'frame_rate': 16000})</pre>
+        </li>
+        <li>
+            Finally, you end the recognition by sending following message
+            <pre>socketio.emit('end', {})</pre>
+        </li>
+    </ul>
+
+    <h4>From Server to Client</h4>
+
+    <p>
+        Server responds to every chunk with a message with interim results:
+    </p>
+
+    <pre>{
+    "status": 0,
+    "final": false,
+    "result": {
+        "hypotheses": [
+            {"transcript": "I AM LOOKING"}
+        ]
+    }
+}</pre>
+
+    <p>
+        At the end of the recognition server sends the message in the same format,
+            but with <code>final: true</code> and n-best hypotheses.
+    </p>
+
+    <h3 id="using-speechrecognition">SpeechRecognition.js Library Usage</h3>
+
+    <p>
+        If you want to use speech recognition on your website, you can use our JavaScript library. Please add these scripts to your html:
+    </p>
+
+    <pre>
+&lt;script src="http://www.cloudasr.com/static/js/socket.io.js"&gt;&lt;/script&gt;
+&lt;script src="http://www.cloudasr.com/static/js/Recorder.js"&gt;&lt;/script&gt;
+&lt;script src="http://www.cloudasr.com/static/js/SpeechRecognition.js'"&gt;&lt;/script&gt;
+    </pre>
+
+    <p>
+        Then you can use SpeechRecognition in following manner:
+    </p>
+
+    <pre>var speechRecognition = new SpeechRecognition();
+speechRecognition.onStart = function() {
+    console.log("Recognition started");
+}
+
+speechRecognition.onEnd = function() {
+    console.log("Recognition ended");
+}
+
+speechRecognition.onError = function(error) {
+    console.log("Error occurred: " + error);
+}
+
+speechRecognition.onResult = function(result) {
+    console.log(result);
+}
+
+var lang = "en-wiki";
+$("#button_start").click(function() {
+    speechRecognition.start(lang);
+});
+
+$("#button_stop").click(function() {
+    speechRecognition.stop()
+});
+    </pre>
+
+    </div>
+</div>
+{% endblock %}

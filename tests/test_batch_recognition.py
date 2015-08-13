@@ -1,12 +1,16 @@
 import os
+import json
+import time
 import urllib2
 import StringIO
 import unittest
-import json
 from jsonschema import validate
 
 
 class TestBatchRecognition(unittest.TestCase):
+
+    def setUp(self):
+        time.sleep(1)
 
     def test_batch_recognition(self):
         response = self.get_response_for_wav()
@@ -14,7 +18,7 @@ class TestBatchRecognition(unittest.TestCase):
         self.assertResponseHasCorrectSchema(response)
 
     def get_response_for_wav(self):
-        url = "http://127.0.0.1:8000/recognize"
+        url = "http://127.0.0.1:8000/recognize?lang=en-towninfo"
         wav = self.load_wav()
         headers = {"Content-Type": "audio/x-wav; rate=16000;"}
         request = urllib2.Request(url, wav, headers)
@@ -55,8 +59,10 @@ class TestBatchRecognition(unittest.TestCase):
                     "minItems": 1,
                 },
                 "result_index": {"type": "number"},
+                "chunk_id": {"type": "string"},
+                "request_id": {"type": "string"},
             },
-            "required": ["result", "result_index"],
+            "required": ["result", "result_index", "request_id"],
             "additionalProperties": False,
         }
 
