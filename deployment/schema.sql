@@ -74,6 +74,18 @@ CREATE TABLE `worker_type` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 
+DROP TABLE IF EXISTS `language_model`;
+CREATE TABLE `language_model` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `key` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `name` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  `worker_type` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `worker_type` (`worker_type`),
+  CONSTRAINT `language_model_ibfk_1` FOREIGN KEY (`worker_type`) REFERENCES `worker_type` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
 INSERT INTO `worker_type` (`id`, `lang`, `name`, `description`) VALUES
 ('cs',	NULL,	'Czech (VYSTADIAL AM + Wikipedia LM)',	'It is an open domain model. You can try sentences like these:\r\n\r\n                <ul>\r\n                    <li>Praha je hlavní město České Republiky.</li>\r\n                    <li>Bydlím v Praze.</li>\r\n                    <li>Bedřich Smetana je slavný český skladatel.</li>\r\n                </ul>'),
 ('cs-alex',	NULL,	'Czech (VYSTADIAL AM + PTIcs LM) ',	'It is a public transport domain specific model. The model is based on free data <a href=\"https://lindat.mff.cuni.cz/repository/xmlui/handle/11858/00-097C-0000-0023-4670-6\" rel=\"noreferrer\">Vystadial 2013 – Czech data</a>. You can try sentences like these:\r\n\r\n<ul>\r\n  <li>Chtěl bych jet z Anděla na Malostranskou.</li>\r\n  <li>Jak se dostanu z Prahy do Brna?</li>\r\n  <li>V kolik hodin mi to jede?</li>\r\n</ul>'),

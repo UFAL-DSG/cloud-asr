@@ -64,8 +64,16 @@ class WorkerType(db.Model):
     lang = Column(String(10))
     name = Column(String(128))
     description = Column(Text)
+    language_models = relationship('LanguageModel')
     recordings = relationship('Recording')
 
+class LanguageModel(db.Model):
+    __tablename__ = 'language_model'
+
+    id = Column(Integer, primary_key = True)
+    key = Column(String(32))
+    name = Column(String(32))
+    worker_type = Column(String(32), ForeignKey('worker_type.id'))
 
 class Recording(db.Model):
     __tablename__ = 'recording'

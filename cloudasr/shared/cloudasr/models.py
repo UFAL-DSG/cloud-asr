@@ -2,7 +2,7 @@ import re
 import csv
 import json
 import wave
-from cloudasr.schema import WorkerType, User, Recording, Hypothesis, Transcription
+from cloudasr.schema import WorkerType, LanguageModel, User, Recording, Hypothesis, Transcription
 
 
 class WorkerTypesModel:
@@ -38,10 +38,22 @@ class WorkerTypesModel:
 
         return worker_type
 
-    def edit_worker(self, id, name, description):
+    def edit_worker(self, id, name, description, lm_ids, lm_names):
         worker = self.upsert_worker_type(id)
         worker.name = name
         worker.description = description
+
+        for lm in worker.language_models:
+            self.db.delete(lm)
+
+        language_models = [(lm_id, lm_name) for (lm_id, lm_name) in zip(lm_ids, lm_names) if lm_id != "" and lm_name != ""]
+        for (lm_id, lm_name) in language_models:
+            lm = LanguageModel(
+                key = lm_id,
+                name = lm_name
+            )
+
+            worker.language_models.append(lm)
 
         self.db.commit()
 

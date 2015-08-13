@@ -30,9 +30,24 @@
         </div>
     </div>
 
+    <div id="language-models">
+        {% for lm in worker.language_models %}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Language model <a href="#" class="btn btn-xs btn-danger delete-language-model"><span class="glyphicon glyphicon-remove"></span></a></label>
+                <div class="col-sm-5">
+                    <input type="text" name="lm-id[]" value="{{ lm["key"] }}" class="form-control" placeholder="id" />
+                </div>
+                <div class="col-sm-5">
+                    <input type="text" name="lm-name[]" value="{{ lm["name"] }}" class="form-control" placeholder="name" />
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
     <div class="form-group">
         <div class="col-sm-offset-2 col-sm-10">
             <input type="submit" class="btn btn-default" value="Save" />
+            <input type="button" class="btn btn-default" value="Add Language Model" id="add-language-model" />
         </div>
     </div>
 </form>
@@ -54,6 +69,22 @@ $(document).ready(function() {
 
     $("#description").keyup(function() {
         $("#preview-description").html($(this).val());
+    });
+
+    $("#add-language-model").click(function() {
+        var $removeButton = $('<a href="#" class="btn btn-xs btn-danger delete-language-model"><span class="glyphicon glyphicon-remove"></span></a>');
+
+        var $languageModelInput = $('<div class="form-group"></div>');
+        $languageModelInput.append($('<label class="col-sm-2 control-label">Language model </label>').append($removeButton));
+        $languageModelInput.append($('<div class="col-sm-5"><input type="text" name="lm-id[]" class="form-control" placeholder="id" /></div>'));
+        $languageModelInput.append($('<div class="col-sm-5"><input type="text" name="lm-name[]" class="form-control" placeholder="name" /></div>'));
+
+        $("#language-models").append($languageModelInput);
+    });
+
+    $("#language-models").on("click", ".delete-language-model", function(event) {
+        event.preventDefault();
+        $(event.target).closest('div.form-group').remove();
     });
 });
 </script>
