@@ -91,7 +91,7 @@ class FrontendWorker:
             raise NoWorkerAvailableError()
 
     def recognize_batch_on_worker(self, data, frame_rate):
-        self.send_request_to_worker(data["wav"], "BATCH", frame_rate, has_next = False)
+        self.send_request_to_worker(data["wav"], "BATCH", frame_rate, has_next = False, new_lm = data["lm"])
         response = self.read_response_from_worker()
         self.worker_socket.disconnect(self.worker_address)
 

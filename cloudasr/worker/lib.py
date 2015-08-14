@@ -98,6 +98,7 @@ class Worker:
         pcm = self.get_pcm_from_message(request.body)
         resampled_pcm = self.audio.resample_to_default_sample_rate(pcm, request.frame_rate)
 
+        self.asr.change_lm(request.new_lm)
         self.asr.recognize_chunk(resampled_pcm)
         current_chunk_id = self.id_generator()
         final_hypothesis = self.asr.get_final_hypothesis()

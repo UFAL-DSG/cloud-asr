@@ -24,6 +24,7 @@ recordings_model = RecordingsModel(db.session, worker_types_model)
 def recognize_batch():
     data = {
         "model": request.args.get("lang", "en-GB"),
+        "lm": request.args.get("lm", "default"),
         "wav": request.data
     }
 

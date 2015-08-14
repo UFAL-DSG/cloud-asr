@@ -10,6 +10,7 @@ class TestFrontendWorker(unittest.TestCase):
     background_worker_socket = "127.0.0.1:5678"
     request_data = {
         "model": "en-GB",
+        "lm": "default",
         "wav": b"some wav"
     }
     request_headers = {
@@ -49,13 +50,13 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_batch_sends_data_to_worker(self):
         self.worker.recognize_batch(self.request_data, self.request_headers)
-        expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, frame_rate=16000)
+        expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, frame_rate=16000, new_lm = "default")
         self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_recognize_batch_sends_data_with_unique_id_to_worker(self):
         self.id_generator.set_id([1])
         self.worker.recognize_batch(self.request_data, self.request_headers)
-        expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, id = 1, frame_rate=16000)
+        expected_message = createRecognitionRequestMessage("BATCH", b"some wav", False, id = 1, frame_rate=16000, new_lm = "default")
         self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_recognize_batch_reads_response_from_worker(self):

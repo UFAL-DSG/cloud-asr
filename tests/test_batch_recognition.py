@@ -18,7 +18,7 @@ class TestBatchRecognition(unittest.TestCase):
         self.assertResponseHasCorrectSchema(response)
 
     def get_response_for_wav(self):
-        url = "http://127.0.0.1:8000/recognize?lang=en-towninfo"
+        url = "http://127.0.0.1:8000/recognize?lang=en-towninfo&lm=new_lm"
         wav = self.load_wav()
         headers = {"Content-Type": "audio/x-wav; rate=16000;"}
         request = urllib2.Request(url, wav, headers)
