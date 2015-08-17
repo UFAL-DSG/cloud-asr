@@ -105,6 +105,7 @@ build:
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
+	docker build -t ufaldsg/cloud-asr-hclg cloudasr/hclg/  # TODO not in build_local - what is the advantage?
 
 build_local:
 	cp -r cloudasr/shared/cloudasr cloudasr/api/cloudasr
