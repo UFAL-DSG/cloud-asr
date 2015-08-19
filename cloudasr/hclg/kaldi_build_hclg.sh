@@ -27,8 +27,7 @@ filter="<.?s>\|_SIL_\|_EHM_HMM_\|_INHALE\|_LAUGH_\|_NOISE_"
 
 if [[  $# -ne 12 ]]; then
   echo; echo "Usage:"; echo
-  echo "build_hclg.sh <AM.mdl> <Dtree> <mfcc.conf> <matrix.mat> <silence.csl> <dict.txt> <vocab.txt> <LM.arpa> <local-tmp-dir> <out-lang-dir> <out-models-dir> <OOV>"
-  echo "e.g.: build_hclg.sh final.mdl tree final.dict final.vocab final.bg.arpa data/local data/lang models '_SIL_'"
+  echo "build_hclg.sh <AM.mdl> <Dtree> <mfcc.conf> <matrix.mat> <silence.csl> <dict.txt> <vocab.txt> <LM.arpa> <OOV> <local-tmp-dir> <out-models-dir>"
   echo ""
   echo "Set '\$KALDI_ROOT' variable before running the script'"
   echo ""
@@ -51,7 +50,7 @@ fi
 model=$1; shift
 tree=$1; shift
 
-mfcc=$1; shift
+conf=$1; shift
 mat=$1; shift
 sil=$1; shift
 
@@ -59,14 +58,16 @@ dictionary=$1; shift
 vocabulary=$1; shift
 lm_arpa=$1; shift
 
+oov_word=$1; shift  # prepare_lang.sh <UNK>
+
 locdata=$1; shift
 locdict=$locdata/dict
 tmpdir=$locdata/lang
 hclg=$locdata/hclg
-lang=$1; shift
-dir=$1; shift
+lang=$locdata/lang
 
-oov_word=$1; shift  # prepare_lang.sh <UNK>
+dir=$1; shift  # output dir
+
 
 
 #######################################################################
@@ -134,11 +135,6 @@ utils/prepare_lang.sh $locdict $oov_word $tmpdir $lang || exit 1
 
 echo; echo "--- Preparing the grammar transducer (G.fst) ..." ; echo
 
-# FIXME just DEBUGGING
-# for f in phones.txt words.txt phones.txt L.fst L_disambig.fst phones/; do
-#     ls $lang/$f
-# done
-
 cat $lm_arpa | \
    utils/find_arpa_oovs.pl $lang/words.txt > $tmpdir/oovs.txt
 
@@ -180,10 +176,7 @@ rm -r $tmpdir/g
 
 echo "*** Succeeded in creating G.fst for $lang"
 
-
-
-echo ; echo "Running utils/prepare_lang.sh" ; echo
-
+echo "*** Creating HCLG.fst"
 
 cp $model $locdata/final.mdl  # $locdata mus contain AM and phonetic DT
 cp $tree $locdata/tree  # $locdata mus contain AM and phonetic DT
@@ -193,20 +186,20 @@ utils/mkgraph.sh $lang $locdata $hclg || exit 1
 
 
 echo ""
-echo "Copying required files to target directory $dir"
+echo "*** Copying required files to target directory $dir"
 echo ""
 
 model_name=`basename $model`
 model_name=${model_name%.mdl}
-cp $model $mfcc $mat $sil $dir || exit 1;
+cp $model $conf $mat $sil $dir || exit 1;
 cp $hclg/HCLG.fst $dir/HCLG_${model_name}.fst || exit 1;
 cp $lang/words.txt $dir || exit 1;
 cp $lang/phones/silence.csl $dir || exit 1;
 
 echo ""
-echo "Copying optional files to target directory $dir"
+echo "*** Copying optional files to target directory $dir"
 echo ""
-
+cp $locdict/lexicon.txt $dir
 mkdir -p $dir/phones
 cp $lang/phones/disambig.{txt,int} $dir/phones/ 2> /dev/null
 cp $lang/phones.txt $dir/phones 2> /dev/null # ignore the error if it's not there.
