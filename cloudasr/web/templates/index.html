@@ -9,19 +9,66 @@
 
 <div class="lead">
     <p>
-        CloudASR is a software platform and a public ASR webservice. Its three strong features are:
-    </p>
-
-    <ul>
-        <li>automatic scalability with increased workload</li>
-        <li>ease of deployment</li>
-        <li>state-of-the-art incremental speech recognition</li>
-    </ul>
-
-    <p>
+        CloudASR is a software platform and a public ASR webservice.
         Platform’s API supports both batch and incremental speech recognition.
         The batch version is compatible with Google Speech API.
-        New ASR engines can be added onto the platform and work simultaneously.
+    </p>
+
+    <h2>Features</h2>
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="text-center"><img src="{{ url_for('static', filename='img/cloud.png') }}" /></div>
+            <!-- credits: https://www.iconfinder.com/icons/379336/cloud_database_icon#size=256 -->
+
+            <h3 class="text-center">Scalability</h3>
+            <p class="text-justify">
+                CloudASR is designed to be able to run on multiple machines
+                    and it can be scaled dynamicaly according to the users need.
+                Finally, according to the conducted benchmarks CloudASR is able to handle 1000 parallel requests.
+            </p>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="text-center"><img src="{{ url_for('static', filename='img/settings.png') }}" /></div>
+            <!-- credits: https://www.iconfinder.com/icons/379393/settings_icon#size=256 -->
+
+            <h3 class="text-center">Customizability</h3>
+            <p class="text-justify">
+                Because CloudASR is built on top of <a href="http://kaldi.sourceforge.net/about.html">Kaldi speech recognition toolkit</a>
+                    it can run almost any acoustic and language models created by Kaldi.
+                Furthermore, CloudASR can be customized to support any other ASR engine.
+            </p>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="text-center"><img src="{{ url_for('static', filename='img/coding.png') }}" /></div>
+            <!-- credits: https://www.iconfinder.com/icons/379494/coding_html_icon#size=256 -->
+
+            <h3 class="text-center">Easy Deployment</h3>
+            <p class="text-justify">
+                CloudASR can be run on a single machine with <a href="http://www.docker.com">Docker</a> or
+                    it can be run with <a href="http://mesos.apache.org/">Mesos</a> on <a href="http://mesosphere.com/amazon/setup">AWS</a> or any other cloud provider.
+                CloudASR uses one configuration file and can be started with single command.
+            </p>
+        </div>
+    </div>
+
+    <h2>Contact Us</h2>
+    <p>
+        If you have any questions regarding CloudASR you can reach us at our mailinglist: <a href="mailto:cloudasr@googlegroups.com">cloudasr@googlegroups.com</a>.
+    </p>
+
+    <h2>Acknowledgments</h2>
+    <p class="text-justify">
+        The CloudASR platform is developed by the Dialogue Systems Group at <a href="http://ufal.mff.cuni.cz">UFAL</a>
+            and the work is funded by the Ministry of Education, Youth and Sports of the Czech Republic under the grant agreement LK11221,
+            by the core research funding of Charles University in Prague.
+        The language resources presented in this work are stored and distributed by the LINDAT/CLARIN project of the Ministry of Education, Youth and Sports of the Czech Republic (project LM2010013).
+    </p>
+    <p>
+        Access to computing and storage facilities owned by parties and projects contributing to the National Grid Infrastructure MetaCentrum,
+            provided under the programme "Projects of Large Infrastructure for Research, Development, and Innovations" (LM2010005),
+            is greatly appreciated.
     </p>
 </div>
 
