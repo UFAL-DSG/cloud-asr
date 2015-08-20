@@ -8,6 +8,8 @@
         var errorCallback = config.errorCallback || function(error) { console.log(error); };
         var volumeCallback = config.volumeCallback || function(average) { console.log(average); };
         var recording = false;
+        var source = null;
+        var analyser = null;
         var sourceProcessor = null;
 
         this.init = function() {
@@ -35,7 +37,7 @@
 
         function createAudioContext() {
             try {
-                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                window.AudioContext = window.AudioContext || window.webkitAudioContext || navigator.mozAudioContext;
                 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
                 audio_context = new AudioContext;
@@ -49,13 +51,13 @@
         }
 
         function startUserMedia(stream) {
-            var source = audio_context.createMediaStreamSource(stream);
+            source = audio_context.createMediaStreamSource(stream);
             console.log('Media stream created.');
 
             source.context.createScriptProcessor = source.context.createScriptProcessor || source.context.createJavaScriptNode;
             sourceProcessor = source.context.createScriptProcessor(bufferLen, numChannels, numChannels);
 
-            analyser = audio_context.createAnalyser();
+            analyser = source.context.createAnalyser();
             analyser.smoothingTimeConstant = 0.3;
             analyser.fftSize = 512;
 
