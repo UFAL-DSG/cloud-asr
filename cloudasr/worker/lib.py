@@ -98,6 +98,7 @@ class Worker:
         pcm = self.get_pcm_from_message(request.body)
         resampled_pcm = self.audio.resample_to_default_sample_rate(pcm, request.frame_rate)
 
+        self.asr.change_lm(request.new_lm)
         self.asr.recognize_chunk(resampled_pcm)
         current_chunk_id = self.id_generator()
         final_hypothesis = self.asr.get_final_hypothesis()
@@ -123,13 +124,16 @@ class Worker:
                 is_final = False
                 hypothesis = [(1.0, "")]
 
-            if change == "non-speech" or request.has_next == False:
+            if change == "non-speech" or request.has_next == False or request.new_lm != "":
                 is_final = True
                 hypothesis = self.asr.get_final_hypothesis()
 
                 self.asr.reset()
                 self.saver.final_hypothesis(current_chunk_id, hypothesis)
                 self.current_chunk_id = self.id_generator()
+
+            if request.new_lm:
+                self.asr.change_lm(request.new_lm)
 
             hypotheses.append((current_chunk_id, is_final, hypothesis))
 
@@ -168,6 +172,7 @@ class Worker:
         self.saver.new_recognition(self.current_request_id, request.frame_rate)
 
     def end_recognition(self):
+        self.asr.change_lm("default")
         self.asr.reset()
         self.vad.reset()
         self.current_request_id = None

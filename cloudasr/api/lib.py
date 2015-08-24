@@ -56,6 +56,12 @@ class FrontendWorker:
 
         return [formatter(result) for result in results]
 
+    def change_lm(self, lm):
+        self.send_request_to_worker(b"", "ONLINE", frame_rate = 44100, has_next = True, new_lm = lm)
+        response = self.read_response_from_worker()
+
+        return self.format_response(response.results, self.format_online_recognition_response)
+
     def end_recognition(self):
         self.send_request_to_worker(b"", "ONLINE", frame_rate = 44100, has_next = False)
         response = self.read_response_from_worker()
@@ -85,14 +91,14 @@ class FrontendWorker:
             raise NoWorkerAvailableError()
 
     def recognize_batch_on_worker(self, data, frame_rate):
-        self.send_request_to_worker(data["wav"], "BATCH", frame_rate, has_next = False)
+        self.send_request_to_worker(data["wav"], "BATCH", frame_rate, has_next = False, new_lm = data["lm"])
         response = self.read_response_from_worker()
         self.worker_socket.disconnect(self.worker_address)
 
         return self.format_response(response.results, self.format_batch_recognition_response)
 
-    def send_request_to_worker(self, data, type, frame_rate = None, has_next = False):
-        request = createRecognitionRequestMessage(type, data, has_next, self.id, frame_rate)
+    def send_request_to_worker(self, data, type, frame_rate = None, has_next = False, new_lm = ""):
+        request = createRecognitionRequestMessage(type, data, has_next, self.id, frame_rate, new_lm)
         self.worker_socket.send(request.SerializeToString())
 
     def read_response_from_worker(self):

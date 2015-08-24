@@ -24,6 +24,7 @@ recordings_model = RecordingsModel(db.session, worker_types_model)
 def recognize_batch():
     data = {
         "model": request.args.get("lang", "en-GB"),
+        "lm": request.args.get("lm", "default"),
         "wav": request.data
     }
 
@@ -68,6 +69,7 @@ def begin_online_recognition(message):
         worker.connect_to_worker(message["model"])
 
         session["worker"] = worker
+        session["connected"] = True
     except NoWorkerAvailableError:
         emit('server_error', {"status": "error", "message": "No worker available"})
         worker.close()
@@ -75,7 +77,7 @@ def begin_online_recognition(message):
 @socketio.on('chunk')
 def recognize_chunk(message):
     try:
-        if "worker" not in session:
+        if not session.get("connected", False):
             emit('server_error', {"status": "error", "message": "No worker available"})
             return
 
@@ -87,9 +89,24 @@ def recognize_chunk(message):
         session["worker"].close()
         del session["worker"]
 
+@socketio.on('change_lm')
+def change_lm(message):
+    try:
+        if not session.get("connected", False):
+            emit('server_error', {"status": "error", "message": "No worker available"})
+            return
+
+        results = session["worker"].change_lm(str(message["new_lm"]))
+        for result in results:
+            emit('result', result)
+    except WorkerInternalError:
+        emit('server_error', {"status": "error", "message": "Internal error"})
+        session["worker"].close()
+        del session["worker"]
+
 @socketio.on('end')
 def end_recognition(message):
-    if "worker" not in session:
+    if not session.get("connected", False):
         emit('server_error', {"status": "error", "message": "No worker available"})
         return
 
@@ -100,6 +117,7 @@ def end_recognition(message):
     emit('end', results[-1])
 
     session["worker"].close()
+    session["connected"] = False
     del session["worker"]
 
 if __name__ == "__main__":

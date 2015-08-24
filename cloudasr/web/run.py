@@ -139,7 +139,14 @@ def edit_worker(model):
 @admin_permission.require()
 def save_worker_description():
     flash('Worker\'s description was successfully saved')
-    worker_types_model.edit_worker(request.form['id'], request.form['name'], request.form['description'])
+    worker_types_model.edit_worker(
+        request.form['id'],
+        request.form['name'],
+        request.form['description'],
+        request.form.getlist("lm-id[]"),
+        request.form.getlist("lm-name[]")
+    )
+
     return redirect(url_for('worker_types'))
 
 @app.route('/login/google')

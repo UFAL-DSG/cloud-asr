@@ -25,7 +25,6 @@ def master_spec(domain, master_ip, registry, tag):
             "API_ADDR": "tcp://0.0.0.0:5680",
             "MONITOR_ADDR": "tcp://%s:31102" % master_ip
         },
-        "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/monitor" % domain],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
@@ -50,7 +49,6 @@ def monitor_spec(domain, master_ip, registry, tag):
         "env": {
             "MONITOR_ADDR": "tcp://0.0.0.0:5681"
         },
-        "uris": ["/root/.dockercfg"],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
@@ -79,7 +77,6 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
             "STORAGE_PATH": "/opt/app/static/data",
             "DOMAIN": "http://recordings." + domain
         },
-        "uris": ["/root/.dockercfg"],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
@@ -103,7 +100,6 @@ def api_spec(domain, master_ip, registry, tag, connection_string):
             "CONNECTION_STRING": connection_string,
             "MASTER_ADDR": "tcp://%s:31101" % master_ip,
         },
-        "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/master" % domain]
     }
 
@@ -130,7 +126,6 @@ def web_spec(domain, master_ip, registry, tag, connection_string, google_login_c
             "GA_TRACKING_ID": ga_tracking_id,
             "API_URL": "http://api." + domain,
         },
-        "uris": ["/root/.dockercfg"],
         "dependencies": ["/%s/master" % domain]
     }
 
@@ -155,7 +150,6 @@ def worker_spec(domain, master_ip, image, model, instances, registry, tag):
             "RECORDINGS_SAVER_ADDR": "tcp://%s:31105" % master_ip,
             "MODEL": model
         },
-        "uris": ["/root/.dockercfg"],
         "dependencies": [
             "/%s/master" % domain,
             "/%s/recordings" % domain

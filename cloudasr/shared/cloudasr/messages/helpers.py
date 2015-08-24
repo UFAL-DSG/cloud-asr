@@ -63,7 +63,7 @@ def parseWorkerRequestMessage(string):
 
     return message
 
-def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0):
+def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0, new_lm = ""):
     types = {
         "BATCH": RecognitionRequestMessage.BATCH,
         "ONLINE": RecognitionRequestMessage.ONLINE
@@ -76,6 +76,7 @@ def createRecognitionRequestMessage(type, body, has_next, id = 0, frame_rate = 0
     message.body = body
     message.has_next = has_next
     message.frame_rate = frame_rate
+    message.new_lm = new_lm
 
     return message
 

@@ -124,8 +124,12 @@ build_local:
 	rm -rf cloudasr/monitor/cloudasr
 	rm -rf cloudasr/recordings/cloudasr
 
+remove-images:
+	docker images | grep "ufaldsg/" | awk '{print $$3}' | xargs docker rmi
+
 pull:
 	docker pull mysql
+	docker pull ufaldsg/cloud-asr-web
 	docker pull ufaldsg/cloud-asr-api
 	docker pull ufaldsg/cloud-asr-worker
 	docker pull ufaldsg/cloud-asr-master
@@ -152,6 +156,13 @@ run: mysql_data
 
 run_locally: mysql_data
 	bash <( python ${CURDIR}/deployment/run_locally.py ${CURDIR}/cloudasr.json )
+
+stop_locally:
+	docker ps -a | \
+		grep `grep "domain" cloudasr.json | sed 's/\s*"domain":\s*"//;s/",//;s/\./-/g'` | \
+		awk '{print $$1}' | \
+		xargs docker kill | \
+		xargs docker rm
 
 run_mesos:
 	python ${CURDIR}/deployment/run_on_mesos.py ${CURDIR}/cloudasr.json

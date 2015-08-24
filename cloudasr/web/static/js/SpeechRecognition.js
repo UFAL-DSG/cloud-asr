@@ -10,6 +10,7 @@
         this.onchunk = function(chunk) {};
         this.volumeCallback = function(volume) {};
         this.isRecording = false;
+        this.quietForChunks = 0;
 
         var recognizer = this;
         var recorder = createRecorder();
@@ -29,13 +30,20 @@
             this.onend();
         };
 
+        this.changeLM = function(newLM) {
+            console.log(newLM);
+            socket.emit('change_lm', {'new_lm': newLM});
+        }
+
         var handleResult = function(results) {
             recognizer.onresult(results);
         };
 
         var handleError = function(error) {
             recognizer.onerror(error);
-            recognizer.stop();
+            recognizer.onend();
+            recognizer.isRecording = false;
+            recorder.stop();
         };
 
         var handleEnd = function() {
@@ -116,12 +124,17 @@
 
         function handleVolume(volume) {
             if(volume == 0) {
-                return handleError("Microphone is not working!");
+                if(recognizer.quietForChunks >= 10) {
+                    return handleError("Microphone is not working!");
+                }
+
+                recognizer.quietForChunks++;
+            } else {
+                recognizer.quietForChunks = 0;
             }
 
             recognizer.volumeCallback(volume);
         };
-
     }
 
     window.SpeechRecognition = SpeechRecognition;

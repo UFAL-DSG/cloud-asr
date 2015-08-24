@@ -1,4 +1,4 @@
-FROM ubuntu:14.04
+FROM ubuntu:14.04.2
 
 MAINTAINER Ondrej Klejch
 
