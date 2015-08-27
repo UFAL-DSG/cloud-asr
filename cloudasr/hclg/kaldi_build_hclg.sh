@@ -62,7 +62,8 @@ oov_word=$1; shift  # prepare_lang.sh <UNK>
 
 locdata=$1; shift
 locdict=$locdata/dict
-tmpdir=$locdata/lang
+# tmpdir=$locdata/lang
+tmpdir=$locdata/tmp
 hclg=$locdata/hclg
 lang=$locdata/lang
 
@@ -115,12 +116,14 @@ EOF
 cp $vocabulary $locdata/vocab-full-raw.txt
 echo '</s>' >> $locdata/vocab-full-raw.txt
 echo "Removing from vocabulary _NOISE_, and  all '_' words from vocab-full.txt"
+# FIXME todo use $filter variable
 cat $locdata/vocab-full-raw.txt | grep -v '_' | \
   sort -u > $locdata/vocab-full.txt
 echo "*** Vocabulary preparation finished!"
 
 echo; echo "Creating phone list. Better hope that they are the same as in training!"; echo
 # Grepping out _NOISE_ and so on -> it will be added back in create_phone_lists
+# FIXME todo use $filter variable
 grep -v '_\|{\|}' $dictionary > $locdict/lexicon.txt
 ../../../tools/kaldi/local/create_phone_lists.sh $locdict
 

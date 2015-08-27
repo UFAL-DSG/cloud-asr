@@ -1,6 +1,7 @@
 FROM ufaldsg/kams
 
 MAINTAINER Ondrej Klejch, Ondrej Platek
-ADD . /app/cloud-asr-hclg
-WORKDIR /app/cloud-asr-hclg
-CMD while true; do python run.py; echo "Command finished"; date; echo; sleep 1; done
+ENV CLOUD_ASR_HCLG=/app/cloud-asr-hclg
+RUN echo $KALDI_ROOT KAMS_ROOT $CLOUD_ASR_HCLG && mkdir -p $CLOUD_ASR_HCLG /app/data
+ADD . $CLOUD_ASR_HCLG
+WORKDIR $CLOUD_ASR_HCLG

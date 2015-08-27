@@ -5,64 +5,10 @@ import argparse
 import os
 from subprocess import Popen, PIPE
 from os import environ
+from os.path import abspath, dirname, join
 import sys
-
-
-def source(script, update=True, clean=False):
-    """
-    Source variables from a shell script
-    import them in the environment (if update==True)
-    and report only the script variables (if clean==True)
-    Based on: https://gist.github.com/mammadori/3891614
-    """
-
-    global environ
-    if clean:
-        environ_back = dict(environ)
-        environ.clear()
-
-    pipe = Popen(". %s; printenv" % script, stdout=PIPE, shell=True)
-    data = pipe.communicate()[0]
-    if pipe.returncode != 0:
-        raise ValueError("Script %s was not sourced succesfully:\n%s\n" % (script, data))
-
-    env = dict((line.split("=", 1) for line in data.splitlines()))
-
-    if clean:
-        # remove unwanted minimal vars
-        env.pop('LINES', None)
-        env.pop('COLUMNS', None)
-        environ = dict(environ_back)
-
-    if update:
-        environ.update(env)
-    return env
-
-
-def exit_on_system_fail(cmd, msg=None):
-    system_res = os.system(cmd)
-    if not system_res == 0:
-        err_msg = "Command failed, exitting."
-        if msg:
-            err_msg = "%s %s" % (err_msg, msg, )
-        raise RuntimeError(err_msg)
-
-
-def load_dict(args):
-    print 'TODO copy dict'
-
-
-def build_dict(args):
-    print 'TODO phonetic dictionary from LM and language id'
-
-
-def extract_alphabet(phonetic_dict):
-    pass
-
-
-def extract_vocabulary(phonetic_dict):
-    pass
-
+import shutil
+from lib import source, backup_build_models, load_dict, build_dict, extract_alphabet, extract_vocabulary
 
 
 if __name__ == '__main__':
@@ -77,20 +23,22 @@ if __name__ == '__main__':
     parser.add_argument('--path-sh', help='shell script updating PATH to include IRSTLM and Kaldi binaries', default='/kaldi_uproot/kams/kams/path.sh')
     parser.add_argument('--lm', help='LM in arpa format', required=True)
     parser.add_argument('-oov', '--out-of-vocabulary', default='<UNK>')
-    parser.add_argument('-tmp', '--tmp-directory', default=os.path.abspath(os.path.dirname(__file__)))
+    parser.add_argument('-tmp', '--tmp-directory', default=join(abspath(dirname(__file__), 'tmp')))
+    parser.add_argument('--out-dir', default=join(abspath(dirname(__file__), 'out_dir')))
+    # FIXME timestamp
 
     # TODO supporting only tri2b
     am_group = parser.add_argument_group('AM training files')
-    am_group.add_argument('-am', help='Acoustic model - typically you want final.mdl from Kaldi training scripts.', required=True)
-    am_group.add_argument('-config', help='Configuration file which should store all non-default values used for acoustic signal preprocessing and AM parameters which needs to be the same during decoding.', required=True)
-    am_group.add_argument('-tree', help='Tree for tying GMM - Gaussian Mixture Models.', required=True)
-    am_group.add_argument('-trans-matrix', help='Matrix for linear transformation e.g. lda+mllt.', required=True)
-    am_group.add_argument('-sil', '--silence-phones-ids', required=True)  # TODO use them more
+    am_group.add_argument('--am', help='Acoustic model - typically you want final.mdl from Kaldi training scripts.', required=True)
+    am_group.add_argument('--conf', help='Configuration file which should store all non-default values used for acoustic signal preprocessing and AM parameters which needs to be the same during decoding.', required=True)
+    am_group.add_argument('--tree', help='Tree for tying GMM - Gaussian Mixture Models.', required=True)
+    am_group.add_argument('--mat', help='Matrix for linear transformation e.g. lda+mllt.', required=True)
+    am_group.add_argument('--sil', '--silence-phones-ids', required=True)  # TODO use them more
 
 
     subparses = parser.add_subparsers()
     load_dict_parser = subparser.add_parser('load_dict')
-    load_dict_parser.add_argument('-f', required=True, help='Path to phonetic dictionary')
+    load_dict_parser.add_argument('-f', help='Path to phonetic dictionary')
     load_dict_parser.set_defaults(prepare_lm_dict=load_dict)
 
     build_dict_parser = subparser.add_parser('build_dict')
@@ -99,7 +47,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    lm_dict = args.prepare_dict(args)
+    lm_dict = args.prepare_lm_dict(args)
     am_dict = load_dict(args.am_dict)
     phonetic_alphabet_lm = extract_alphabet(lm_dict)
     phonetic_alphabet_am = extract_alphabet(am_dict)
@@ -117,6 +65,23 @@ if __name__ == '__main__':
 
     env = source(args.path_sh)
 
-    exit_on_system_fail("./kaldi_build_hclg.sh %(model)s %(tree)s %(conf)s %(mat)s %(sil)s %(dictionary)s %(vocabulary)s %(lm_arpa)s %(oov)s %(tmpdir)s %(out_dir)s" % vars(args))
+    with open('%(tmpdir)s/vocabulary', 'w') as w:
+        w.write('\n'.join(sorted(extract_vocabulary(lm_dict))))
 
-    # TODO rewrite more from kaldi_build_hclg.sh to Python
+    exit_on_system_fail("./prepare_kaldi_lang_files.sh %(model)s %(tree)s %(conf)s %(mat)s %(sil)s %(dictionary)s %(vocabulary)s %(lm_arpa)s %(oov)s %(tmpdir)s %(out_dir)s" % vars(args))
+
+
+    cp $model $locdata/final.mdl  # $locdata mus contain AM and phonetic DT
+    cp $tree $locdata/tree  # $locdata mus contain AM and phonetic DT
+    cp matrix
+    conf=$1; shift
+    sil=$1; shift
+
+    # exit_on_system_fail("source path.sh; utils/mkgraph.sh $lang $locdata $hclg"
+    # utils/mkgraph.sh $lang $locdata $hclg || exit 1 # FIXME delete
+    exit_on_system_fail("source path.sh; utils/mkgraph.sh %(tmp)s/lang %(tmp) %s(tmp)/hclg" % vars(args))
+    # FIXME
+    # to make const fst:
+    # fstconvert --fst_type=const $dir/HCLG.fst $dir/HCLG_c.fst
+
+    backup_build_models(vars(args))

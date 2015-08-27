@@ -113,16 +113,19 @@ build_local:
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/recordings/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/recordings/hclg  # FIXME do we use it there? (No?)
 	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
+	docker build -t ufaldsg/cloud-asr-hclg cloudasr/hclg/
 	rm -rf cloudasr/api/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 	rm -rf cloudasr/monitor/cloudasr
 	rm -rf cloudasr/recordings/cloudasr
+	rm -rf cloudasr/hclg/cloudasr
 
 remove-images:
 	docker images | grep "ufaldsg/" | awk '{print $$3}' | xargs docker rmi
