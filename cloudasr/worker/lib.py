@@ -175,6 +175,7 @@ class Worker:
         self.asr.change_lm("default")
         self.asr.reset()
         self.vad.reset()
+        self.audio.reset()
         self.current_request_id = None
 
     def handle_bad_chunk(self):
@@ -201,6 +202,9 @@ class AudioUtils:
     default_sample_width = 2
     default_sample_rate = 16000
     buffer_length = 512
+
+    def __init__(self):
+        self.state = None
 
     def load_wav_from_string_as_pcm(self, string):
         return self.load_wav_from_file_as_pcm(StringIO(string))
@@ -235,10 +239,9 @@ class AudioUtils:
         if len(pcm) == 0:
             yield b"", b""
         else:
-            state = None
             for i in xrange(0, len(pcm), self.buffer_length):
                 original_pcm = pcm[i:i+self.buffer_length]
-                resampled_pcm, state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, state)
+                resampled_pcm, self.state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, self.state)
 
                 yield original_pcm, resampled_pcm
 
@@ -247,6 +250,9 @@ class AudioUtils:
             pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, self.default_sample_rate, None)
 
         return pcm
+
+    def reset(self):
+        self.state = None
 
 
 class RemoteSaver:

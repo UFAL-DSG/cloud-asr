@@ -326,8 +326,15 @@ class TestWorker(unittest.TestCase):
         ]
 
         self.run_worker(messages)
-        print self.vad.resetted
         self.assertTrue(self.vad.resetted)
+
+    def test_worker_resets_audio_utls_at_the_end_of_online_recognition(self):
+        messages = [
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = False)}
+        ]
+
+        self.run_worker(messages)
+        self.assertTrue(self.audio.resetted)
 
     def test_worker_change_lm_when_new_lm_is_set(self):
         messages = [
@@ -502,6 +509,7 @@ class DummyAudio:
 
     def __init__(self):
         self.splitted_chunks = []
+        self.resetted = False
 
     def load_wav_from_string_as_pcm(self, string):
         return "pcm " + string
@@ -518,6 +526,9 @@ class DummyAudio:
                 yield dummy_pcm, "resampled" + dummy_pcm
         else:
             yield pcm, "resampled " + pcm
+
+    def reset(self):
+        self.resetted = True
 
 class SaverSpy:
 

@@ -38,7 +38,7 @@ def monitor_spec(domain, master_ip, registry, tag):
                 "image": "%s/ufaldsg/cloud-asr-monitor:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 80, "hostPort": 31103},
+                    {"containerPort": 80, "hostPort": 0},
                     {"containerPort": 5681, "hostPort": 31102}
                 ]
             }
@@ -61,7 +61,7 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
                 "image": "%s/ufaldsg/cloud-asr-recordings:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 80, "hostPort": 31104},
+                    {"containerPort": 80, "hostPort": 0},
                     {"containerPort": 5682, "hostPort": 31105}
                 ]
             },
@@ -171,7 +171,7 @@ def ensure_charset_is_in_connection_string(connection_string):
 def app_spec(config):
     domain = config["domain"]
     master_ip = config["master_ip"]
-    registry = config.get("registry", "registry.hub.docker.io")
+    registry = config.get("registry", "registry.hub.docker.com")
     tag = config.get("tag", "latest")
     connection_string = ensure_charset_is_in_connection_string(config["connection_string"])
     google_login_client_id = config["google_login_client_id"]
