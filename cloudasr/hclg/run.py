@@ -8,16 +8,15 @@ from os import environ
 from os.path import abspath, dirname, join
 import sys
 import shutil
-from lib import source, backup_build_models, load_dict, build_dict, extract_alphabet, extract_vocabulary
+from lib import source, backup_build_models, load_dict, build_dict, extract_alphabet, extract_vocabulary, exit_on_system_fail
 
 
 if __name__ == '__main__':
     try:
-        exit_on_system_fail("lattice-oracle --help")
+        exit_on_system_fail("ls -al /usr/local/lib; lattice-oracle --help")
     except RuntimeError:
-        print >> sys.stderr, "Kaldi binaries not available"
-        exit_on_system_fail("echo $PATH")
-        exit 1
+        print >> sys.stderr, "Kaldi binaries not available or working"
+        exit(1)
 
     parser = argparse.ArgumentParser(description='Build HCLG graph for Kaldi')
     parser.add_argument('--path-sh', help='shell script updating PATH to include IRSTLM and Kaldi binaries', default='/kaldi_uproot/kams/kams/path.sh')
@@ -56,7 +55,7 @@ if __name__ == '__main__':
     assert len(phonetic_alphabet_am) == len(phonetic_alphabet_lm) and len([x for x in phonetic_alphabet_am if x not in phonetic_alphabet_lm]) == 0
 
     common_keys = set(lm_dict.keys()) & set(am_dict.keys())
-    diff_pronunciation = [am_dict[c], lm_dict[c] for c in common_keys if am_dict[c] != lm_dict[c]]
+    diff_pronunciation = [(am_dict[c], lm_dict[c]) for c in common_keys if am_dict[c] != lm_dict[c]]
     if len(diff_pronunciation) == 0:
         print >> sys.stderr, "Phonetic dictionaries are the same"
     for a, b in diff_pronunciation:
@@ -71,11 +70,8 @@ if __name__ == '__main__':
     exit_on_system_fail("./prepare_kaldi_lang_files.sh %(model)s %(tree)s %(conf)s %(mat)s %(sil)s %(dictionary)s %(vocabulary)s %(lm_arpa)s %(oov)s %(tmpdir)s %(out_dir)s" % vars(args))
 
 
-    cp $model $locdata/final.mdl  # $locdata mus contain AM and phonetic DT
-    cp $tree $locdata/tree  # $locdata mus contain AM and phonetic DT
-    cp matrix
-    conf=$1; shift
-    sil=$1; shift
+    shutil.copyfile(args.am, args.tmp)
+    shutil.copyfile(args.tree, args.tmp)
 
     # exit_on_system_fail("source path.sh; utils/mkgraph.sh $lang $locdata $hclg"
     # utils/mkgraph.sh $lang $locdata $hclg || exit 1 # FIXME delete
