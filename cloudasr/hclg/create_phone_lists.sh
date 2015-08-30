@@ -24,7 +24,15 @@
 
 set -e
 
+lexicon=$1; shift
 locdict=$1; shift
+
+mkdir -p $locdict
+
+#  Alex specific parameters
+# FIXME use the variable in prepare lexicon scripts
+filter="<.?s>\|_SIL_\|_EHM_HMM_\|_INHALE\|_LAUGH_\|_NOISE_"
+grep -v '_' $lexicon > $locdict/lexicon.txt
 
 echo "--- Prepare nonsilence phone lists ..."
 # We suppose only nonsilence_phones in lexicon right now

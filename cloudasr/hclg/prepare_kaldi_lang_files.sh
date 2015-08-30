@@ -20,9 +20,6 @@
 # based on egs/voxforge script created by  Vassil Panayotov Copyright 2012, Apache 2.0
 # FIXME rewrite to Python
 
-#  Alex specific parameters
-# FIXME use the variable in prepare lexicon scripts
-filter="<.?s>\|_SIL_\|_EHM_HMM_\|_INHALE\|_LAUGH_\|_NOISE_"
 
 # FIXME move to separate script
 #######################################################################

@@ -69,9 +69,9 @@ if __name__ == '__main__':
     with open('%(tmp_directory)s/vocabulary' % vars(args), 'w') as w:
         w.write('\n'.join(sorted(extract_vocabulary(lm_dict))))
 
-    exit_on_system_fail("mkdir -p %(tmp_directory)s/dict" % vars(args))
-    shutil.copyfile(lm_dict_path, "%(tmp_directory)s/dict/lexicon.txt" % vars(args))
-    exit_on_system_fail("./create_phone_lists.sh %(tmp_directory)s/dict" % vars(args))
+    phone_list_args = vars(args)
+    phone_list_args['orig_lexicon'] = lm_dict_path
+    exit_on_system_fail("./create_phone_lists.sh %(orig_lexicon)s %(tmp_directory)s/dict" % phone_list_args)  # FIXME move to Python
 
     prep_args = vars(args)
     prep_args['vocabulary'] = os.path.join(args.tmp_directory, 'vocabulary')
