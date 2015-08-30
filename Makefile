@@ -215,5 +215,8 @@ mysql-console:
 open-demo:
 	google-chrome http://${IP}:8003/demo/en-towninfo
 
+open-monitor:
+	google-chrome http://${IP}:8001/
+
 test-curl:
 	curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' http://${IP}:8000/recognize?lang=en-towninfo
