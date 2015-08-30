@@ -1,5 +1,7 @@
 SHELL=/bin/bash
 IP=`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
+DEMO_URL=http://${IP}:8003/demo/en-towninfo
+MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 API_HOST_PORT=8000
 MONITOR_HOST_PORT=8001
@@ -213,10 +215,10 @@ mysql-console:
 	docker run --link mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
 
 open-demo:
-	google-chrome http://${IP}:8003/demo/en-towninfo
+	open ${DEMO_URL} || google-chrome ${DEMO_URL} || echo "open url in your browser: ${DEMO_URL}"
 
 open-monitor:
-	google-chrome http://${IP}:8001/
+	open ${MONITOR_URL} || google-chrome ${MONITOR_URL} || echo "open url in yout browser: ${MONITOR_URL}"
 
 test-curl:
-	curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' http://${IP}:8000/recognize?lang=en-towninfo
+	curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' http://${IP}:8000/recognize?lang=en-towninfo | ( json_pp || cat )
