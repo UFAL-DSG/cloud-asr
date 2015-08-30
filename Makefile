@@ -211,3 +211,9 @@ compile-messages:
 
 mysql-console:
 	docker run --link mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
+
+open-demo:
+	google-chrome http://${IP}:8003/demo/en-towninfo
+
+test-curl:
+	curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' http://${IP}:8000/recognize?lang=en-towninfo
