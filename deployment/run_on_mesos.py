@@ -3,7 +3,7 @@ import sys
 import json
 import requests
 
-def master_spec(domain, master_ip, registry, tag):
+def master_spec(domain, master_ip, port, registry, tag):
     return {
         "id": "master",
         "container": {
@@ -12,8 +12,8 @@ def master_spec(domain, master_ip, registry, tag):
                 "image": "%s/ufaldsg/cloud-asr-master:%s" % (registry, tag),
                 "network": "BRIDGE",
                 "portMappings": [
-                    {"containerPort": 5679, "hostPort": 31100},
-                    {"containerPort": 5680, "hostPort": 31101}
+                    {"containerPort": 5679, "hostPort": port},
+                    {"containerPort": 5680, "hostPort": port + 1}
                 ]
             }
         },
@@ -23,13 +23,13 @@ def master_spec(domain, master_ip, registry, tag):
         "env": {
             "WORKER_ADDR": "tcp://0.0.0.0:5679",
             "API_ADDR": "tcp://0.0.0.0:5680",
-            "MONITOR_ADDR": "tcp://%s:31102" % master_ip
+            "MONITOR_ADDR": "tcp://%s:%d" % (master_ip, port + 2)
         },
         "dependencies": ["/%s/monitor" % domain],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def monitor_spec(domain, master_ip, registry, tag):
+def monitor_spec(domain, master_ip, port, registry, tag):
     return {
         "id": "monitor",
         "container": {
@@ -39,7 +39,7 @@ def monitor_spec(domain, master_ip, registry, tag):
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 0},
-                    {"containerPort": 5681, "hostPort": 31102}
+                    {"containerPort": 5681, "hostPort": port + 2}
                 ]
             }
         },
@@ -52,7 +52,7 @@ def monitor_spec(domain, master_ip, registry, tag):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def recordings_spec(domain, master_ip, registry, tag, connection_string):
+def recordings_spec(domain, master_ip, port, registry, tag, connection_string):
     return {
         "id": "recordings",
         "container": {
@@ -62,7 +62,7 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
                 "network": "BRIDGE",
                 "portMappings": [
                     {"containerPort": 80, "hostPort": 0},
-                    {"containerPort": 5682, "hostPort": 31105}
+                    {"containerPort": 5682, "hostPort": port + 5}
                 ]
             },
             "volumes": [
@@ -80,7 +80,7 @@ def recordings_spec(domain, master_ip, registry, tag, connection_string):
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
-def api_spec(domain, master_ip, registry, tag, connection_string):
+def api_spec(domain, master_ip, port, registry, tag, connection_string):
     return {
         "id": "api",
         "container": {
@@ -98,12 +98,12 @@ def api_spec(domain, master_ip, registry, tag, connection_string):
         "mem": "256",
         "env": {
             "CONNECTION_STRING": connection_string,
-            "MASTER_ADDR": "tcp://%s:31101" % master_ip,
+            "MASTER_ADDR": "tcp://%s:%d" % (master_ip, port + 1),
         },
         "dependencies": ["/%s/master" % domain]
     }
 
-def web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id):
+def web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id):
     return {
         "id": "www",
         "container": {
@@ -129,7 +129,7 @@ def web_spec(domain, master_ip, registry, tag, connection_string, google_login_c
         "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(domain, master_ip, image, model, instances, registry, tag):
+def worker_spec(domain, master_ip, port, image, model, instances, registry, tag):
     return {
         "id": imageToWorkerName(image),
         "container": {
@@ -146,8 +146,8 @@ def worker_spec(domain, master_ip, image, model, instances, registry, tag):
         "cpus": "0.25",
         "mem": "512",
         "env": {
-            "MASTER_ADDR": "tcp://%s:31100" % master_ip,
-            "RECORDINGS_SAVER_ADDR": "tcp://%s:31105" % master_ip,
+            "MASTER_ADDR": "tcp://%s:%d" % (master_ip, port),
+            "RECORDINGS_SAVER_ADDR": "tcp://%s:%d" % (master_ip, port + 5),
             "MODEL": model
         },
         "dependencies": [
@@ -171,6 +171,7 @@ def ensure_charset_is_in_connection_string(connection_string):
 def app_spec(config):
     domain = config["domain"]
     master_ip = config["master_ip"]
+    port = config.get("port", 31100)
     registry = config.get("registry", "registry.hub.docker.com")
     tag = config.get("tag", "latest")
     connection_string = ensure_charset_is_in_connection_string(config["connection_string"])
@@ -181,13 +182,13 @@ def app_spec(config):
     return {
         "id": domain,
         "apps": [
-            master_spec(domain, master_ip, registry, tag),
-            monitor_spec(domain, master_ip, registry, tag),
-            recordings_spec(domain, master_ip, registry, tag, connection_string),
-            api_spec(domain, master_ip, registry, tag, connection_string),
-            web_spec(domain, master_ip, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id),
+            master_spec(domain, master_ip, port, registry, tag),
+            monitor_spec(domain, master_ip, port, registry, tag),
+            recordings_spec(domain, master_ip, port, registry, tag, connection_string),
+            api_spec(domain, master_ip, port, registry, tag, connection_string),
+            web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id),
         ] + [
-            worker_spec(domain, master_ip, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
+            worker_spec(domain, master_ip, port, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
         ]
     }
 
