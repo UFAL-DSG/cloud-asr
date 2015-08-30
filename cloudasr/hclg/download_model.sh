@@ -2,7 +2,7 @@
 
 am_dir="`dirname \"$0\"`"/models
 mkdir -p $am_dir
-pushd $am_dir
+pushd $am_dir 2> /dev/null
 echo "Using a medium AM"
 wget --timestamping  https://vystadial.ms.mff.cuni.cz/download/kams/en_super_no_dnn-2015-04-16--17-44-34-s4k-g100k/tri2b_bmmi.mdl
 wget --timestamping  https://vystadial.ms.mff.cuni.cz/download/kams/en_super_no_dnn-2015-04-16--17-44-34-s4k-g100k/tri2b_bmmi.tree
@@ -18,4 +18,4 @@ wget --timestamping  https://vystadial.ms.mff.cuni.cz/download/kams/en_super_no_
 #wget --timestamping  https://vystadial.ms.mff.cuni.cz/download/kams/en_super_no_dnn-2015-04-23--05-40-30-s8k-g200k/mfcc.conf
 #wget --timestamping  https://vystadial.ms.mff.cuni.cz/download/kams/en_super_no_dnn-2015-04-23--05-40-30-s8k-g200k/silence.csl
 #wget --timestamping  https://vystadial.ms.mff.cuni.cz/download/kams/en_super_no_dnn-2015-04-23--05-40-30-s8k-g200k/phones.txt
-popd
+popd 2> /dev/null

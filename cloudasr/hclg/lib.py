@@ -60,25 +60,29 @@ def backup_build_models(args_dict):
 
 
 def exit_on_system_fail(cmd, msg=None):
+    # FIXME print sys.stderr output
     system_res = os.system(cmd)
     if not system_res == 0:
-        err_msg = "Command failed, exitting."
+        err_msg = "Command '%s' failed, exiting." % cmd
         if msg:
             err_msg = "%s %s" % (err_msg, msg, )
         raise RuntimeError(err_msg)
 
 
-def load_dict(filename):
+def load_dict(arg_dict):
+    # FIXME lang_id unused
+    filename = arg_dict['phon_dict']
     d = defaultdict(set)
     with open(filename, 'r') as r:
         for line in r:
             word, phon_trans = line.split(' ', 1)
             phon_trans = phon_trans.strip()
             d[word].add(phon_trans)
-    return d
+    return filename, d
 
 
-def build_dict(arpa, lang_id, exclude_words=None):
+def build_dict(arg_dict, exclude_words=None):
+    arpa, lang_id = arg_dict['lm'], arg_dict['lang']
     if exclude_words is None:
         exclude_words = ['<s>', '</s>']
     exclude_words = set(exclude_words)
@@ -87,7 +91,7 @@ def build_dict(arpa, lang_id, exclude_words=None):
     with open(arpa, 'r') as r:
         unigrams = False
         for line in r:
-            if line.strip() == '\1-grams:':
+            if line.strip() == '\\1-grams:':
                 unigrams = True
                 continue
             if line.strip() == '' and unigrams:
@@ -97,23 +101,24 @@ def build_dict(arpa, lang_id, exclude_words=None):
                 word = line.split()[1]
                 vocab.add(word)
     vocab = vocab.difference(exclude_words)
+    print 'DEBUG 0', len(vocab)
 
+    kams_root = environ['KAMS_ROOT']
     if os.path.isfile(join(kams_root, 'kams', 'local', 'prepare_%s_transcription.sh' % lang_id)):
-        print >> sys.stderr, "Using selected mapping %s for creating phonetic dictionary from arpa file" % lang_id
+        print >> sys.stderr, "Using selected mapping '%s' for creating phonetic dictionary from arpa file %s" % (lang_id, arpa)
     else:
         lang_id = 'dummy'
         print >> sys.stderr, "Selected mapping %s for creating phonetic dictionary NOT FOUND! Using dummy transcription!" % lang_id
     phonetic_trans_script = join(kams_root, 'kams', 'local', 'prepare_%s_transcription.sh' % lang_id)
 
-    vocab_file = NamedTemporaryFile(prefix=arpa, suffix='vocab', delete=True)
-    phon_dict_file = NamedTemporaryFile(prefix=arpa, suffix='dict', delete=True)
-    kams_root = environ['KAMS_ROOT']
+    vocab_file = NamedTemporaryFile(prefix=os.path.basename(arpa), suffix='vocab', delete=False)
+    phon_dict_file = NamedTemporaryFile(prefix=os.path.basename(arpa), suffix='dict', delete=False)
 
-    with open(vocab_file, 'w') as wv:
-        with open(phon_dict_file, 'w') as wd:
+    with open(vocab_file.name, 'w') as wv:
+        with open(phon_dict_file.name, 'w') as wd:
             wv.write('\n'.join(vocab))
             exit_on_system_fail('%s %s %s' % (phonetic_trans_script, vocab_file.name, phon_dict_file.name))
-            return load_dict(phon_dict_file.name)
+            return phon_dict_file.name, load_dict(phon_dict_file.name)
 
 
 def extract_alphabet(phonetic_dict):

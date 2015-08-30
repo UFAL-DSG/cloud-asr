@@ -12,18 +12,18 @@ from lib import source, backup_build_models, load_dict, build_dict, extract_alph
 
 
 if __name__ == '__main__':
-    try:
-        exit_on_system_fail("ls -al /usr/local/lib; lattice-oracle --help")
-    except RuntimeError:
-        print >> sys.stderr, "Kaldi binaries not available or working"
-        exit(1)
+    # try:
+    #     exit_on_system_fail("ls -al /usr/local/lib; lattice-oracle --help")
+    # except RuntimeError:
+    #     print >> sys.stderr, "Kaldi binaries not available or working"
+    #     exit(1)
 
     parser = argparse.ArgumentParser(description='Build HCLG graph for Kaldi')
-    parser.add_argument('--path-sh', help='shell script updating PATH to include IRSTLM and Kaldi binaries', default='/kaldi_uproot/kams/kams/path.sh')
+    parser.add_argument('--path-sh', help='shell script updating PATH to include IRSTLM and Kaldi binaries', default='/app/kams_docker/kams/path.sh')
     parser.add_argument('--lm', help='LM in arpa format', required=True)
-    parser.add_argument('-oov', '--out-of-vocabulary', default='<UNK>')
-    parser.add_argument('-tmp', '--tmp-directory', default=join(abspath(dirname(__file__), 'tmp')))
-    parser.add_argument('--out-dir', default=join(abspath(dirname(__file__), 'out_dir')))
+    parser.add_argument('--oov', help='Out of vocabulary', default='<UNK>')
+    parser.add_argument('-tmp', '--tmp-directory', default=join(abspath(dirname(__file__)), 'tmp'))
+    parser.add_argument('--out-dir', default=join(abspath(dirname(__file__)), 'out_dir'))
     # FIXME timestamp
 
     # TODO supporting only tri2b
@@ -33,21 +33,22 @@ if __name__ == '__main__':
     am_group.add_argument('--tree', help='Tree for tying GMM - Gaussian Mixture Models.', required=True)
     am_group.add_argument('--mat', help='Matrix for linear transformation e.g. lda+mllt.', required=True)
     am_group.add_argument('--sil', '--silence-phones-ids', required=True)  # TODO use them more
+    am_group.add_argument('--am-dict', help='Phonetic dictionary required for ensuring the same phonetic transcription are used', required=True)
 
 
-    subparses = parser.add_subparsers()
-    load_dict_parser = subparser.add_parser('load_dict')
-    load_dict_parser.add_argument('-f', help='Path to phonetic dictionary')
+    subparsers = parser.add_subparsers(dest='phonetic_dict_source')
+    load_dict_parser = subparsers.add_parser('load_dict')
+    load_dict_parser.add_argument('--phon-dict', help='Path to phonetic dictionary')
     load_dict_parser.set_defaults(prepare_lm_dict=load_dict)
 
-    build_dict_parser = subparser.add_parser('build_dict')
-    build_dict_parser.add_argument('--lang', choices=['cs', 'en'])
+    build_dict_parser = subparsers.add_parser('build_dict')
+    build_dict_parser.add_argument('--lang', default='en', choices=['cs', 'en', 'dummy'])
     build_dict_parser.set_defaults(prepare_lm_dict=build_dict)
 
     args = parser.parse_args()
 
-    lm_dict = args.prepare_lm_dict(args)
-    am_dict = load_dict(args.am_dict)
+    lm_dict_path, lm_dict = args.prepare_lm_dict(vars(args))
+    _, am_dict = load_dict({'phon_dict': args.am_dict})
     phonetic_alphabet_lm = extract_alphabet(lm_dict)
     phonetic_alphabet_am = extract_alphabet(am_dict)
 
@@ -64,10 +65,18 @@ if __name__ == '__main__':
 
     env = source(args.path_sh)
 
-    with open('%(tmpdir)s/vocabulary', 'w') as w:
+    exit_on_system_fail('mkdir -p %(tmp_directory)s' % vars(args))
+    with open('%(tmp_directory)s/vocabulary' % vars(args), 'w') as w:
         w.write('\n'.join(sorted(extract_vocabulary(lm_dict))))
 
-    exit_on_system_fail("./prepare_kaldi_lang_files.sh %(model)s %(tree)s %(conf)s %(mat)s %(sil)s %(dictionary)s %(vocabulary)s %(lm_arpa)s %(oov)s %(tmpdir)s %(out_dir)s" % vars(args))
+    exit_on_system_fail("mkdir -p %(tmp_directory)s/dict" % vars(args))
+    shutil.copyfile(lm_dict_path, "%(tmp_directory)s/dict/lexicon.txt" % vars(args))
+    exit_on_system_fail("./create_phone_lists.sh %(tmp_directory)s/dict" % vars(args))
+
+    prep_args = vars(args)
+    prep_args['vocabulary'] = os.path.join(args.tmp_directory, 'vocabulary')
+    prep_args['dictionary'] = lm_dict_path
+    exit_on_system_fail("./prepare_kaldi_lang_files.sh %(am)s %(tree)s %(conf)s %(mat)s %(sil)s %(dictionary)s %(vocabulary)s %(lm)s '%(oov)s' %(tmp_directory)s %(out_dir)s" % prep_args)
 
 
     shutil.copyfile(args.am, args.tmp)
