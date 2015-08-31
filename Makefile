@@ -1,5 +1,7 @@
 SHELL=/bin/bash
 IP=`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
+DEMO_URL=http://${IP}:8003/demo/en-towninfo
+MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
 API_HOST_PORT=8000
 MONITOR_HOST_PORT=8001
@@ -162,7 +164,7 @@ run_locally: mysql_data
 
 stop_locally:
 	docker ps -a | \
-		grep `grep "domain" cloudasr.json | sed 's/\s*"domain":\s*"//;s/",//;s/\./-/g'` | \
+		grep `grep "domain" cloudasr.json | sed 's/ *"domain": *"//;s/",//;s/\./-/g'` | \
 		awk '{print $$1}' | \
 		xargs docker kill | \
 		xargs docker rm
@@ -214,4 +216,13 @@ compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
 
 mysql-console:
-	docker run --link mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
+	docker run --link cloudasr-com-mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
+
+open-demo:
+	open ${DEMO_URL} || google-chrome ${DEMO_URL} || echo "open url in your browser: ${DEMO_URL}"
+
+open-monitor:
+	open ${MONITOR_URL} || google-chrome ${MONITOR_URL} || echo "open url in yout browser: ${MONITOR_URL}"
+
+test-curl:
+	curl -X POST --data-binary @resources/test.wav --header 'Content-Type: audio/x-wav; rate=16000;' http://${IP}:8000/recognize?lang=en-towninfo | ( json_pp || cat )
