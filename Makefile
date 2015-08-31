@@ -160,7 +160,7 @@ run_locally: mysql_data
 
 stop_locally:
 	docker ps -a | \
-		grep `grep "domain" cloudasr.json | sed 's/\s*"domain":\s*"//;s/",//;s/\./-/g'` | \
+		grep `grep "domain" cloudasr.json | sed 's/ *"domain": *"//;s/",//;s/\./-/g'` | \
 		awk '{print $$1}' | \
 		xargs docker kill | \
 		xargs docker rm
