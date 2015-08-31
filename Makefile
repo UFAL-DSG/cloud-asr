@@ -82,7 +82,7 @@ MYSQL_OPTS=--name mysql \
 
 MYSQL_SCHEMA_OPTS=-i --rm \
 	--link mysql:mysql_address \
-	-a stdin -a stdout
+	-a stdin -a stdout -a stderr
 
 MYSQL_SCHEMA_CMD=mysql -v --host=mysql_address --user=${MYSQL_PASSWORD} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
 
@@ -144,7 +144,7 @@ pull:
 mysql_data:
 	echo "PREPARING MySQL DATABASE"
 	docker run ${MYSQL_OPTS} -d mysql
-	sleep 10
+	sleep 15
 	cat ${CURDIR}/deployment/schema.sql | \
 		docker run ${MYSQL_SCHEMA_OPTS} mysql ${MYSQL_SCHEMA_CMD}
 	docker stop mysql && docker rm mysql
