@@ -212,7 +212,7 @@ compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
 
 mysql-console:
-	docker run --link mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
+	docker run --link cloudasr-com-mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
 
 open-demo:
 	open ${DEMO_URL} || google-chrome ${DEMO_URL} || echo "open url in your browser: ${DEMO_URL}"
