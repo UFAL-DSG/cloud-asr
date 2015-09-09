@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
+IP=`(docker-machine ip dev || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
 DEMO_URL=http://${IP}:8003/demo/en-towninfo
 MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
@@ -22,7 +22,7 @@ MYSQL_USER=cloudasr
 MYSQL_PASSWORD=cloudasr
 MYSQL_DATABASE=cloudasr
 MYSQL_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mysql`
-MYSQL_PATH=`(boot2docker ssh 'mkdir /home/docker/mysql_data ; echo /home/docker/mysql_data') 2> /dev/null || echo ${CURDIR}/mysql_data`
+MYSQL_PATH=`docker-machine ssh dev '(mkdir /home/docker/mysql_data ; echo /home/docker/mysql_data) 2> /dev/null' || echo ${CURDIR}/mysql_data`
 MYSQL_CONNECTION_STRING="mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@${MYSQL_IP}/${MYSQL_DATABASE}?charset=utf8"
 
 SHARED_VOLUME=${CURDIR}/cloudasr/shared/cloudasr:/usr/local/lib/python2.7/dist-packages/cloudasr
@@ -151,6 +151,7 @@ mysql_data:
 	touch mysql_data 2> /dev/null || echo "MYSQL PREPARED"
 
 run: mysql_data
+	@echo docker run ${MYSQL_OPTS} -d mysql
 	docker run ${MYSQL_OPTS} -d mysql
 	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
 	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
