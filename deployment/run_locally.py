@@ -2,7 +2,8 @@ import os
 import sys
 import json
 
-IP = "`(boot2docker ip || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`"
+# FIXME we suppose the virtaulbox machine is named dev
+IP = "`(docker-machine ip dev || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`"
 CURDIR = os.getcwd()
 
 API_HOST_PORT = 8000
@@ -20,7 +21,8 @@ MYSQL_ROOT_PASSWORD=123456
 MYSQL_USER="cloudasr"
 MYSQL_PASSWORD="cloudasr"
 MYSQL_DATABASE="cloudasr"
-MYSQL_PATH="`(boot2docker ssh 'mkdir /home/docker/mysql_data ; echo /home/docker/mysql_data') 2> /dev/null || echo %s/mysql_data`" % CURDIR
+# FIXME we suppose the virtaulbox machine is named dev
+MYSQL_PATH="`docker-machine ssh dev '(mkdir /home/docker/mysql_data ; echo /home/docker/mysql_data) 2> /dev/null' || echo %s/mysql_data`" % CURDIR
 
 def format_name(domain, name):
     return "%s-%s" % (domain.replace('.', '-'), name)
