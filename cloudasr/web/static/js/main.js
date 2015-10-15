@@ -28,9 +28,30 @@ $(document).ready(function() {
                 });
             });
 
+            var $currentResult = $('#result-evaluation .current');
             var $wrong = $('<a href="#" class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></a>');
             $wrong.click(function() {
-                $vote.html("<a href='/transcribe/" + result.chunk_id + "'>Add your transcription</a>");
+                $currentResult.empty()
+
+                $input = $("<input type='text' class='form-control' />").val(transcript);
+                $button = $("<input type='button' value='Save transcription' class='btn btn-success' />");
+                $button.click(function() {
+                    var request_data = JSON.stringify({
+                        "user_id": user_id,
+                        "recording_id": result.chunk_id,
+                        "transcription": $input.val()
+                    });
+
+                    $.post(apiUrl + "/transcribe", request_data, function(data) {
+                        $currentResult.text($input.val());
+                        $currentResult.prepend($('<div class="text-right pull-right"><strong>Thank you!</strong></div>'));
+                    });
+                });
+
+                $form = $("<form class='form-horizontal'></form>");
+                $form.append($("<div class='col-sm-10'></div>").append($input));
+                $form.append($("<div class='text-right'></div>").append($button));
+                $currentResult.append($form);
             });
             $vote.append($right, "<span> </span>", $wrong);
 
