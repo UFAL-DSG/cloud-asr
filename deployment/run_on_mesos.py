@@ -17,9 +17,9 @@ def master_spec(domain, master_ip, port, registry, tag):
                 ]
             }
         },
-        "instances": "1",
-        "cpus": "0.25",
-        "mem": "256",
+        "instances": 1,
+        "cpus": 0.25,
+        "mem": 256,
         "env": {
             "WORKER_ADDR": "tcp://0.0.0.0:5679",
             "API_ADDR": "tcp://0.0.0.0:5680",
@@ -43,9 +43,9 @@ def monitor_spec(domain, master_ip, port, registry, tag):
                 ]
             }
         },
-        "instances": "1",
-        "cpus": "0.25",
-        "mem": "256",
+        "instances": 1,
+        "cpus": 0.25,
+        "mem": 256,
         "env": {
             "MONITOR_ADDR": "tcp://0.0.0.0:5681"
         },
@@ -66,12 +66,12 @@ def recordings_spec(domain, master_ip, port, registry, tag, connection_string):
                 ]
             },
             "volumes": [
-                {"containerPath": "/opt/app/static/data", "hostPath": "/home/data", "mode": "RW"}
+                {"containerPath": "/opt/app/static/data", "hostPath": "/mnt/h/cloudasr_recordings", "mode": "RW"}
             ]
         },
-        "instances": "1",
-        "cpus": "0.25",
-        "mem": "256",
+        "instances": 1,
+        "cpus": 0.25,
+        "mem": 256,
         "env": {
             "CONNECTION_STRING": connection_string,
             "STORAGE_PATH": "/opt/app/static/data",
@@ -93,9 +93,9 @@ def api_spec(domain, master_ip, port, registry, tag, connection_string):
                 ]
             }
         },
-        "instances": "1",
-        "cpus": "0.25",
-        "mem": "256",
+        "instances": 1,
+        "cpus": 0.25,
+        "mem": 256,
         "env": {
             "CONNECTION_STRING": connection_string,
             "MASTER_ADDR": "tcp://%s:%d" % (master_ip, port + 1),
@@ -116,9 +116,9 @@ def web_spec(domain, master_ip, port, registry, tag, connection_string, google_l
                 ]
             }
         },
-        "instances": "1",
-        "cpus": "0.25",
-        "mem": "256",
+        "instances": 1,
+        "cpus": 0.25,
+        "mem": 256,
         "env": {
             "CONNECTION_STRING": connection_string,
             "GOOGLE_LOGIN_CLIENT_ID": google_login_client_id,
@@ -143,8 +143,8 @@ def worker_spec(domain, master_ip, port, image, model, instances, registry, tag)
             }
         },
         "instances": instances,
-        "cpus": "0.25",
-        "mem": "512",
+        "cpus": 0.25,
+        "mem": 512,
         "env": {
             "MASTER_ADDR": "tcp://%s:%d" % (master_ip, port),
             "RECORDINGS_SAVER_ADDR": "tcp://%s:%d" % (master_ip, port + 5),
