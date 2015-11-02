@@ -103,7 +103,7 @@ def api_spec(domain, master_ip, port, registry, tag, connection_string):
         "dependencies": ["/%s/master" % domain]
     }
 
-def web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id):
+def web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id, marathon_url, marathon_login, marathon_password):
     return {
         "id": "www",
         "container": {
@@ -125,6 +125,9 @@ def web_spec(domain, master_ip, port, registry, tag, connection_string, google_l
             "GOOGLE_LOGIN_CLIENT_SECRET": google_login_client_secret,
             "GA_TRACKING_ID": ga_tracking_id,
             "API_URL": "http://api." + domain,
+            "MARATHON_URL": marathon_url,
+            "MARATHON_LOGIN": marathon_login,
+            "MARATHON_PASSWORD": marathon_password
         },
         "dependencies": ["/%s/master" % domain]
     }
@@ -186,7 +189,7 @@ def app_spec(config):
             monitor_spec(domain, master_ip, port, registry, tag),
             recordings_spec(domain, master_ip, port, registry, tag, connection_string),
             api_spec(domain, master_ip, port, registry, tag, connection_string),
-            web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id),
+            web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id, config["marathon_url"], config["marathon_login"], config["marathon_password"]),
         ] + [
             worker_spec(domain, master_ip, port, worker["image"], worker["model"], worker["instances"], registry, tag) for worker in config["workers"]
         ]

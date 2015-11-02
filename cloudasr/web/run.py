@@ -4,6 +4,7 @@ from flask.ext.login import LoginManager, login_user, logout_user, login_require
 from flask.ext.googlelogin import GoogleLogin
 from flask.ext.principal import Principal, Permission, RoleNeed, UserNeed, AnonymousIdentity, Identity, identity_loaded, identity_changed
 from flask.ext.sqlalchemy import SQLAlchemy
+from lib import run_worker_on_marathon
 from cloudasr.schema import db
 from cloudasr.models import UsersModel, RecordingsModel, WorkerTypesModel
 
@@ -125,6 +126,10 @@ def upload_results_file():
     return redirect(url_for('upload_results'))
 
 
+@app.route('/kaldi-worker')
+def kaldi_worker():
+    return render_template('kaldi_worker.html', worker = {"id": None})
+
 @app.route('/new-worker')
 @admin_permission.require()
 def new_worker():
@@ -138,6 +143,24 @@ def edit_worker(model):
 @app.route('/save-worker-description', methods=['POST'])
 @admin_permission.require()
 def save_worker_description():
+    if request.form['run_on_marathon']:
+        url = os.environ.get("MARATHON_URL", None)
+        login = os.environ.get("MARATHON_LOGIN", None)
+        password = os.environ.get("MARATHON_PASSWORD", None)
+        config = {
+            "id": request.form["id"],
+            "mfcc.conf": request.form["mfcc.conf"],
+            "tri2b.mdl": request.form["tri2b.mdl"],
+            "tri2b.mat": request.form["tri2b.mat"],
+            "hclg.fst": request.form["hclg.fst"],
+            "words.txt": request.form["words.txt"],
+            "config.py": request.form["config.py"]
+        }
+
+        if not run_worker_on_marathon(url, login, password, config):
+            flash('Worker wasn\'t started successfully')
+            return redirect(url_for('kaldi_worker'))
+
     flash('Worker\'s description was successfully saved')
     worker_types_model.edit_worker(
         request.form['id'],

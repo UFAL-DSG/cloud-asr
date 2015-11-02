@@ -1,16 +1,17 @@
 {% extends "layout.html" %}
 {% block body %}
 
-{% if current_user.admin %}
-<div class="pull-right btn-group">
-    <a href="{{ url_for('new_worker') }}" class="btn btn-default">New</a>
-</div>
-
 {% with messages = get_flashed_messages() %}
     {% for message in messages %}
         <div class="alert alert-success">{{ message }}</div>
     {% endfor %}
 {% endwith %}
+
+{% if current_user.is_authenticated() %}
+<div class="pull-right btn-group">
+    <a href="{{ url_for('kaldi_worker') }}" class="btn btn-default">Upload Your Kaldi Models</a>
+    {% if current_user.admin %}<a href="{{ url_for('new_worker') }}" class="btn btn-default">Register Worker</a>{% endif %}
+</div>
 {% endif %}
 
 {% for worker_type in worker_types %}
