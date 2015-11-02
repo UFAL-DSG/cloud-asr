@@ -58,6 +58,12 @@ class WorkerTypesModel:
 
         self.db.commit()
 
+    def delete_worker(self, id):
+        worker_type = self.get_worker_type(id)
+        self.db.delete(worker_type)
+        self.db.commit()
+
+
 class RecordingsModel:
 
     def __init__(self, db, worker_types_model, path = None, url = None):

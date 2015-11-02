@@ -33,6 +33,7 @@
             <div class="btn-group">
                 <a href="{{ url_for('recordings', model=worker_type["id"], page=1) }}" class="btn btn-default">View Recordings</a>
                 <a href="{{ url_for('edit_worker', model=worker_type["id"]) }}" class="btn btn-default">Edit Description</a>
+                <a href="{{ url_for('delete_worker', model=worker_type["id"]) }}" class="btn btn-default" onclick="confirm('Do you really want to delete this worker?')">Delete</a>
             </div>
         {% endif %}
 {% endfor %}

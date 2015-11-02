@@ -149,6 +149,13 @@ def save_worker_description():
 
     return redirect(url_for('worker_types'))
 
+@app.route('/delete-worker/<model>')
+@admin_permission.require()
+def delete_worker(model):
+    worker_types_model.delete_worker(model)
+    flash("Worker was successfully deleted")
+    return redirect(url_for('worker_types'))
+
 @app.route('/login/google')
 @google_login.oauth2callback
 def login_google(token, userinfo, **params):
