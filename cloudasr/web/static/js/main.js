@@ -36,6 +36,10 @@ $(document).ready(function() {
                 $input = $("<input type='text' class='form-control' />").val(transcript);
                 $button = $("<input type='button' value='Save transcription' class='btn btn-success' />");
                 $button.click(function() {
+                    if($input.val() == transcript) {
+                        return alert("Please, correct the transcription.");
+                    }
+
                     var request_data = JSON.stringify({
                         "user_id": user_id,
                         "recording_id": result.chunk_id,
