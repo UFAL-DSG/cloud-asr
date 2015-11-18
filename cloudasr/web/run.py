@@ -140,6 +140,18 @@ def new_worker():
 def edit_worker(model):
     return render_template('edit_worker.html', worker = worker_types_model.get_worker_type(model))
 
+@app.route('/toggle-worker-visibility/<model>/<visibility>')
+def toggle_worker_visibility(model, visibility):
+    visible = visibility == "True"
+    worker_types_model.toggle_worker_visibility(model, visible)
+
+    if visible:
+        flash("Worker %s is now visible." % model)
+    else:
+        flash("Worker %s is now hidden." % model)
+
+    return redirect(url_for('worker_types'))
+
 @app.route('/save-worker-description', methods=['POST'])
 @admin_permission.require()
 def save_worker_description():

@@ -64,6 +64,7 @@ class WorkerType(db.Model):
     lang = Column(String(10))
     name = Column(String(128))
     description = Column(Text)
+    visible = Column(Boolean, default = False)
     language_models = relationship('LanguageModel')
     recordings = relationship('Recording')
 

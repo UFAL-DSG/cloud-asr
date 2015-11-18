@@ -70,6 +70,7 @@ CREATE TABLE `worker_type` (
   `lang` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   `name` varchar(128) COLLATE utf8_unicode_ci DEFAULT NULL,
   `description` text COLLATE utf8_unicode_ci,
+  `visible` tinyint(1) DEFAULT 0,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 

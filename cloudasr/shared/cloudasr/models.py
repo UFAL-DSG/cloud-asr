@@ -58,6 +58,11 @@ class WorkerTypesModel:
 
         self.db.commit()
 
+    def toggle_worker_visibility(self, id, visible):
+        worker = self.get_worker_type(id)
+        worker.visible = visible
+        self.db.commit()
+
     def delete_worker(self, id):
         worker_type = self.get_worker_type(id)
         self.db.delete(worker_type)
