@@ -78,13 +78,10 @@ MYSQL_OPTS=--name mysql \
 	-e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
 	-e MYSQL_DATABASE=${MYSQL_DATABASE} \
 	-v ${MYSQL_PATH}:/var/lib/mysql \
-	-v ${CURDIR}/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf
+	-v ${CURDIR}/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf \
+	-v ${CURDIR}/deployment/schema.sql:/docker-entrypoint-initdb.d/schema.sql
 
-MYSQL_SCHEMA_OPTS=-i --rm \
-	--link mysql:mysql_address \
-	-a stdin -a stdout -a stderr
-
-MYSQL_SCHEMA_CMD=mysql -v --host=mysql_address --user=${MYSQL_PASSWORD} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
+MYSQL_CONSOLE_CMD=mysql -v --host=mysql_address --user=${MYSQL_PASSWORD} --password=${MYSQL_PASSWORD} ${MYSQL_DATABASE}
 
 RECORDINGS_VOLUMES=-v ${CURDIR}/cloudasr/recordings:/opt/app \
 	-v ${CURDIR}/cloudasr/recordings/static/data:/opt/app/static/data \
@@ -141,10 +138,8 @@ mysql_data:
 	echo "PREPARING MySQL DATABASE"
 	docker run ${MYSQL_OPTS} -d mysql
 	sleep 15
-	cat ${CURDIR}/deployment/schema.sql | \
-		docker run ${MYSQL_SCHEMA_OPTS} mysql ${MYSQL_SCHEMA_CMD}
 	docker stop mysql && docker rm mysql
-	touch mysql_data 2> /dev/null || echo "MYSQL PREPARED"
+	touch mysql_data 2> /dev/null || echo "MySQL DATABASE PREPARED"
 
 run: mysql_data
 	@echo docker run ${MYSQL_OPTS} -d mysql
@@ -213,7 +208,7 @@ compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto
 
 mysql-console:
-	docker run --link cloudasr-com-mysql:mysql_address -i -t --rm mysql ${MYSQL_SCHEMA_CMD}
+	docker run --link cloudasr-com-mysql:mysql_address -i -t --rm mysql ${MYSQL_CONSOLE_CMD}
 
 open-demo:
 	open ${DEMO_URL} || google-chrome ${DEMO_URL} || echo "open url in your browser: ${DEMO_URL}"
