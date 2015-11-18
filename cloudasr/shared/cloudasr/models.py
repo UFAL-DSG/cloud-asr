@@ -13,7 +13,7 @@ class WorkerTypesModel:
         self.db = db
 
     def get_models(self):
-        return self.db.query(WorkerType).all()
+        return self.db.query(WorkerType).order_by(WorkerType.name).all()
 
     def get_available_workers(self):
         workers = []
