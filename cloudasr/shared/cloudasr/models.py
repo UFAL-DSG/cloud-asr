@@ -1,5 +1,7 @@
+import os
 import re
 import csv
+import md5
 import json
 import wave
 from cloudasr.schema import WorkerType, LanguageModel, User, Recording, Hypothesis, Transcription
@@ -192,8 +194,12 @@ class FileSaver:
         self.path = path
 
     def save_wav(self, chunk_id, model, body, frame_rate):
-        path = '%s/%s-%d.wav' % (self.path, model, chunk_id)
-        url = '/static/data/%s-%d.wav' % (model, chunk_id)
+        checksum = md5.new(body).hexdigest()
+        directory = "%s/%s" % (model, checksum[:2])
+        self.create_directories_if_needed(self.path + "/" + directory)
+
+        path = '%s/%s/%s.wav' % (self.path, directory, checksum)
+        url = '/static/data/%s/%s.wav' % (directory, checksum)
 
         wav = wave.open(path, 'w')
         wav.setnchannels(1)
@@ -204,6 +210,9 @@ class FileSaver:
 
         return (path, url)
 
+    def create_directories_if_needed(self, path):
+        if not os.path.isdir(path):
+            os.makedirs(path)
 
 class UsersModel:
 
