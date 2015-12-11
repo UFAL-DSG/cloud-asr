@@ -76,7 +76,7 @@ dictionary=$1; shift
 vocabulary=$1; shift
 lm_arpa=$1; shift
 
-oov_word=$1; shift  # prepare_lang.sh <UNK>
+oov_word=$1; shift
 
 locdata=$1; shift
 locdict=$locdata/dict
@@ -114,7 +114,7 @@ cat $lm_arpa | \
   utils/remove_oovs.pl $tmpdir/oovs.txt | \
   utils/eps2disambig.pl | utils/s2eps.pl | fstcompile --isymbols=$lang/words.txt \
     --osymbols=$lang/words.txt  --keep_isymbols=false --keep_osymbols=false | \
-  fstrmepsilon > $lang/G.fst
+  fstrmepsilon | fstarcsort --sort_type=ilabel > $lang/G.fst
 
 # Everything below is only for diagnostic.
 fstisstochastic $lang/G.fst

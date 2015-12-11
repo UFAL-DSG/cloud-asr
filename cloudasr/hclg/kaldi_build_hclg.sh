@@ -58,7 +58,7 @@ dictionary=$1; shift
 vocabulary=$1; shift
 lm_arpa=$1; shift
 
-oov_word=$1; shift  # prepare_lang.sh <UNK>
+oov_word=$1; shift
 
 locdata=$1; shift
 locdict=$locdata/dict
