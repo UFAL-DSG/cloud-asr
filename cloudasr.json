@@ -3,8 +3,10 @@
     "registry": "registry.hub.docker.com",
     "tag": "latest",
     "marathon_url": "http://127.0.0.1:8080",
+    "marathon_login": "MARATHON_LOGIN",
+    "marathon_password": "MARATHON_PASSWORD",
     "master_ip": "127.0.0.1",
-    "connection_string": "<mysql connection string>",
+    "connection_string": "<mysql connection string>?charset=utf8",
     "google_login_client_id": "<google login client id>",
     "google_login_client_secret": "<google login client secret>",
     "ga_tracking_id": "",
@@ -13,6 +15,9 @@
         {"image": "ufaldsg/cloud-asr-worker-en-voxforge", "model": "en-voxforge", "instances": 4},
         {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "model": "en-towninfo", "instances": 4},
         {"image": "ufaldsg/cloud-asr-worker-cs", "model": "cs", "instances": 4},
-        {"image": "ufaldsg/cloud-asr-worker-cs-alex", "model": "cs-alex", "instances": 4}
+        {"image": "ufaldsg/cloud-asr-worker-cs-alex", "model": "cs-alex", "instances": 4},
+        {"image": "ufaldsg/cloudasr-alex-asr", "model": "dnn-example", "instances": 1, "env": {
+            "MODEL_URL": "https://vystadial.ms.mff.cuni.cz/tmp_zilka/nnet2_cs_ccrawl.zip"
+        }}
     ]
 }
