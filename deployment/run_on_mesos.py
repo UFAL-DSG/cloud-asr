@@ -134,7 +134,7 @@ def web_spec(domain, master_ip, port, registry, tag, connection_string, google_l
 
 def worker_spec(domain, master_ip, port, image, model, instances, registry, tag):
     return {
-        "id": imageToWorkerName(image),
+        "id": "worker" + model,
         "container": {
             "type": "DOCKER",
             "docker": {
@@ -158,11 +158,6 @@ def worker_spec(domain, master_ip, port, image, model, instances, registry, tag)
             "/%s/recordings" % domain
         ]
     }
-
-def imageToWorkerName(image):
-    import re
-    m = re.search('ufaldsg\/cloud-asr-worker-(.*)', image)
-    return "worker" + m.group(1).replace('-', '')
 
 def ensure_charset_is_in_connection_string(connection_string):
     if not "charset=utf8" in connection_string:
