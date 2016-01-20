@@ -28,7 +28,7 @@ def create_vad():
         'mel_banks_only': True,
         'lofreq': 125,
         'hifreq': 3800,
-        'model': '/opt/models/vad.tffnn',
+        'model': '/model/vad.tffnn',
         'filter_length': 2,
     }
 

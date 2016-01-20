@@ -1,4 +1,4 @@
-import fst
+import alex_asr.fst as fst
 from math import *
 
 def lattice_calibration(lat):

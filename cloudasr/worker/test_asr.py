@@ -7,7 +7,7 @@ class TestASR(unittest.TestCase):
 
     def setUp(self):
         self.recogniser = DummyRecogniser()
-        self.asr = ASR(self.recogniser, dummy_to_nbest, dummy_to_best_path)
+        self.asr = ASR(self.recogniser, dummy_lattice_to_nbest)
 
     def test_asr_returns_empty_final_hypothesis_when_nothing_was_decoded(self):
         final_hypothesis = self.asr.get_final_hypothesis()
@@ -60,7 +60,7 @@ class DummyRecogniser:
         self.frames = 100
         self.resetted = False
 
-    def frame_in(self, frame):
+    def accept_audio(self, frame):
         self.frames = len(frame)
 
     def decode(self, max_frames = 0):
@@ -80,8 +80,5 @@ class DummyRecogniser:
         self.resetted = True
 
 
-def dummy_to_nbest(lattice, n):
+def dummy_lattice_to_nbest(lattice, n):
     return [(1.0, u"Hello World!")]
-
-def dummy_to_best_path(path):
-    return (0.0, u"Interim Result")
