@@ -127,7 +127,9 @@ def web_spec(domain, master_ip, port, registry, tag, connection_string, google_l
             "API_URL": "http://api." + domain,
             "MARATHON_URL": marathon_url,
             "MARATHON_LOGIN": marathon_login,
-            "MARATHON_PASSWORD": marathon_password
+            "MARATHON_PASSWORD": marathon_password,
+            "MASTER_ADDR": "tcp://%s:%d" % (master_ip, port),
+            "RECORDINGS_SAVER_ADDR": "tcp://%s:%d" % (master_ip, port + 5)
         },
         "dependencies": ["/%s/master" % domain]
     }

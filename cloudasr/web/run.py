@@ -161,12 +161,11 @@ def save_worker_description():
         password = os.environ.get("MARATHON_PASSWORD", None)
         config = {
             "id": request.form["id"],
-            "mfcc.conf": request.form["mfcc.conf"],
-            "tri2b.mdl": request.form["tri2b.mdl"],
-            "tri2b.mat": request.form["tri2b.mat"],
-            "hclg.fst": request.form["hclg.fst"],
-            "words.txt": request.form["words.txt"],
-            "config.py": request.form["config.py"]
+            "model_url": request.form["model_url"],
+            "cpu": request.form["cpu"],
+            "mem": request.form["mem"],
+            "master_addr": os.environ.get("MASTER_ADDR", None),
+            "recordings_saver_addr": os.environ.get("RECORDINGS_SAVER_ADDR", None)
         }
 
         if not run_worker_on_marathon(url, login, password, config):
