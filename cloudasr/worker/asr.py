@@ -1,7 +1,6 @@
 from math import *
 
 def create_asr():
-    import config
     from alex_asr.utils import lattice_to_nbest
     from alex_asr import Decoder
     from asr_utils import lattice_calibration

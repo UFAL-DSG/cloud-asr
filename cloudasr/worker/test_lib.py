@@ -1,5 +1,4 @@
 import unittest
-import config
 from lib import Worker, Heartbeat, RemoteSaver
 from cloudasr.messages.helpers import *
 from cloudasr.test_doubles import PollerSpy, SocketSpy
