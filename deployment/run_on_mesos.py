@@ -132,7 +132,7 @@ def web_spec(domain, master_ip, port, registry, tag, connection_string, google_l
         "dependencies": ["/%s/master" % domain]
     }
 
-def worker_spec(domain, master_ip, port, image, model, instances, registry, tag, env):
+def worker_spec(domain, master_ip, port, image, model, instances, registry, tag, env, cpu, mem):
     env['MASTER_ADDR'] = "tcp://%s:%d" % (master_ip, port)
     env['RECORDINGS_SAVER_ADDR'] = "tcp://%s:%d" % (master_ip, port + 5)
     env['MODEL'] = model
@@ -150,8 +150,8 @@ def worker_spec(domain, master_ip, port, image, model, instances, registry, tag,
             }
         },
         "instances": instances,
-        "cpus": 0.25,
-        "mem": 512,
+        "cpus": cpu,
+        "mem": mem,
         "env": env,
         "dependencies": [
             "/%s/master" % domain,
@@ -186,7 +186,7 @@ def app_spec(config):
             api_spec(domain, master_ip, port, registry, tag, connection_string),
             web_spec(domain, master_ip, port, registry, tag, connection_string, google_login_client_id, google_login_client_secret, ga_tracking_id, config["marathon_url"], config["marathon_login"], config["marathon_password"]),
         ] + [
-            worker_spec(domain, master_ip, port, worker["image"], worker["model"], worker["instances"], registry, tag, worker.get('env', {})) for worker in config["workers"]
+            worker_spec(domain, master_ip, port, worker["image"], worker["model"], worker["instances"], registry, tag, worker.get('env', {}), worker.get('cpu', 0.5), worker.get('mem', 512)) for worker in config["workers"]
         ]
     }
 
