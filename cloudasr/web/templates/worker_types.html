@@ -9,7 +9,7 @@
 
 {% if current_user.is_authenticated() %}
 <div class="pull-right btn-group">
-    <a href="{{ url_for('kaldi_worker') }}" class="btn btn-default">Upload Your Kaldi Models</a>
+    {% if current_user.admin %}<a href="{{ url_for('kaldi_worker') }}" class="btn btn-default">Upload Your Kaldi Models</a>{% endif %}
     {% if current_user.admin %}<a href="{{ url_for('new_worker') }}" class="btn btn-default">Register Worker</a>{% endif %}
 </div>
 {% endif %}
