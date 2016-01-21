@@ -18,7 +18,7 @@ class WorkerTypesModel:
     def get_available_workers(self):
         workers = []
 
-        for worker in self.db.query(WorkerType).all():
+        for worker in self.db.query(WorkerType).filter(WorkerType.visible == 1).order_by(WorkerType.name).all():
             workers.append({
                 'id': worker.id,
                 'name': worker.name,
