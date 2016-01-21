@@ -1,0 +1,304 @@
+/* Project specific imports must be here */
+
+/* bootstrap */
+@import url("bootstrap.min.css");
+@import url("bootstrap-responsive.min.css");
+@import url("font-awesome.min.css");
+
+/* HOME */
+#lindat-home .lindat-header .nav a:hover,
+#lindat-home #lindat-home-item a,
+#lindat-home .lindat-header
+{
+    border-bottom-color: #ccab28 !important;
+}
+
+/* About */
+#lindat-about .lindat-header .nav a:hover,
+#lindat-about #lindat-about-item a,
+#lindat-about .lindat-header
+{
+    border-bottom-color: #ccab28 !important;
+}
+
+/* Events */
+#lindat-events .lindat-header .nav a:hover,
+#lindat-events #lindat-events-item a,
+#lindat-events .lindat-header
+{
+    border-bottom-color: #cdac28 !important;
+}
+/*****/
+
+
+/* PMLTQ */
+#lindat-pmltq .lindat-header .nav a:hover,
+#lindat-pmltq #lindat-pmltq-item a,
+#lindat-pmltq .lindat-header
+{
+    border-bottom-color: #292E99 !important;
+}
+/*****/
+
+/* Repository */
+#lindat-repository .lindat-header .nav a:hover,
+#lindat-repository #lindat-repository-item a,
+#lindat-repository .lindat-header
+{
+    border-bottom-color: #7479b8 !important;
+}
+
+#lindat-repository .repository-only
+{
+    display: block;
+}
+/*****/
+
+/* Services */
+#lindat-services .lindat-header .nav a:hover,
+#lindat-services #lindat-tools-item a,
+#lindat-services .lindat-header
+{
+    border-bottom-color: #cdac28 !important;
+}
+/*****/
+
+
+
+/* The only global thing we have to set */
+body {
+    margin: 0; padding: 0;
+}
+
+/* Header */
+
+.lindat-header {
+    margin: 0px !important;
+    background-color: #f0f0f0;
+    border-bottom-width: 3px !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: #ccab28;
+    text-align: center;
+    display: block;
+}
+
+.lindat-header .nav-pills{
+    display: inline-block;
+    float: none;
+    vertical-align: top;
+}
+
+.lindat-header .nav-pills .active a {
+    background-color: transparent !important;
+}
+
+.lindat-header .nav {
+    text-align: center;
+    margin-bottom: 0px;
+}
+.nav-pills>li>a{
+	line-height: 20px !important;
+	padding: 15px !important;
+	margin: 0px !important;
+	-webkit-border-radius: 0px !important;
+	-moz-border-radius: 0px !important;
+	border-radius: 0px !important;
+}
+
+/* Footer */
+.lindat-footer {
+    color: #606060;
+    margin: 0px;
+    display: table;
+}
+
+.lindat-footer h1 {
+	border-bottom: thin solid #C0C0C0;
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 25px;
+	margin-bottom: 5px;
+}
+
+.lindat-footer a {
+	color: #808080;
+	text-decoration: none;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.lindat-footer a:hover {
+	text-decoration: underline;
+}
+
+.lindat-footer-main {
+	display: block;
+	text-align: center;
+	border-top: 1px solid #E0E0E0;
+	border-bottom: 1px solid #E0E0E0;
+	box-shadow: inset 0 -1px 0 white;
+	background-color: #F8F8F8;
+}
+
+.lindat-footer-main>* {
+        text-align: left;
+        display: inline-block;
+        vertical-align: top;
+        margin: 0px 5px;
+}
+
+.lindat-copyright {
+	text-align: center;
+	background-color: #FFF;
+	padding: 5px;
+	font-size: 90%;
+}
+
+.dsa-logo {
+	background: url('../img/dsa.png') no-repeat center center;
+	background-size: 75px;
+	width: 170px;
+	height: 60px;
+	display: block;
+	margin-top: 5px;
+	background-size: 60px;
+	background-position: 30px;
+}
+
+.clarinb-logo {
+	background: url('../img/clarinb.png') no-repeat center center;
+		background-size: 160px;
+	width: 160px;
+	height: 35px;
+	display: block;
+	margin-top: 28px;
+}
+
+.lindat-logo-mono {
+	background: url('../img/lindat-logo-mono.png') no-repeat center center;
+	width: 125px;
+	height: 59px;
+	display: block;
+	margin: 10px 0px;
+	background-size: 95px;
+}
+
+.lindat-logo {
+	background: url('../img/lindat-logo.png') no-repeat center center;
+	display: block;
+	background-size: contain;
+	margin: 0px 10px;
+	text-decoration: none;
+}
+
+.lindat-logo:hover, .clarin-logo:hover {
+	text-decoration: none;
+}
+
+.clarin-logo {
+    background: url('../img/clarin-logo-1line.png') no-repeat center center;
+    display: block;
+    background-size: contain;
+    margin: 0px 10px;
+	text-decoration: none;
+}
+
+.msmt-logo-mono {
+	background: url('../img/msmt-mono.png') no-repeat center center;
+	width: 130px;
+	height: 60px;
+	display: block;
+	margin: 10px 0px;
+	background-size: 120px;
+}
+
+.lindat-header .navbar-inner {
+	text-align: center !important;
+}
+
+.lindat-header .nav a {
+	font-size: 115%;
+	font-weight: bolder;
+	color: #000 !important;
+	text-shadow: none !important;
+
+    border-bottom-width: 3px !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: transparent;
+}
+
+.lindat-header .nav a:hover,
+.lindat-header .nav li.active a {
+    border-bottom-width: 3px !important;
+    border-bottom-style: solid !important;
+    border-bottom-color: #ccab28;
+}
+
+.lindat-header .nav li {
+    font-size: 14px;
+    min-width: 100px;
+    border-right: dotted #e4e4e4 1px;
+}
+
+/*.repository-only {
+	display: none;
+}*/
+
+
+/* Home, Contact and tools v2 */
+
+#lindat-home-item img.logo
+{
+    height: 40px;
+    margin-top: -15px;
+    margin-bottom: -15px;
+    padding-left: 5px;
+}
+
+#lindat-clarin-menu img.logo
+{
+    height: 60px;
+    margin-top: -25px;
+    margin-bottom: -25px;
+}
+
+#lindat-clarin-menu
+{
+    border-right-width: 0;
+}
+
+
+/* Project Specific
+ *
+ * Please keep identificators naming convention #lindat-*project or page*
+ */
+
+
+/* temporary for lindat home */
+
+#site-container {
+	width: 970px;
+	margin: auto;
+}
+
+.carousel-indicators li {
+        background-color: #A0A0A0 !important;
+}
+
+.selected img {
+	border: 2px solid rgb(102, 175, 233) !important;
+}
+
+.flag {
+        text-decoration: none !important;
+}
+
+.flag img {
+	border: 1px solid #A0A0A0;
+}
+
+
+.article {
+    padding-left: 15px;
+    padding-right: 15px;
+}
