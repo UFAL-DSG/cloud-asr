@@ -155,7 +155,7 @@ def toggle_worker_visibility(model, visibility):
 @app.route('/save-worker-description', methods=['POST'])
 @admin_permission.require()
 def save_worker_description():
-    if request.form['run_on_marathon']:
+    if request.form.get('run_on_marathon', False):
         url = os.environ.get("MARATHON_URL", None)
         login = os.environ.get("MARATHON_LOGIN", None)
         password = os.environ.get("MARATHON_PASSWORD", None)
