@@ -11,13 +11,11 @@
     "google_login_client_secret": "<google login client secret>",
     "ga_tracking_id": "",
     "workers": [
-        {"image": "ufaldsg/cloud-asr-worker-en-wiki", "model": "en-wiki", "instances": 4},
-        {"image": "ufaldsg/cloud-asr-worker-en-voxforge", "model": "en-voxforge", "instances": 4},
-        {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "model": "en-towninfo", "instances": 4},
-        {"image": "ufaldsg/cloud-asr-worker-cs", "model": "cs", "instances": 4},
-        {"image": "ufaldsg/cloud-asr-worker-cs-alex", "model": "cs-alex", "instances": 4},
-        {"image": "ufaldsg/cloudasr-alex-asr", "model": "dnn-example", "instances": 1, "env": {
-            "MODEL_URL": "https://vystadial.ms.mff.cuni.cz/tmp_zilka/nnet2_cs_ccrawl.zip"
+        {"image": "ufaldsg/cloud-asr-worker-downloader", "model": "en-sports-betting", "instances": 1, "env": {
+            "MODEL_URL": "https://www.dropbox.com/s/5yrtkmapuhiv1ec/ASR-HCLG-SportsBetting-2016-03-08--14%3A29%3A13.zip?dl=1"
+        }},
+        {"image": "ufaldsg/cloud-asr-worker-downloader", "model": "en-train-ticketing", "instances": 1, "env": {
+            "MODEL_URL": "https://www.dropbox.com/s/lgb3zr3i6pw8zfx/ASR-HCLG-TrainTicketing-2016-03-08--14%3A27%3A04.zip?dl=1"
         }}
     ]
 }
