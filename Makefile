@@ -104,6 +104,7 @@ build:
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
+	docker build -t ufaldsg/cloud-asr-worker-downloader examples/worker_downloader
 
 build_local:
 	cp -r cloudasr/shared/cloudasr cloudasr/api/cloudasr
@@ -112,10 +113,12 @@ build_local:
 	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/recordings/cloudasr
 	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
+	docker build -t ufaldsg/cloud-asr-web cloudasr/web
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
+	docker build -t ufaldsg/cloud-asr-worker-downloader examples/worker_downloader
 	rm -rf cloudasr/api/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr

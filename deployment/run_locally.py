@@ -127,6 +127,10 @@ def run_worker(config, worker_config):
             "-e MODEL=%s" % worker_config["model"],
         ]
 
+        if "env" in worker_config:
+            for var in worker_config["env"]:
+                opts.append("-e {var}={val}".format(var=var, val=worker_config["env"][var]))
+
         run_docker(worker_config["image"], config["tag"], opts)
 
 
