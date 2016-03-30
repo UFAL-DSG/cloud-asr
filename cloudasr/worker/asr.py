@@ -3,10 +3,9 @@ from math import *
 def create_asr():
     from alex_asr.utils import lattice_to_nbest
     from alex_asr import Decoder
-    from asr_utils import lattice_calibration
 
     recogniser = Decoder("/model")
-    lattice_to_nbest_func = lambda lattice, n: lattice_to_nbest(lattice_calibration(lattice), n)
+    lattice_to_nbest_func = lambda lattice, n: lattice_to_nbest(lattice, n)
 
     return ASR(recogniser, lattice_to_nbest_func)
 
