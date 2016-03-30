@@ -16,8 +16,8 @@
         {"image": "ufaldsg/cloud-asr-worker-en-towninfo", "model": "en-towninfo", "instances": 4},
         {"image": "ufaldsg/cloud-asr-worker-cs", "model": "cs", "instances": 4},
         {"image": "ufaldsg/cloud-asr-worker-cs-alex", "model": "cs-alex", "instances": 4},
-        {"image": "ufaldsg/cloudasr-alex-asr", "model": "dnn-example", "instances": 1, "env": {
-            "MODEL_URL": "https://vystadial.ms.mff.cuni.cz/tmp_zilka/nnet2_cs_ccrawl.zip"
+        {"image": "ufaldsg/cloud-asr-worker-downloader", "model": "kams-en-hifi", "instances": 1, "env": {
+            "MODEL_URL": "https://vystadial.ms.mff.cuni.cz/download/kams/tri5_nnet2_smbr_ivector_online.zip"
         }}
     ]
 }
