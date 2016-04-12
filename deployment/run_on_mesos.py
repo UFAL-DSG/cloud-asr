@@ -77,6 +77,7 @@ def recordings_spec(domain, master_ip, port, registry, tag, connection_string):
             "STORAGE_PATH": "/opt/app/static/data",
             "DOMAIN": "http://recordings." + domain
         },
+        "dependencies": ["/%s/master" % domain],
         "constraints": [["hostname", "LIKE", master_ip]]
     }
 
