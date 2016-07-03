@@ -1,16 +1,21 @@
 import sys
 import wave
+import json
 import base64
 import datetime
-from socketIO_client import SocketIO
+from websocket import create_connection
 
 
 def create_socket(server, port):
-    socket = SocketIO(server, port)
-    socket.on('result', print_result)
-    socket.on('server_error', print_server_error)
+    return create_connection("ws://%s:%d/transcribe-online" % (server, port))
 
-    return socket
+def handle_response(response):
+    response = json.loads(response)
+
+    if response["status"] == "error":
+        print_server_error(response)
+    else:
+        print_result(response)
 
 def print_result(result):
     if result["final"]:
@@ -27,10 +32,7 @@ def chunks(path):
         if len(frames) == 0:
             break
 
-        yield frames_to_base64(frames)
-
-def frames_to_base64(frames):
-    return base64.b64encode(frames)
+        yield frames
 
 def log(message):
     time = datetime.datetime.now().time()
@@ -46,13 +48,14 @@ if __name__ == "__main__":
     port = int(sys.argv[2])
     path = sys.argv[3]
     model = sys.argv[4]
-    frame_rate = int(sys.argv[5])
+    frame_rate = sys.argv[5]
 
     socket = create_socket(server, port)
-    socket.emit('begin', {'model': model})
+    socket.send(model)
+    socket.send(frame_rate)
     for chunk in chunks(path):
-        socket.emit('chunk', {'chunk': chunk, 'frame_rate': frame_rate})
-        socket.wait_for_callbacks()
-    socket.emit('end', {})
-    socket.wait_for_callbacks()
-    socket.wait_for_callbacks()
+        socket.send_binary(chunk)
+        handle_response(socket.recv())
+
+    socket.send_binary("")
+    handle_response(socket.recv())
