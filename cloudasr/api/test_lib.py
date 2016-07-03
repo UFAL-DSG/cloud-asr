@@ -25,9 +25,8 @@ class TestFrontendWorker(unittest.TestCase):
         self.master_socket.set_messages([master_response.SerializeToString()] * 2)
         self.worker_socket = SocketSpy()
         self.worker_socket.set_messages([worker_response.SerializeToString()] * 2)
-        self.decoder = DummyDecoder()
         self.id_generator = DummyIDGenerator()
-        self.worker = FrontendWorker(self.master_socket, self.worker_socket, self.decoder, self.id_generator)
+        self.worker = FrontendWorker(self.master_socket, self.worker_socket, self.id_generator)
 
     def test_recognize_batch_requires_content_type_header_with_frame_rate(self):
         self.assertRaises(MissingHeaderError, lambda: self.worker.recognize_batch(self.request_data,{}))
@@ -102,24 +101,24 @@ class TestFrontendWorker(unittest.TestCase):
 
     def test_recognize_chunk_sends_data_to_worker(self):
         self.worker.connect_to_worker("en-GB")
-        self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
+        self.worker.recognize_chunk(b"some binary chunk", frame_rate = 44100)
 
-        expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100)
+        expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk", True, frame_rate = 44100)
         self.assertThatMessagesWereSentToWorker([expected_message])
 
     def test_recognize_chunk_sends_data_with_unique_id_to_worker(self):
         self.id_generator.set_id([1, 2])
         self.worker.connect_to_worker("en-GB")
-        self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
-        self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100)
+        self.worker.recognize_chunk(b"some binary chunk", frame_rate = 44100)
+        self.worker.recognize_chunk(b"some binary chunk", frame_rate = 44100)
 
-        expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk decoded from base64", True, frame_rate = 44100, id=1)
+        expected_message = createRecognitionRequestMessage("ONLINE", b"some binary chunk", True, frame_rate = 44100, id=1)
         self.assertThatMessagesWereSentToWorker([expected_message, expected_message])
 
     def test_recognize_chunk_reads_response_from_worker(self):
         self.id_generator.set_id([1])
         self.worker.connect_to_worker("en-GB")
-        received_response = list(self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100))
+        received_response = list(self.worker.recognize_chunk(b"some binary chunk", frame_rate = 44100))
 
         expected_response = [{
             'status': 0,
@@ -143,7 +142,7 @@ class TestFrontendWorker(unittest.TestCase):
         self.worker_socket.set_messages([response.SerializeToString()])
 
         self.worker.connect_to_worker("en-GB")
-        self.assertRaises(WorkerInternalError, lambda: self.worker.recognize_chunk(b"some binary chunk encoded in base64", frame_rate = 44100))
+        self.assertRaises(WorkerInternalError, lambda: self.worker.recognize_chunk(b"some binary chunk", frame_rate = 44100))
 
     def test_change_lm_sends_data_to_worker(self):
         self.worker.connect_to_worker("en-GB")
@@ -231,7 +230,7 @@ class TestFrontendWorker(unittest.TestCase):
 class DummyDecoder:
 
     def decode(self, data):
-        return b"some binary chunk decoded from base64"
+        return b"some binary chunk"
 
 class DummyIDGenerator:
 

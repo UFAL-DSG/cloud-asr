@@ -1,39 +1,37 @@
 import os
 import time
 import wave
+import json
 import struct
 import base64
 import urllib2
 import unittest
 from jsonschema import validate
-from socketIO_client import SocketIO
+from websocket import create_connection
 
 
 class TestOnlineRecognition(unittest.TestCase):
 
     def setUp(self):
-        self.socketIO = SocketIO('localhost', 8000)
+        self.socket = create_connection('ws://localhost:8000/transcribe-online')
         self.received_responses = 0
         self.expected_responses = 0
         time.sleep(1)
 
     def test_online_recognition(self):
-        self.socketIO.on('result', self.assertMessageHasCorrectSchema)
         self.send_chunks()
-        self.assertEquals(self.expected_responses + 2, self.received_responses)
+        self.assertEquals(self.expected_responses + 1, self.received_responses)
 
     def send_chunks(self):
-        self.socketIO.emit('begin', {'model': 'en-towninfo'})
-        self.socketIO.emit('change_lm', {'new_lm': 'new_lm'})
+        self.socket.send('en-towninfo')
+        self.socket.send('16000')
 
         for chunk in self.chunks():
-            self.socketIO.emit('chunk', {'chunk': chunk, 'frame_rate': 16000})
-            self.socketIO.wait_for_callbacks()
+            self.socket.send_binary(chunk)
+            self.assertMessageHasCorrectSchema(self.socket.recv())
 
-        self.socketIO.emit('end', {})
-        self.socketIO.wait_for_callbacks()
-        self.socketIO.wait_for_callbacks()
-        self.socketIO.wait_for_callbacks()
+        self.socket.send_binary("")
+        self.assertMessageHasCorrectSchema(self.socket.recv())
 
     def chunks(self):
         basedir = os.path.dirname(os.path.realpath(__file__))
@@ -45,12 +43,11 @@ class TestOnlineRecognition(unittest.TestCase):
                 break
 
             self.expected_responses += 1
-            yield self.frames_to_base64(frames)
-
-    def frames_to_base64(self, frames):
-        return base64.b64encode(frames)
+            yield frames
 
     def assertMessageHasCorrectSchema(self, message):
+        message = json.loads(message)
+
         schema = {
             "type": "object",
             "properties": {

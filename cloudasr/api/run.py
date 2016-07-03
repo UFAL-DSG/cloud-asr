@@ -1,8 +1,9 @@
 import os
+import sys
 import json
 from flask import Flask, Response, request, jsonify, stream_with_context
 from flask.ext.cors import CORS
-from flask.ext.socketio import SocketIO, emit, session
+from flask.ext.sockets import Sockets
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 from cloudasr.schema import db
 from cloudasr.models import UsersModel, RecordingsModel, WorkerTypesModel
@@ -15,7 +16,7 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI = os.environ['CONNECTION_STRING']
 )
 cors = CORS(app)
-socketio = SocketIO(app)
+sockets = Sockets(app)
 db.init_app(app)
 worker_types_model = WorkerTypesModel(db.session)
 recordings_model = RecordingsModel(db.session, worker_types_model)
@@ -62,63 +63,36 @@ def transcribe():
     except KeyError as e:
         return jsonify({"status": "error", "message": "Missing item %s" % e.args[0]}), 400
 
-@socketio.on('begin')
-def begin_online_recognition(message):
+@sockets.route('/transcribe-online')
+def trabscribe_online(ws):
+    model = ws.receive()
+    frame_rate = int(ws.receive())
+
     try:
         worker = create_frontend_worker(os.environ['MASTER_ADDR'])
-        worker.connect_to_worker(message["model"])
+        worker.connect_to_worker(model)
 
-        session["worker"] = worker
-        session["connected"] = True
+        while not ws.closed:
+            chunk = ws.receive()
+
+            if len(chunk) != 0:
+                results = worker.recognize_chunk(chunk, frame_rate)
+                for result in results:
+                    ws.send(json.dumps(result))
+            else:
+                results = worker.end_recognition()
+                for result in results:
+                    ws.send(json.dumps(result))
+                break
     except NoWorkerAvailableError:
-        emit('server_error', {"status": "error", "message": "No worker available"})
+        ws.send({"status": "error", "message": "No worker available"})
+    except WorkerInternalError:
+        ws.send({"status": "error", "message": "Internal error"})
+    finally:
         worker.close()
 
-@socketio.on('chunk')
-def recognize_chunk(message):
-    try:
-        if not session.get("connected", False):
-            emit('server_error', {"status": "error", "message": "No worker available"})
-            return
-
-        results = session["worker"].recognize_chunk(message["chunk"], message["frame_rate"])
-        for result in results:
-            emit('result', result)
-    except WorkerInternalError:
-        emit('server_error', {"status": "error", "message": "Internal error"})
-        session["worker"].close()
-        del session["worker"]
-
-@socketio.on('change_lm')
-def change_lm(message):
-    try:
-        if not session.get("connected", False):
-            emit('server_error', {"status": "error", "message": "No worker available"})
-            return
-
-        results = session["worker"].change_lm(str(message["new_lm"]))
-        for result in results:
-            emit('result', result)
-    except WorkerInternalError:
-        emit('server_error', {"status": "error", "message": "Internal error"})
-        session["worker"].close()
-        del session["worker"]
-
-@socketio.on('end')
-def end_recognition(message):
-    if not session.get("connected", False):
-        emit('server_error', {"status": "error", "message": "No worker available"})
-        return
-
-    results = session["worker"].end_recognition()
-    for result in results:
-        emit('result', result)
-
-    emit('end', results[-1])
-
-    session["worker"].close()
-    session["connected"] = False
-    del session["worker"]
-
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=80)
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+    server = pywsgi.WSGIServer(('0.0.0.0', 80), app, handler_class=WebSocketHandler)
+    server.serve_forever()
