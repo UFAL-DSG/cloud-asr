@@ -1,10 +1,11 @@
-import base64
-import struct
+import logging
 import zmq.green as zmq
-import re
 import uuid
 from cloudasr.messages import MasterResponseMessage
 from cloudasr.messages.helpers import *
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 def create_frontend_worker(master_address):
     context = zmq.Context()

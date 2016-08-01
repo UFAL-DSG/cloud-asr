@@ -124,7 +124,7 @@ class Worker:
                 is_final = False
                 hypothesis = [(1.0, "")]
 
-            if change == "non-speech" or request.has_next == False or request.new_lm != "":
+            if change == "non-speech" or request.has_next is False or request.new_lm != "":
                 is_final = True
                 hypothesis = self.asr.get_final_hypothesis()
 
@@ -151,11 +151,11 @@ class Worker:
         self.poller.send("frontend", response.SerializeToString())
 
     def filter_out_redundant_hypothese(self, hypotheses):
-        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[1] == True]
+        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[1] is True]
 
         if len(hypotheses) > 0:
             last_hypothesis = hypotheses.pop()
-            if last_hypothesis[1] == False:
+            if last_hypothesis[1] is False:
                 important_hypotheses.append(last_hypothesis)
 
         return important_hypotheses

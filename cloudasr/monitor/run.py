@@ -4,7 +4,7 @@ import gevent
 from lib import create_monitor
 import os
 app = Flask(__name__)
-app.config['DEBUG'] = True
+# app.config['DEBUG'] = True  # if restarts are enabled - bings to same port - ZMQ error: Address already in use
 socketio = SocketIO(app)
 monitor = create_monitor(os.environ["MONITOR_ADDR"], socketio)
 

@@ -33,6 +33,7 @@ def recognize_batch():
         for result in response:
             yield json.dumps(result)
 
+    worker = None
     try:
         worker = create_frontend_worker(os.environ['MASTER_ADDR'])
         response = worker.recognize_batch(data, request.headers)
@@ -44,7 +45,8 @@ def recognize_batch():
     except NoWorkerAvailableError:
         return jsonify({"status": "error", "message": "No worker available"}), 503
     finally:
-        worker.close()
+        if worker:
+            worker.close()
 
 
 @app.route("/transcribe", methods=['POST'])
@@ -56,7 +58,7 @@ def transcribe():
         transcription = data["transcription"]
 
         result = recordings_model.add_transcription(user_id, recording_id, transcription)
-        if result == True:
+        if result is True:
             return jsonify({"status": "success"})
         else:
             return jsonify({"status": "error", "message": "Recording with id %s not found" % str(recording_id)}), 404
@@ -68,9 +70,11 @@ def trabscribe_online(ws):
     model = ws.receive()
     frame_rate = int(ws.receive())
 
+    worker = None
     try:
         worker = create_frontend_worker(os.environ['MASTER_ADDR'])
         worker.connect_to_worker(model)
+        app.logger.info('API connected to worker')
 
         while not ws.closed:
             chunk = ws.receive()
@@ -89,7 +93,9 @@ def trabscribe_online(ws):
     except WorkerInternalError:
         ws.send({"status": "error", "message": "Internal error"})
     finally:
-        worker.close()
+        if worker:
+            app.logger.info('Closing connection to worker') 
+            worker.close()
 
 if __name__ == "__main__":
     from gevent import pywsgi

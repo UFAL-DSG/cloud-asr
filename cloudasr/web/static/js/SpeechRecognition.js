@@ -51,7 +51,8 @@
         };
 
         function createSocket(apiUrl) {
-            socket = new WebSocket(apiUrl + "/transcribe-online");
+            wsApiUrl = apiUrl.replace('http', 'ws') // works also for https and wss
+            socket = new WebSocket(wsApiUrl + "/transcribe-online");
 
             socket.onopen = function() {
                 console.log("Socket connected");
@@ -72,6 +73,7 @@
             };
 
             socket.onclose = function(error) {
+                console.log('Speech socket disconnected'); 
                 handleEnd();
             };
 
