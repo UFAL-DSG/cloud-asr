@@ -2,7 +2,8 @@ FROM ufaldsg/cloud-asr-base
 
 MAINTAINER Ondrej Klejch
 
-RUN apt-get install -y libmysqlclient-dev
+RUN apt-get update && \
+    apt-get install -y libmysqlclient-dev
 RUN pip install flask flask-cors flask-sockets flask-sqlalchemy MySQL-python
 
 ADD . /opt/app
