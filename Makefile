@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`(docker-machine ip dev || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
+IP=`(docker-machine ip dev || (ip addr show en0 | grep -Po 'inet \K[\d.]+') || echo 0.0.0.0) 2> /dev/null`
 DEMO_URL=http://${IP}:8003/demo/en-towninfo
 MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
@@ -187,22 +187,22 @@ stop:
 	docker rm api worker master monitor recordings mysql web
 
 unit-test:
-	nosetests cloudasr/shared/cloudasr
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/api
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/master
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/worker/test_lib.py
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/monitor
-	PYTHONPATH=${CURDIR}/cloudasr/shared nosetests -e test_factory cloudasr/recordings
+	PYTHONPATH=${CURDIR}/cloudasr/shared python2.7 -m nose cloudasr/shared/cloudasr
+	PYTHONPATH=${CURDIR}/cloudasr/shared python2.7 -m nose -e test_factory cloudasr/api
+	PYTHONPATH=${CURDIR}/cloudasr/shared python2.7 -m nose -e test_factory cloudasr/master
+	PYTHONPATH=${CURDIR}/cloudasr/shared python2.7 -m nose -e test_factory cloudasr/worker/test_lib.py
+	PYTHONPATH=${CURDIR}/cloudasr/shared python2.7 -m nose -e test_factory cloudasr/monitor
+	PYTHONPATH=${CURDIR}/cloudasr/shared python2.7 -m nose -e test_factory cloudasr/recordings
 
 integration-test:
-	docker run ${API_VOLUMES} --rm ufaldsg/cloud-asr-api nosetests /opt/app/test_factory.py
-	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master nosetests /opt/app/test_factory.py
-	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor nosetests /opt/app/test_factory.py
-	docker run ${RECORDINGS_VOLUMES} --rm ufaldsg/cloud-asr-recordings nosetests /opt/app/test_factory.py
-	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker nosetests /opt/app/test_factory.py /opt/app/vad/test.py
+	docker run ${API_VOLUMES} --rm ufaldsg/cloud-asr-api python2.7 -m nose /opt/app/test_factory.py
+	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master python2.7 -m nose /opt/app/test_factory.py
+	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor python2.7 -m nose /opt/app/test_factory.py
+	docker run ${RECORDINGS_VOLUMES} --rm ufaldsg/cloud-asr-recordings python2.7 -m nose /opt/app/test_factory.py
+	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker python2.7 -m nose /opt/app/test_factory.py /opt/app/vad/test.py
 
 test:
-	nosetests tests/
+	python2.7 -m nose tests/
 
 compile-messages:
 	protoc --python_out=. ./cloudasr/shared/cloudasr/messages/messages.proto

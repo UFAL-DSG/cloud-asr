@@ -3,7 +3,6 @@ import time
 import wave
 import struct
 import base64
-import urllib2
 import unittest
 from jsonschema import validate
 from socketIO_client import SocketIO
