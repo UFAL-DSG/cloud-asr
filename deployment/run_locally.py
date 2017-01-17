@@ -3,7 +3,6 @@ import sys
 import json
 
 # FIXME we suppose the virtaulbox machine is named dev
-IP = "`(docker-machine ip dev || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`"
 CURDIR = os.getcwd()
 
 API_HOST_PORT = 8000
@@ -135,11 +134,12 @@ def run_worker(config, worker_config):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print "Usage python run_locally.py config.json"
+    if len(sys.argv) != 3:
+        print "Usage python run_locally.py IP config.json"
         sys.exit(1)
 
-    config = json.load(open(sys.argv[1]))
+    IP = sys.argv[1]
+    config = json.load(open(sys.argv[2]))
     config["connection_string"] = "mysql://%s:%s@mysql/%s?charset=utf8" % (MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
 
     stop_running_instances(config)

@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`(docker-machine ip dev || (ip addr show en0 | grep -Po 'inet \K[\d.]+') || echo 0.0.0.0) 2> /dev/null`
+IP=`(docker-machine ip dev || (ip addr show en0 | grep -Po 'inet \K[\d.]+') || (ip addr show eth0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
 DEMO_URL=http://${IP}:8003/demo/en-towninfo
 MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
@@ -141,7 +141,10 @@ mysql_data:
 	docker stop mysql && docker rm mysql
 	touch mysql_data 2> /dev/null || echo "MySQL DATABASE PREPARED"
 
-run: mysql_data
+check_ip:
+	test ${IP} || { echo "ERROR: Could not obtain an IP address of the machine. Please, update the IP variable in the Makefile manually."; exit 1; }
+
+run: check_ip mysql_data
 	@echo docker run ${MYSQL_OPTS} -d mysql
 	docker run ${MYSQL_OPTS} -d mysql
 	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
@@ -151,8 +154,8 @@ run: mysql_data
 	docker run ${MONITOR_OPTS} -d ufaldsg/cloud-asr-monitor
 	docker run ${RECORDINGS_OPTS} -d ufaldsg/cloud-asr-recordings
 
-run_locally: mysql_data
-	bash <( python ${CURDIR}/deployment/run_locally.py ${CURDIR}/cloudasr.json )
+run_locally: check_ip mysql_data
+	bash <( python ${CURDIR}/deployment/run_locally.py ${IP} ${CURDIR}/cloudasr.json )
 
 stop_locally:
 	docker ps -a | \
