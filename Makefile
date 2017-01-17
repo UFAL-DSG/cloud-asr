@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`(docker-machine ip dev || (ip addr show en0 | grep -Po 'inet \K[\d.]+') || (ip addr show eth0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
+IP=`(docker-machine ip dev || (ip addr show en0 | grep -Po 'inet \K[\d.]+') || (ip addr show eth0 | grep -Po 'inet \K[\d.]+') || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
 DEMO_URL=http://${IP}:8003/demo/en-towninfo
 MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
