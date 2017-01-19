@@ -52,7 +52,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_final_results_after_last_chunk(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
@@ -64,7 +64,7 @@ class TestWorker(unittest.TestCase):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True, id = 1)},
             {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = True, id = 2)},
-            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = False, id = 1)},
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False, id = 1)},
         ]
 
         self.run_worker(messages)
@@ -99,7 +99,7 @@ class TestWorker(unittest.TestCase):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
             {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = True)},
-            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
@@ -108,7 +108,7 @@ class TestWorker(unittest.TestCase):
     def test_worker_sends_finished_heartbeat_after_end_of_online_recognition(self):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = True)},
-            {"frontend": self.make_frontend_request("message 2", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
@@ -151,17 +151,17 @@ class TestWorker(unittest.TestCase):
         messages = [
             {"frontend": self.make_frontend_request("message 1", "ONLINE", id = 1, has_next = True)},
             {"frontend": self.make_frontend_request("message 2", "ONLINE", id = 1, has_next = True)},
-            {"frontend": self.make_frontend_request("message 3", "ONLINE", id = 1, has_next = False)},
+            {"frontend": self.make_frontend_request("", "ONLINE", id = 1, has_next = False)},
         ]
 
         self.run_worker(messages)
         self.assertThatDataWasStored({
-            1: {"frame_rate": 44100, "chunks": [{"chunk_id": 0, "pcm": "message 1message 2message 3", "hypothesis": [(1.0, "Hello World!")]}]}
+            1: {"frame_rate": 44100, "chunks": [{"chunk_id": 0, "pcm": "message 1message 2", "hypothesis": [(1.0, "Hello World!")]}]}
         })
 
     def test_worker_forwards_pcm_data_to_vad(self):
         messages = [
-            {"frontend": self.make_frontend_request("message 1", "ONLINE", id = 1, has_next = False)}
+            {"frontend": self.make_frontend_request("message 1", "ONLINE", id = 1, has_next = True)}
         ]
 
         self.run_worker(messages)
@@ -321,15 +321,15 @@ class TestWorker(unittest.TestCase):
 
     def test_worker_resets_vad_at_the_end_of_recognition(self):
         messages = [
-            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
         self.assertTrue(self.vad.resetted)
 
-    def test_worker_resets_audio_utls_at_the_end_of_online_recognition(self):
+    def test_worker_resets_audio_utils_at_the_end_of_online_recognition(self):
         messages = [
-            {"frontend": self.make_frontend_request("message 1", "ONLINE", has_next = False)}
+            {"frontend": self.make_frontend_request("", "ONLINE", has_next = False)}
         ]
 
         self.run_worker(messages)
