@@ -15,17 +15,11 @@ class ASR:
         self.recogniser = recogniser
         self.lattice_to_nbest = lattice_to_nbest
         self.decoded_frames = 0
-        self.callbacks = []
-
-    def add_callback(self, callback):
-        self.callbacks.append(callback)
 
     def recognize_chunk(self, chunk):
         self.recogniser.accept_audio(chunk)
-        dec_t = self.recogniser.decode(max_frames=10)
+        dec_t = self.recogniser.decode(max_frames=len(chunk))
         while dec_t > 0:
-            self.call_callbacks()
-
             self.decoded_frames += dec_t
             dec_t = self.recogniser.decode(max_frames=10)
 
@@ -58,7 +52,3 @@ class ASR:
     def reset(self):
         self.decoded_frames = 0
         self.recogniser.reset()
-
-    def call_callbacks(self):
-        for callback in self.callbacks:
-            callback()

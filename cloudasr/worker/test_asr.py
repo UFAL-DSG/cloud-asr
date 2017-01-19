@@ -35,13 +35,6 @@ class TestASR(unittest.TestCase):
         self.assertEquals(type(interim_hypothesis[0]), FloatType)
         self.assertEquals(type(interim_hypothesis[1]), UnicodeType)
 
-    def test_recognize_chunk_calls_callback(self):
-        self.callback_called = False
-        self.asr.add_callback(self.callback)
-        self.asr.recognize_chunk(self.load_pcm_sample_data())
-
-        self.assertTrue(self.callback_called)
-
     def test_reset_resets_pipeline(self):
         self.asr.reset()
         self.assertTrue(self.recogniser.resetted)
@@ -50,9 +43,6 @@ class TestASR(unittest.TestCase):
         audio = AudioUtils()
 
         return audio.load_wav_from_file_as_pcm("./resources/test.wav")
-
-    def callback(self):
-        self.callback_called = True
 
 class DummyRecogniser:
 
