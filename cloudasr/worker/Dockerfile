@@ -6,7 +6,7 @@ RUN apt-get update && \
     pip install theano
 
 WORKDIR /opt/app/
-RUN git clone https://github.com/UFAL-DSG/alex-asr.git && \
+RUN git clone https://github.com/choko/alex-asr.git && \
     cd /opt/app/alex-asr && \
     pip install -r requirements.txt && \
     bash prepare_env.sh && \
