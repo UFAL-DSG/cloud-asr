@@ -18,20 +18,13 @@ class ASR:
 
     def recognize_chunk(self, chunk):
         self.recogniser.accept_audio(chunk)
-        dec_t = self.recogniser.decode(max_frames=len(chunk))
-        while dec_t > 0:
-            self.decoded_frames += dec_t
-            dec_t = self.recogniser.decode(max_frames=10)
+        self.decoded_frames += self.recogniser.decode(max_frames=len(chunk))
 
         if self.decoded_frames == 0:
             return (1.0, '')
         else:
             p, interim_result = self.recogniser.get_best_path()
             return p, self._tokens_to_words(interim_result)
-
-    def _tokens_to_words(self, tokens):
-        print tokens
-        return " ".join([self.recogniser.get_word(x).decode('utf8') for x in tokens])
 
     def get_final_hypothesis(self):
         if self.decoded_frames == 0:
@@ -42,6 +35,10 @@ class ASR:
         self.reset()
 
         return self._to_nbest(lat, 10)
+
+    def _tokens_to_words(self, tokens):
+        print tokens
+        return " ".join([self.recogniser.get_word(x).decode('utf8') for x in tokens])
 
     def _to_nbest(self, lattice, n):
         return [(exp(-prob), self._tokens_to_words(path)) for (prob, path) in self.lattice_to_nbest(lattice, n=n)]

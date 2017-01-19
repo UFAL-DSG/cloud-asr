@@ -94,6 +94,12 @@ class Worker:
 
             self.handle_online_request(request)
 
+            if request.has_next:
+                self.heartbeat.send("WORKING")
+            else:
+                self.end_recognition()
+                self.heartbeat.send("FINISHED")
+
     def handle_batch_request(self, request):
         pcm = self.get_pcm_from_message(request.body)
         resampled_pcm = self.audio.resample_to_default_sample_rate(pcm, request.frame_rate)
@@ -111,54 +117,50 @@ class Worker:
         self.heartbeat.send("FINISHED")
 
     def handle_online_request(self, request):
+        if request.new_lm:
+            self.asr.change_lm(request.new_lm)
+
+        if request.has_next == False or request.new_lm != "":
+            is_final = True
+            hypothesis = self.asr.get_final_hypothesis()
+
+            self.asr.reset()
+            self.saver.final_hypothesis(self.current_chunk_id, hypothesis)
+            self.send_hypotheses([(self.current_chunk_id, True, hypothesis)])
+            return
+
         hypotheses = []
+        audio_buffer = b""
         for original_pcm, resampled_pcm in self.audio.chunks(request.body, request.frame_rate):
-            vad, change, original_pcm, resampled_pcm = self.vad.decide(original_pcm, resampled_pcm)
+            is_speech, change, original_pcm, resampled_pcm = self.vad.decide(original_pcm, resampled_pcm)
             current_chunk_id = self.current_chunk_id
 
-            if vad:
-                is_final = False
-                hypothesis = [self.asr.recognize_chunk(resampled_pcm)]
+            if is_speech:
+                audio_buffer += resampled_pcm
                 self.saver.add_pcm(original_pcm)
-            else:
-                is_final = False
-                hypothesis = [(1.0, "")]
 
-            if change == "non-speech" or request.has_next == False or request.new_lm != "":
-                is_final = True
+            if change == "non-speech":
+                self.asr.recognize_chunk(audio_buffer)
+                audio_buffer = b""
+
                 hypothesis = self.asr.get_final_hypothesis()
 
                 self.asr.reset()
                 self.saver.final_hypothesis(current_chunk_id, hypothesis)
+                hypotheses.append((self.current_chunk_id, True, hypothesis))
                 self.current_chunk_id = self.id_generator()
 
-            if request.new_lm:
-                self.asr.change_lm(request.new_lm)
-
-            hypotheses.append((current_chunk_id, is_final, hypothesis))
+        if len(audio_buffer) > 0:
+            hypothesis = [self.asr.recognize_chunk(audio_buffer)]
+            hypotheses.append((self.current_chunk_id, False, hypothesis))
+        elif len(hypotheses) == 0:
+            hypotheses.append((self.current_chunk_id, False, [(1.0, "")]))
 
         self.send_hypotheses(hypotheses)
 
-        if request.has_next:
-            self.heartbeat.send("WORKING")
-        else:
-            self.end_recognition()
-            self.heartbeat.send("FINISHED")
-
     def send_hypotheses(self, hypotheses):
-        important_hypotheses = self.filter_out_redundant_hypothese(hypotheses)
-        response = createResultsMessage(important_hypotheses)
+        response = createResultsMessage(hypotheses)
         self.poller.send("frontend", response.SerializeToString())
-
-    def filter_out_redundant_hypothese(self, hypotheses):
-        important_hypotheses = [hypothesis for hypothesis in hypotheses if hypothesis[1] == True]
-
-        if len(hypotheses) > 0:
-            last_hypothesis = hypotheses.pop()
-            if last_hypothesis[1] == False:
-                important_hypotheses.append(last_hypothesis)
-
-        return important_hypotheses
 
     def is_online_recognition_running(self):
         return self.current_request_id is not None
