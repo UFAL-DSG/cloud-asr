@@ -1,11 +1,11 @@
 #!/bin/bash
 
 mkdir /model
-wget -O /model/mfcc.conf https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/mfcc.conf
-wget -O /model/tri2b_bmmi.mdl https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/tri2b_bmmi.mdl
-wget -O /model/tri2b_bmmi.mat https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/tri2b_bmmi.mat
-wget -O /model/HCLG_tri2b_bmmi.fst https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/HCLG_tri2b_bmmi.fst
-wget -O /model/words.txt https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/words.txt
+wget --no-check-certificate -O /model/mfcc.conf https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/mfcc.conf
+wget --no-check-certificate -O /model/tri2b_bmmi.mdl https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/tri2b_bmmi.mdl
+wget --no-check-certificate -O /model/tri2b_bmmi.mat https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/tri2b_bmmi.mat
+wget --no-check-certificate -O /model/HCLG_tri2b_bmmi.fst https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/HCLG_tri2b_bmmi.fst
+wget --no-check-certificate -O /model/words.txt https://vystadial.ms.mff.cuni.cz/download/pykaldi/egs/vystadial/online_demo/models_en/words.txt
 
 cat << EOF > /model/alex_asr.conf
 --model_type=gmm
