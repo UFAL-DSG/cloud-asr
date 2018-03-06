@@ -8,6 +8,7 @@ RUN apt-get update && \
 WORKDIR /opt/app/
 RUN git clone https://github.com/choko/alex-asr.git && \
     cd /opt/app/alex-asr && \
+    git checkout 40b7bad3c8e86263a167f03ba85f88743561b157 && \
     pip install -r requirements.txt && \
     bash prepare_env.sh && \
     make && \
