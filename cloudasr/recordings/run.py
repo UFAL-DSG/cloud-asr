@@ -1,7 +1,7 @@
 import os
 import gevent
 from flask import Flask
-from flask.ext.socketio import SocketIO
+from flask_socketio import SocketIO
 from lib import create_recordings_saver
 from cloudasr.schema import db
 from cloudasr.models import WorkerTypesModel, RecordingsModel

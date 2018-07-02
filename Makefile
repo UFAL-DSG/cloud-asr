@@ -1,5 +1,5 @@
 SHELL=/bin/bash
-IP=`(docker-machine ip dev || (ip addr show en0 | grep -Po 'inet \K[\d.]+') || (ip addr show eth0 | grep -Po 'inet \K[\d.]+') || (ip addr show docker0 | grep -Po 'inet \K[\d.]+')) 2> /dev/null`
+IP=10.100.210.17
 DEMO_URL=http://${IP}:8003/demo/en-towninfo
 MONITOR_URL=http://${IP}:8001/
 MESOS_SLAVE_IP=`docker inspect --format '{{ .NetworkSettings.IPAddress }}' mesos-slave`
@@ -106,21 +106,29 @@ build:
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
 
 build_local:
+#	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
 	cp -r cloudasr/shared/cloudasr cloudasr/api/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/worker/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/master/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/monitor/cloudasr
 	cp -r cloudasr/shared/cloudasr cloudasr/recordings/cloudasr
+	cp -r cloudasr/shared/cloudasr cloudasr/web/cloudasr
 	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
 	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/
+	docker build -t ufaldsg/cloud-asr-web cloudasr/web
 	rm -rf cloudasr/api/cloudasr
 	rm -rf cloudasr/worker/cloudasr
 	rm -rf cloudasr/master/cloudasr
 	rm -rf cloudasr/monitor/cloudasr
 	rm -rf cloudasr/recordings/cloudasr
+	rm -rf cloudasr/web/cloudasr
+remove-all:
+	docker stop $(docker container list -a -q)
+	docker rm $(docker container list -a -q)
+	docker rmi $(docker images -a)
 
 remove-images:
 	docker images | grep "ufaldsg/" | awk '{print $$3}' | xargs docker rmi
@@ -156,6 +164,14 @@ run: check_ip mysql_data
 
 run_locally: check_ip mysql_data
 	bash <( python ${CURDIR}/deployment/run_locally.py ${IP} ${CURDIR}/cloudasr.json )
+run_mysql:
+	docker run ${MYSQL_OPTS} -d mysql
+run_api2:
+	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
+run_worker2:
+	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker
+run_master2:
+	docker run ${MASTER_OPTS} -d ufaldsg/cloud-asr-master
 
 stop_locally:
 	docker ps -a | \

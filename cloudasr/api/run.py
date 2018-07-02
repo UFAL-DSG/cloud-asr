@@ -1,8 +1,8 @@
 import os
 import json
-from flask import Flask, Response, request, jsonify, stream_with_context
-from flask.ext.cors import CORS
-from flask.ext.socketio import SocketIO, emit, session
+from flask import Flask, Response, request, jsonify, stream_with_context, session
+from flask_cors import CORS
+from flask_socketio import SocketIO, emit
 from lib import create_frontend_worker, MissingHeaderError, NoWorkerAvailableError, WorkerInternalError
 from cloudasr.schema import db
 from cloudasr.models import UsersModel, RecordingsModel, WorkerTypesModel
