@@ -1,7 +1,7 @@
 import random
 import struct
 import datetime
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, String, Text, Integer, Float, DateTime, Boolean, ForeignKey, create_engine, types
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base

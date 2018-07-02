@@ -2,8 +2,9 @@ FROM ufaldsg/cloud-asr-base
 
 MAINTAINER Ondrej Klejch
 
+RUN apt-get update
 RUN apt-get install -y libmysqlclient-dev
-RUN pip install flask flask-cors flask-socketio==0.6.0 flask-sqlalchemy MySQL-python Werkzeug==0.9.6 gunicorn==19.1.1
+RUN pip install flask flask-cors flask-socketio==2.0 gunicorn[gevent] python-socketio gevent-websocket  MySQL-python Werkzeug==0.14.1 flask-sqlalchemy
 
 ADD . /opt/app
 WORKDIR /opt/app
