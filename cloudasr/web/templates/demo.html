@@ -3,89 +3,162 @@
 {% block body %}
 
 <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
-<script src="{{ url_for('static', filename='js/Recorder.js') }}"></script>
 <script src="{{ url_for('static', filename='js/SpeechRecognition.js') }}"></script>
-<script src="{{ url_for('static', filename='js/models.js') }}"></script>
-<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 <script>
 var apiUrl = "{{ api_url }}";
-var availableWorkersUrl = "{{ url_for('available_workers') }}";
 var model = "{{ model }}";
-{% if current_user.is_authenticated() %}
-    var user_id = "{{ current_user.get_id() }}";
-{% else %}
-    var user_id = null;
-{% endif %}
+var lastResult;
+
+$(document).ready(function() {
+    var speechRecognition = new SpeechRecognition(apiUrl);
+
+    speechRecognition.onresult = function(result) {
+        console.log("ahoj");
+        var transcript = result.result.hypotheses[0].transcript;
+        if(transcript == '') {
+            return;
+        }
+
+        $('#result-dictation .current').text(transcript + " ");
+
+        if(result.final) {
+            $('#result-dictation .current').removeClass("current");
+            $('#result-dictation').append("<p class='current transcription-result'></p>");
+        }
+    }
+
+    speechRecognition.onstart = function(e) {
+        $('#error').hide()
+        $('#result-dictation').html("<p class='current transcription-result'></p>");
+    }
+
+    speechRecognition.onerror = function(e) {
+        $('#error').html("<strong>" + e + "</strong> Please try again later.").show()
+    }
+
+    $('#video').bind('play', function() {
+        speechRecognition.start(model);
+    });
+
+    $('#video').bind('stop', function() {
+        speechRecognition.stop();
+    });
+});
+
+(function(window){
+
+    var Recorder = function(cfg){
+        var config = cfg || {};
+        var bufferLen = config.bufferLen || 16384;
+        var numChannels = config.numChannels || 1;
+        var bufferCallback = config.bufferCallback || function(buffer) { console.log(buffer); };
+        var errorCallback = config.errorCallback || function(error) { console.log(error); };
+        var volumeCallback = config.volumeCallback || function(average) { console.log(average); };
+        var recording = false;
+        var source = null;
+        var analyser = null;
+        var sourceProcessor = null;
+
+        this.init = function() {
+            audio_context = createAudioContext();
+            navigator.getUserMedia({audio: true}, startUserMedia, function(e) {
+                errorCallback('No live audio input: ' + e);
+            });
+        }
+
+        this.configure = function(cfg){
+            for (var prop in cfg){
+                if (cfg.hasOwnProperty(prop)){
+                    config[prop] = cfg[prop];
+                }
+            }
+        }
+
+        this.record = function(){
+            recording = true;
+        }
+
+        this.stop = function(){
+            recording = false;
+        }
+
+        function createAudioContext() {
+            try {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext || navigator.mozAudioContext;
+                navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+                audio_context = new AudioContext;
+                console.log('Audio context set up.');
+                console.log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+
+                return audio_context;
+            } catch (e) {
+                errorCallback('No web audio support in this browser!');
+            }
+        }
+
+        function startUserMedia(stream) {
+            //source = audio_context.createMediaStreamSource(stream);
+            source = audio_context.createMediaElementSource(document.getElementById('video'));
+            gainNode = audio_context.createGain();
+            source.connect(gainNode);
+            gainNode.connect(source.context.destination);
+            console.log('Media stream created.');
+
+            source.context.createScriptProcessor = source.context.createScriptProcessor || source.context.createJavaScriptNode;
+            sourceProcessor = source.context.createScriptProcessor(bufferLen, numChannels, numChannels);
+
+            analyser = source.context.createAnalyser();
+            analyser.smoothingTimeConstant = 0.3;
+            analyser.fftSize = 512;
+
+            sourceProcessor.onaudioprocess = function(e){
+                if (!recording) return;
+                var buffer = [];
+                for (var channel = 0; channel < numChannels; channel++){
+                        buffer.push(e.inputBuffer.getChannelData(channel));
+                }
+
+                bufferCallback(buffer);
+
+                var values =  new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(values);
+                var average = getAverageVolume(values);
+                volumeCallback(average);
+            }
+
+            source.connect(analyser);
+            source.connect(sourceProcessor);
+            analyser.connect(sourceProcessor);
+            sourceProcessor.connect(source.context.destination);
+            console.log('Input connected to audio context destination.');
+        }
+
+        function getAverageVolume(array) {
+            var sum = 0;
+            var length = array.length;
+
+            for (var i = 0; i < length; i++) {
+                sum += array[i];
+            }
+
+            return sum / length;
+        }
+    };
+
+    window.Recorder = Recorder;
+
+})(window);
 </script>
 
 
-<h1>CloudASR <small>Dictate demo</small></h1>
+<h1>CloudASR <small>Video transcription demo</small></h1>
 
-<p class="text-center">
-    <a id="start_recording" class="btn"><img src="{{ url_for('static', filename='img/microphone.png') }}" /></a>
-    <a id="stop_recording" class="btn btn-danger" style="display: none"><img src="{{ url_for('static', filename='img/microphone_speech.png') }}" /></a>
-</p>
 
-<p id="start_recording_text" class="text-center lead">
-    Click on the microphone to <strong>record your speech</strong>.
-</p>
-
-<p id="stop_recording_text" class="text-center lead" style="display: none">
-    Click on the microphone to <strong>stop recording</strong>.
-</p>
-
-<div>
-    <canvas id="canvas" style="display: none; width: 100%; height: 100px"></canvas>
-</div>
-
+<video src="/static/video/trailer.mp4" controls id="video"></video>
 <div id="error" class="alert alert-danger text-center" role="alert" style="display: none"></div>
-
-
-<ul class="nav nav-pills nav-justified">
-    <li class="active"><a href="#" id="dictation">Dictation Mode</a></li>
-    <li><a href="#" id="evaluation">Evaluation Mode</a></li>
-</ul>
-
-<br>
-
 <div class="well well-lg">
-    <div id="result-evaluation" style="display: none"></div>
     <div id="result-dictation"></div>
-    <div class="text-right" style="color: #777; display: none"><small id="request_id"></small></div>
-</div>
-
-<div class="row">
-    <div class="col-lg-4 col-lg-offset-4">
-        <select id="acoustic-model" class="form-control"></select>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-lg-4 col-lg-offset-4">
-        <select id="language-model" class="form-control"></select>
-    </div>
-</div>
-
-<div class="well" style="margin-top: 20px">
-    <h3 class="lang-name"></h3>
-    <div id="en-voxforge" class="lang-description"></div>
-</div>
-
-<div class="well" style="margin-top: 20px">
-    <h4>Privacy &amp; Terms</h4>
-    <p>
-        All data, including audio recording, is stored for the purpose of ASR quality improvement.
-        Note that the data can be shared with third parties for both research and commercial purposes.
-        All collected data will be made available to the ASR community;
-            therefore, do not say anything you do not want anyone to know about.
-    </p>
-
-    <p>
-        The service is available for free.
-        As a result, no guarantees are given regarding the quality of ASR results.
-        As of now, it is a beta product; thus,
-            things may break and the service may not be available for large periods of time.
-    </p>
 </div>
 
 {% endblock %}
