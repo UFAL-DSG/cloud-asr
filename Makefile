@@ -126,7 +126,7 @@ remove-images:
 	docker images | grep "ufaldsg/" | awk '{print $$3}' | xargs docker rmi
 
 pull:
-	docker pull mysql
+	docker pull mysql:5
 	docker pull ufaldsg/cloud-asr-web
 	docker pull ufaldsg/cloud-asr-api
 	docker pull ufaldsg/cloud-asr-worker
@@ -136,7 +136,7 @@ pull:
 
 mysql_data:
 	echo "PREPARING MySQL DATABASE"
-	docker run ${MYSQL_OPTS} -d mysql
+	docker run ${MYSQL_OPTS} -d mysql:5
 	sleep 15
 	docker stop mysql && docker rm mysql
 	touch mysql_data 2> /dev/null || echo "MySQL DATABASE PREPARED"
@@ -145,8 +145,7 @@ check_ip:
 	test ${IP} || { echo "ERROR: Could not obtain an IP address of the machine. Please, update the IP variable in the Makefile manually."; exit 1; }
 
 run: check_ip mysql_data
-	@echo docker run ${MYSQL_OPTS} -d mysql
-	docker run ${MYSQL_OPTS} -d mysql
+	docker run ${MYSQL_OPTS} -d mysql:5
 	docker run ${WEB_OPTS} -d ufaldsg/cloud-asr-web
 	docker run ${API_OPTS} -d ufaldsg/cloud-asr-api
 	docker run ${WORKER_OPTS} -d ufaldsg/cloud-asr-worker

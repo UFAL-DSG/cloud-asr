@@ -44,7 +44,7 @@ def run_mysql(config):
         "-v %s/resources/mysql_utf8.cnf:/etc/mysql/conf.d/mysql_utf8.cnf" % CURDIR,
     ]
 
-    run_docker("mysql", "latest", opts)
+    run_docker("mysql", "5", opts)
     print "sleep 5"
 
 def run_master(config):
