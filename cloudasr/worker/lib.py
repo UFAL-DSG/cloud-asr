@@ -16,8 +16,8 @@ def create_worker(model, hostname, port, master_address, recordings_saver_addres
     heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
     audio = AudioUtils(asr.get_sample_rate())
+    vad = create_vad(asr.get_sample_rate())
     saver = RemoteSaver(create_recordings_saver_socket(recordings_saver_address), model)
-    vad = create_vad()
     id_generator = lambda: uuid.uuid4().int
     run_forever = lambda: True
 
@@ -201,12 +201,13 @@ class Heartbeat:
 
 class AudioUtils:
 
-    default_sample_width = 2
-    buffer_length = 512
-
-    def __init__(self, sample_rate=16000):
+    def __init__(self, sample_rate=16000, sample_width=2, frame_duration_ms=30):
         self.state = None
-        self.sample_rate = sample_rate
+        self.original_pcm_buffer = b""
+        self.resampled_pcm_buffer = b""
+        self.sample_width = sample_width
+        self.sample_rate = int(sample_rate)
+        self.frame_duration_ms = frame_duration_ms
 
     def load_wav_from_string_as_pcm(self, string):
         return self.load_wav_from_file_as_pcm(StringIO(string))
@@ -218,8 +219,8 @@ class AudioUtils:
         wav = wave.open(path, 'r')
         if wav.getnchannels() != 1:
             raise Exception('Input wave is not in mono')
-        if wav.getsampwidth() != self.default_sample_width:
-            raise Exception('Input wave is not in %d Bytes' % def_sample_width)
+        if wav.getsampwidth() != self.sample_width:
+            raise Exception('Input wave is not in %d Bytes' % self.sample_width)
 
         return wav
 
@@ -241,11 +242,20 @@ class AudioUtils:
         if len(pcm) == 0:
             yield b"", b""
         else:
-            for i in xrange(0, len(pcm), self.buffer_length):
-                original_pcm = pcm[i:i+self.buffer_length]
-                resampled_pcm, self.state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.sample_rate, self.state)
+            original_pcm = self.original_pcm_buffer + pcm
+            resampled_pcm = self.resampled_pcm_buffer + self.resample_to_default_sample_rate(pcm, sample_rate)
+            original_buffer_size = int(sample_rate * (self.frame_duration_ms / 1000.) * self.sample_width)
+            resampled_buffer_size = int(self.sample_rate * (self.frame_duration_ms / 1000.) * self.sample_width)
 
-                yield original_pcm, resampled_pcm
+            num_chunks = int(float(len(original_pcm)) / original_buffer_size)
+            for i in xrange(num_chunks):
+                yield (
+                    original_pcm[i * original_buffer_size:(i + 1) * original_buffer_size],
+                    resampled_pcm[i * resampled_buffer_size:(i + 1) * resampled_buffer_size]
+                )
+
+            self.original_pcm_buffer = original_pcm[num_chunks * original_buffer_size:]
+            self.resampled_pcm_buffer = resampled_pcm[num_chunks * resampled_buffer_size:]
 
     def resample_to_default_sample_rate(self, pcm, sample_rate):
         if sample_rate != self.sample_rate:
@@ -255,6 +265,8 @@ class AudioUtils:
 
     def reset(self):
         self.state = None
+        self.original_pcm_buffer = b""
+        self.resampled_pcm_buffer = b""
 
 
 class RemoteSaver:

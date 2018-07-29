@@ -201,7 +201,7 @@ integration-test:
 	docker run ${MASTER_VOLUMES} --rm ufaldsg/cloud-asr-master python2.7 -m nose /opt/app/test_factory.py
 	docker run ${MONITOR_VOLUMES} --rm ufaldsg/cloud-asr-monitor python2.7 -m nose /opt/app/test_factory.py
 	docker run ${RECORDINGS_VOLUMES} --rm ufaldsg/cloud-asr-recordings python2.7 -m nose /opt/app/test_factory.py
-	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker python2.7 -m nose /opt/app/test_factory.py /opt/app/vad/test.py
+	docker run ${WORKER_VOLUMES} --rm ufaldsg/cloud-asr-worker python2.7 -m nose /opt/app/test_factory.py /opt/app/test_vad.py
 
 test:
 	python2.7 -m nose tests/

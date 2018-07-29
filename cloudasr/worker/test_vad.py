@@ -1,15 +1,14 @@
 import unittest
 import audioop
+import math
 import wave
-import theano
 from vad import create_vad
-
-theano.config.mode = 'FAST_COMPILE'
+from lib import AudioUtils
 
 class TestVAD(unittest.TestCase):
 
     def test_vad(self):
-        vad = create_vad()
+        vad = create_vad(16000)
 
         utterances = 0
         for original_chunk, resampled_chunk in self.chunks():
@@ -22,15 +21,7 @@ class TestVAD(unittest.TestCase):
 
     def chunks(self):
         wav = wave.open("/opt/resources/test2.wav", "rb")
+        pcm = wav.readframes(wav.getnframes())
 
-        while True:
-            frames = wav.readframes(512)
-            if len(frames) == 0:
-                break
-
-            yield frames, self.resample_to_default_sample_rate(frames)
-
-    def resample_to_default_sample_rate(self, pcm):
-        pcm, state = audioop.ratecv(pcm, 2, 1, 44100, 16000, None)
-
-        return pcm
+        audio_utils = AudioUtils(16000)
+        return audio_utils.chunks(pcm, 44100)

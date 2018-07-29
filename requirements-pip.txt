@@ -5,3 +5,4 @@ pyzmq
 protobuf
 grequests
 flask-sqlalchemy
+webrtcvad
