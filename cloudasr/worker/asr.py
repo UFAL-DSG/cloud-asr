@@ -36,6 +36,9 @@ class ASR:
 
         return self._to_nbest(lat, 10)
 
+    def get_sample_rate(self):
+        return self.recogniser.get_sample_rate()
+
     def _tokens_to_words(self, tokens):
         print tokens
         return " ".join([self.recogniser.get_word(x).decode('utf8') for x in tokens])

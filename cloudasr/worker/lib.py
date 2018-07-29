@@ -15,7 +15,7 @@ def create_worker(model, hostname, port, master_address, recordings_saver_addres
     poller = create_poller("tcp://0.0.0.0:5678")
     heartbeat = create_heartbeat(model, "tcp://%s:%s" % (hostname, port), master_address)
     asr = create_asr()
-    audio = AudioUtils()
+    audio = AudioUtils(asr.get_sample_rate())
     saver = RemoteSaver(create_recordings_saver_socket(recordings_saver_address), model)
     vad = create_vad()
     id_generator = lambda: uuid.uuid4().int
@@ -202,11 +202,11 @@ class Heartbeat:
 class AudioUtils:
 
     default_sample_width = 2
-    default_sample_rate = 16000
     buffer_length = 512
 
-    def __init__(self):
+    def __init__(self, sample_rate=16000):
         self.state = None
+        self.sample_rate = sample_rate
 
     def load_wav_from_string_as_pcm(self, string):
         return self.load_wav_from_file_as_pcm(StringIO(string))
@@ -243,13 +243,13 @@ class AudioUtils:
         else:
             for i in xrange(0, len(pcm), self.buffer_length):
                 original_pcm = pcm[i:i+self.buffer_length]
-                resampled_pcm, self.state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.default_sample_rate, self.state)
+                resampled_pcm, self.state = audioop.ratecv(original_pcm, 2, 1, sample_rate, self.sample_rate, self.state)
 
                 yield original_pcm, resampled_pcm
 
     def resample_to_default_sample_rate(self, pcm, sample_rate):
-        if sample_rate != self.default_sample_rate:
-            pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, self.default_sample_rate, None)
+        if sample_rate != self.sample_rate:
+            pcm, state = audioop.ratecv(pcm, 2, 1, sample_rate, self.sample_rate, None)
 
         return pcm
 
