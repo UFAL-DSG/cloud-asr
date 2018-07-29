@@ -35,6 +35,7 @@ MASTER_OPTS=--name master \
 	-e MONITOR_ADDR=${MONITOR_STATUS_ADDR} \
 	${MASTER_VOLUMES}
 
+MODEL_URL="https://github.com/UFAL-DSG/cloud-asr/blob/master/resources/model.zip?raw=true"
 WORKER_VOLUMES=-v ${CURDIR}/cloudasr/worker:/opt/app -v ${SHARED_VOLUME} -v ${CURDIR}/resources/:/opt/resources/
 WORKER_OPTS=--name worker \
 	-p ${WORKER_PORT}:${WORKER_PORT} \
@@ -100,7 +101,7 @@ build:
 	docker build -t ufaldsg/cloud-asr-base cloudasr/shared
 	docker build -t ufaldsg/cloud-asr-web cloudasr/web
 	docker build -t ufaldsg/cloud-asr-api cloudasr/api/
-	docker build -t ufaldsg/cloud-asr-worker cloudasr/worker/
+	docker build -t ufaldsg/cloud-asr-worker --build-arg MODEL_URL="${MODEL_URL}" cloudasr/worker/
 	docker build -t ufaldsg/cloud-asr-master cloudasr/master/
 	docker build -t ufaldsg/cloud-asr-monitor cloudasr/monitor/
 	docker build -t ufaldsg/cloud-asr-recordings cloudasr/recordings/

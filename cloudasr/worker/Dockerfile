@@ -17,5 +17,6 @@ RUN git clone https://github.com/choko/alex-asr.git && \
 WORKDIR /opt/app/
 ADD . /opt/app
 
+ARG MODEL_URL
 RUN bash download_models.sh
 CMD while true; do python run.py; done
