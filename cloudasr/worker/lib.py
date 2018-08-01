@@ -247,7 +247,7 @@ class AudioUtils:
             original_buffer_size = int(sample_rate * (self.frame_duration_ms / 1000.) * self.sample_width)
             resampled_buffer_size = int(self.sample_rate * (self.frame_duration_ms / 1000.) * self.sample_width)
 
-            num_chunks = int(float(len(original_pcm)) / original_buffer_size)
+            num_chunks = int(float(len(resampled_pcm)) / resampled_buffer_size)
             for i in xrange(num_chunks):
                 yield (
                     original_pcm[i * original_buffer_size:(i + 1) * original_buffer_size],
